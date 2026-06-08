@@ -1,0 +1,27 @@
+MARRËVESHJA E LICENCËS SË SOFTUERIT DATAPOS
+
+Duke instaluar këtë softuer, ju pranoni kushtet e mëposhtme:
+
+1. LICENCA E PËRDORIMIT
+   Ky softuer ju jepet me licencë, jo i shitur. Ju keni të drejtë ta përdorni 
+   këtë softuer në përputhje me kushtet e kësaj marrëveshjeje.
+
+2. KUFIZIMET
+   - Nuk lejohet kopjimi, shpërndarja ose shitja e këtij softueri pa leje.
+   - Nuk lejohet modifikimi ose dekompilimi i kodit burimor.
+   - Nuk lejohet heqja e njoftimeve të të drejtave të autorit.
+
+3. GARANCIA
+   Ky softuer ofrohet "siç është" pa asnjë garanci të shprehur ose të nënkuptuar.
+
+4. PËRGJEGJËSIA
+   Në asnjë rast, zhvilluesit nuk do të jenë përgjegjës për asnjë dëm që mund 
+   të rezultojë nga përdorimi i këtij softueri.
+
+5. PËRFUNDIMI
+   Kjo licencë përfundon automatikisht nëse shkelni ndonjë kusht të saj.
+
+© 2024 DataPOS. Të gjitha të drejtat e rezervuara.
+
+Duke klikuar "I Agree" (Pranoj), ju konfirmoni që keni lexuar dhe pranuar 
+kushtet e kësaj marrëveshjeje.

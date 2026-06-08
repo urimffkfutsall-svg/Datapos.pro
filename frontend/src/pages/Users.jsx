@@ -1,0 +1,443 @@
+import React, { useState, useEffect } from 'react';
+import { api } from '../App';
+import { toast } from 'sonner';
+import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
+import { Button } from '../components/ui/button';
+import { Input } from '../components/ui/input';
+import { Label } from '../components/ui/label';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from '../components/ui/dialog';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '../components/ui/select';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '../components/ui/table';
+import { Badge } from '../components/ui/badge';
+import { Avatar, AvatarFallback } from '../components/ui/avatar';
+import {
+  Plus,
+  Edit2,
+  Trash2,
+  Users as UsersIcon,
+  Shield,
+  ShieldCheck,
+  ShieldAlert
+} from 'lucide-react';
+
+const Users = () => {
+  const [users, setUsers] = useState([]);
+  const [branches, setBranches] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [showDialog, setShowDialog] = useState(false);
+  const [editingUser, setEditingUser] = useState(null);
+  const [formData, setFormData] = useState({
+    username: '',
+    password: '',
+    pin: '',
+    full_name: '',
+    role: 'cashier',
+    branch_id: '',
+    is_active: true
+  });
+
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  const loadData = async () => {
+    try {
+      setLoading(true);
+      const [usersRes, branchesRes] = await Promise.all([
+        api.get('/users'),
+        api.get('/branches')
+      ]);
+      setUsers(usersRes.data);
+      setBranches(branchesRes.data);
+    } catch (error) {
+      console.error('Error loading users:', error);
+      toast.error('Gabim gjatë ngarkimit');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const data = {
+        ...formData,
+        branch_id: formData.branch_id || null
+      };
+
+      if (editingUser) {
+        if (!data.password) delete data.password;
+        await api.put(`/users/${editingUser.id}`, data);
+        toast.success('Përdoruesi u përditësua');
+      } else {
+        await api.post('/users', data);
+        toast.success('Përdoruesi u krijua');
+      }
+
+      setShowDialog(false);
+      resetForm();
+      loadData();
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Gabim gjatë ruajtjes');
+    }
+  };
+
+  const handleEdit = (user) => {
+    setEditingUser(user);
+    setFormData({
+      username: user.username,
+      password: '',
+      pin: user.pin || '',
+      full_name: user.full_name,
+      role: user.role,
+      branch_id: user.branch_id || '',
+      is_active: user.is_active
+    });
+    setShowDialog(true);
+  };
+
+  const handleDelete = async (user) => {
+    if (!window.confirm(`Jeni të sigurt që doni të fshini përdoruesin "${user.full_name}"?`)) return;
+
+    try {
+      await api.delete(`/users/${user.id}`);
+      toast.success('Përdoruesi u fshi');
+      loadData();
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Gabim gjatë fshirjes');
+    }
+  };
+
+  const resetForm = () => {
+    setEditingUser(null);
+    setFormData({
+      username: '',
+      password: '',
+      pin: '',
+      full_name: '',
+      role: 'cashier',
+      branch_id: '',
+      is_active: true
+    });
+  };
+
+  const getRoleIcon = (role) => {
+    switch (role) {
+      case 'admin':
+        return <ShieldAlert className="h-4 w-4 text-red-500" />;
+      case 'manager':
+        return <ShieldCheck className="h-4 w-4 text-blue-500" />;
+      default:
+        return <Shield className="h-4 w-4 text-gray-400" />;
+    }
+  };
+
+  const getRoleBadge = (role) => {
+    const styles = {
+      admin: 'bg-red-100 text-red-700',
+      manager: 'bg-blue-100 text-blue-700',
+      cashier: 'bg-gray-100 text-gray-700'
+    };
+    const labels = { admin: 'Admin', manager: 'Menaxher', cashier: 'Arkëtar' };
+    return (
+      <Badge className={styles[role] || styles.cashier}>
+        {labels[role] || role}
+      </Badge>
+    );
+  };
+
+  return (
+    <div className="space-y-6 animate-fade-in" data-testid="users-page">
+      {/* Header */}
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Përdoruesit</h1>
+          <p className="text-gray-500">Menaxho përdoruesit e sistemit</p>
+        </div>
+        <Button
+          className="bg-[#00a79d] hover:bg-[#008f86] gap-2 rounded-xl shadow-md shadow-[#00a79d]/20"
+          onClick={() => {
+            resetForm();
+            setShowDialog(true);
+          }}
+          data-testid="add-user-btn"
+        >
+          <Plus className="h-4 w-4" />
+          Shto Përdorues
+        </Button>
+      </div>
+
+      {/* Stats */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <Card className="border border-gray-200/60 rounded-3xl shadow-sm bg-white/80 backdrop-blur-md">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-500">Total</p>
+                <p className="text-3xl font-bold mt-1">{users.length}</p>
+              </div>
+              <UsersIcon className="h-8 w-8 text-gray-300" />
+            </div>
+          </CardContent>
+        </Card>
+        <Card className="border border-gray-200/60 rounded-3xl shadow-sm bg-white/80 backdrop-blur-md">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-500">Aktiv</p>
+                <p className="text-3xl font-bold mt-1 text-green-600">
+                  {users.filter(u => u.is_active).length}
+                </p>
+              </div>
+              <ShieldCheck className="h-8 w-8 text-green-300" />
+            </div>
+          </CardContent>
+        </Card>
+        <Card className="border border-gray-200/60 rounded-3xl shadow-sm bg-white/80 backdrop-blur-md">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-500">Administratorë</p>
+                <p className="text-3xl font-bold mt-1 text-red-500">
+                  {users.filter(u => u.role === 'admin').length}
+                </p>
+              </div>
+              <ShieldAlert className="h-8 w-8 text-red-300" />
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Users Table */}
+      <Card className="border border-gray-200/60 rounded-3xl shadow-sm bg-white/80 backdrop-blur-md">
+        <CardContent className="p-0">
+          {loading ? (
+            <div className="flex items-center justify-center py-12">
+              <div className="spinner" />
+            </div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow className="bg-[#00a79d]/8 hover:bg-[#00a79d]/8 border-b border-[#00a79d]/15">
+                  <TableHead>Përdoruesi</TableHead>
+                  <TableHead>Username</TableHead>
+                  <TableHead>Roli</TableHead>
+                  <TableHead>Dega</TableHead>
+                  <TableHead className="text-center">Statusi</TableHead>
+                  <TableHead className="text-right">Veprime</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {users.map((user) => {
+                  const branch = branches.find(b => b.id === user.branch_id);
+                  return (
+                    <TableRow key={user.id} className="table-row-hover">
+                      <TableCell>
+                        <div className="flex items-center gap-3">
+                          <Avatar>
+                            <AvatarFallback className="bg-[#00a79d] text-white">
+                              {user.full_name?.charAt(0) || 'U'}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div>
+                            <p className="font-medium">{user.full_name}</p>
+                            <p className="text-xs text-gray-500">
+                              {new Date(user.created_at).toLocaleDateString('sq-AL')}
+                            </p>
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell className="font-mono text-sm">{user.username}</TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          {getRoleIcon(user.role)}
+                          {getRoleBadge(user.role)}
+                        </div>
+                      </TableCell>
+                      <TableCell>{branch?.name || '-'}</TableCell>
+                      <TableCell className="text-center">
+                        <Badge className={user.is_active ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}>
+                          {user.is_active ? 'Aktiv' : 'Joaktiv'}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex justify-end gap-1">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleEdit(user)}
+                            data-testid={`edit-user-${user.id}`}
+                          >
+                            <Edit2 className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="text-red-500 hover:text-red-700"
+                            onClick={() => handleDelete(user)}
+                            data-testid={`delete-user-${user.id}`}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Add/Edit User Dialog */}
+      <Dialog open={showDialog} onOpenChange={setShowDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{editingUser ? 'Modifiko Përdoruesin' : 'Shto Përdorues të Ri'}</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleSubmit}>
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <Label>Emri i Plotë</Label>
+                <Input
+                  value={formData.full_name}
+                  onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
+                  placeholder="Emri Mbiemri"
+                  required
+                  data-testid="user-name-input"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label>Username</Label>
+                <Input
+                  type="text"
+                  value={formData.username}
+                  onChange={(e) => setFormData({ ...formData, username: e.target.value })}
+                  placeholder="perdoruesi123"
+                  required
+                  data-testid="user-username-input"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label>{editingUser ? 'Fjalëkalimi i Ri (opsional)' : 'Fjalëkalimi'}</Label>
+                <Input
+                  type="password"
+                  value={formData.password}
+                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                  placeholder="********"
+                  required={!editingUser}
+                  data-testid="user-password-input"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label>PIN (për kyçje të shpejtë)</Label>
+                <Input
+                  type="text"
+                  value={formData.pin}
+                  onChange={(e) => {
+                    // Only allow numbers and max 6 digits
+                    const value = e.target.value.replace(/\D/g, '').slice(0, 6);
+                    setFormData({ ...formData, pin: value });
+                  }}
+                  placeholder="1234"
+                  maxLength={6}
+                  data-testid="user-pin-input"
+                />
+                <p className="text-xs text-gray-500">PIN numerik 1-6 shifra për kyçje nga tastiera</p>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Roli</Label>
+                <Select
+                  value={formData.role}
+                  onValueChange={(value) => setFormData({ ...formData, role: value })}
+                >
+                  <SelectTrigger data-testid="user-role-select">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="admin">Administrator</SelectItem>
+                    <SelectItem value="manager">Menaxher</SelectItem>
+                    <SelectItem value="cashier">Arkëtar</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {branches.length > 0 && (
+                <div className="space-y-2">
+                  <Label>Dega</Label>
+                  <Select
+                    value={formData.branch_id || 'all'}
+                    onValueChange={(value) => setFormData({ ...formData, branch_id: value === 'all' ? '' : value })}
+                  >
+                    <SelectTrigger data-testid="user-branch-select">
+                      <SelectValue placeholder="Zgjidh degën" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Të gjitha</SelectItem>
+                      {branches.map((branch) => (
+                        <SelectItem key={branch.id} value={branch.id}>{branch.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+
+              {editingUser && (
+                <div className="space-y-2">
+                  <Label>Statusi</Label>
+                  <Select
+                    value={formData.is_active ? 'active' : 'inactive'}
+                    onValueChange={(value) => setFormData({ ...formData, is_active: value === 'active' })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="active">Aktiv</SelectItem>
+                      <SelectItem value="inactive">Joaktiv</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+            </div>
+
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={() => setShowDialog(false)}>
+                Anulo
+              </Button>
+              <Button type="submit" className="bg-[#00a79d] hover:bg-[#008f86] rounded-xl shadow-md shadow-[#00a79d]/20" data-testid="save-user-btn">
+                {editingUser ? 'Ruaj Ndryshimet' : 'Krijo Përdoruesin'}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+};
+
+export default Users;

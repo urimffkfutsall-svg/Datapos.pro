@@ -1,0 +1,26 @@
+{
+  "short_name": "DataPOS",
+  "name": "DataPOS - Point of Sale",
+  "description": "Point of Sale System - Sistem për menaxhimin e shitjeve",
+  "icons": [
+    {
+      "src": "https://customer-assets.emergentagent.com/job_retailsys-1/artifacts/9i1h1bxb_logo%20icon.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "https://customer-assets.emergentagent.com/job_retailsys-1/artifacts/9i1h1bxb_logo%20icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "start_url": "/#/login",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "landscape",
+  "theme_color": "#00a79d",
+  "background_color": "#f3f4f6",
+  "prefer_related_applications": false
+}

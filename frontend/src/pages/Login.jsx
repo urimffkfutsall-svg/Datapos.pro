@@ -1,0 +1,395 @@
+import React, { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth, useTenant } from '../App';
+import { Button } from '../components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '../components/ui/dialog';
+import {
+  Delete, CornerDownLeft, User, Lock, Eye, EyeOff, ArrowLeft,
+  AlertTriangle, CreditCard, Phone, Keyboard, X,
+  ShoppingCart, Package, Boxes, BarChart3, Building2, Users as UsersIcon, FileSearch
+} from 'lucide-react';
+
+const services = [
+  { icon: ShoppingCart, title: 'Pikë Shitje (POS)',  desc: 'Kasa moderne me PIN dhe printim faturash' },
+  { icon: Package,      title: 'Produkte',           desc: 'Menaxhim i plotë i katalogut' },
+  { icon: Boxes,        title: 'Stoku',              desc: 'Kontrolli i inventarit në kohë reale' },
+  { icon: BarChart3,    title: 'Raporte & Shitje',   desc: 'Statistika dhe analiza biznesi' },
+  { icon: Building2,    title: 'Multi-Degë',         desc: 'Menaxho disa degë nga një vend' },
+  { icon: UsersIcon,    title: 'Përdorues & Role',   desc: 'Admin, Manager, Kasier' },
+  { icon: CreditCard,   title: 'Borxhe & Pagesa',    desc: 'Gjurmim borxhesh dhe pagesash' },
+  { icon: FileSearch,   title: 'Audit Logs',         desc: 'Historik i plotë i veprimeve' },
+];
+
+const keyboardRows = [
+  ['1','2','3','4','5','6','7','8','9','0'],
+  ['q','w','e','r','t','y','u','i','o','p'],
+  ['a','s','d','f','g','h','j','k','l'],
+  ['z','x','c','v','b','n','m','@','.'],
+];
+
+const Login = () => {
+  const [pin, setPin] = useState('');
+  const [showAdminLogin, setShowAdminLogin] = useState(false);
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [showExpiredModal, setShowExpiredModal] = useState(false);
+  const [expiredDays, setExpiredDays] = useState(0);
+  const [showKeyboard, setShowKeyboard] = useState(false);
+  const [activeField, setActiveField] = useState('username');
+  const [capsLock, setCapsLock] = useState(false);
+  const { login } = useAuth();
+  const navigate = useNavigate();
+
+  const tenantContext = useTenant();
+  const tenant = tenantContext?.tenant;
+  const tenantLoading = tenantContext?.tenantLoading;
+
+  const logoSrc = tenant?.logo_url || '/logo-icon.png';
+  const brandName = tenant?.company_name || tenant?.name || 'DataPOS';
+
+  const handleSubscriptionExpired = (errorDetail) => {
+    if (errorDetail && errorDetail.startsWith('SUBSCRIPTION_EXPIRED|')) {
+      const days = parseInt(errorDetail.split('|')[1]) || 0;
+      setExpiredDays(days);
+      setShowExpiredModal(true);
+      return true;
+    }
+    return false;
+  };
+
+  const handlePinLogin = async () => {
+    if (pin.length < 1) return;
+    setLoading(true);
+    setError('');
+    const result = await login(pin, pin);
+    setLoading(false);
+    if (result.success) {
+      navigate('/pos');
+    } else {
+      if (result.status === 402 && handleSubscriptionExpired(result.error)) {
+        setPin('');
+        return;
+      }
+      setPin('');
+      setError('PIN i gabuar. Provoni përsëri.');
+    }
+  };
+
+  const handleAdminLogin = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError('');
+    const result = await login(username, password);
+    setLoading(false);
+    if (result.success) {
+      navigate('/dashboard');
+    } else {
+      if (result.status === 402 && handleSubscriptionExpired(result.error)) {
+        return;
+      }
+      setError(result.error || 'Username ose fjalëkalimi i gabuar');
+    }
+  };
+
+  const addDigit = useCallback((digit) => {
+    if (pin.length < 6) setPin(prev => prev + digit);
+  }, [pin]);
+
+  const removeDigit = useCallback(() => {
+    setPin(prev => prev.slice(0, -1));
+  }, []);
+
+  const clearPin = () => setPin('');
+
+  const handleVirtualKey = (key) => {
+    if (activeField === 'password') setPassword(prev => prev + key);
+    else setUsername(prev => prev + key);
+  };
+
+  const handleVirtualBackspace = () => {
+    if (activeField === 'password') setPassword(prev => prev.slice(0, -1));
+    else setUsername(prev => prev.slice(0, -1));
+  };
+
+  useEffect(() => {
+    if (showAdminLogin) return;
+    const handleKeyDown = (e) => {
+      const ae = document.activeElement;
+      if (ae && (ae.tagName === 'INPUT' || ae.tagName === 'TEXTAREA')) return;
+      if (e.key >= '0' && e.key <= '9') addDigit(e.key);
+      else if (e.key === 'Backspace') { e.preventDefault(); removeDigit(); }
+      else if (e.key === 'Enter' && pin.length >= 1) handlePinLogin();
+      else if (e.key === 'Escape') clearPin();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [showAdminLogin, pin, addDigit, removeDigit]);
+
+  const numpadButtons = ['1','2','3','4','5','6','7','8','9','clear','0','delete'];
+
+  // Pjesa e majtë — e njëjta në të dyja pamjet
+  const LeftPanel = (
+    <div className="space-y-8">
+      <div className="flex items-center gap-5">
+        <img src={logoSrc} alt={brandName} className="h-28 md:h-32 object-contain" onError={(e) => e.target.style.display = 'none'} />
+        <div>
+          <h1 className="text-5xl md:text-6xl font-bold text-[#00a79d] tracking-tight">{brandName}</h1>
+          <p className="text-base text-gray-500 mt-1">Sistemi i mençur i pikës së shitjes</p>
+        </div>
+      </div>
+
+      <div>
+        <h2 className="text-xl font-semibold text-gray-800 mb-4">Shërbimet që ofron aplikacioni</h2>
+        <ul className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {services.map(({ icon: Icon, title, desc }) => (
+            <li key={title} className="flex items-start gap-3 p-3 rounded-2xl bg-white border border-gray-200 hover:border-[#00a79d] hover:shadow-md transition-all">
+              <div className="shrink-0 w-10 h-10 rounded-xl bg-[#00a79d]/10 text-[#00a79d] flex items-center justify-center">
+                <Icon className="w-5 h-5" />
+              </div>
+              <div className="min-w-0">
+                <p className="font-medium text-gray-800 text-sm">{title}</p>
+                <p className="text-xs text-gray-500 leading-snug">{desc}</p>
+              </div>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-gray-100 to-gray-200 p-4">
+      <div className="fixed top-0 left-0 right-0 h-1 bg-[#00a79d]" />
+
+      {/* PIN LOGIN VIEW — Layout 2 kolonë */}
+      {!tenantLoading && !showAdminLogin && (
+        <div className="w-full max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center">
+          {LeftPanel}
+
+          {/* RIGHT: Karton me PIN keypad */}
+          <div className="flex justify-center lg:justify-end">
+            <div className="w-full max-w-md bg-white rounded-[2rem] shadow-2xl p-8 md:p-10">
+              <div className="flex flex-col items-center justify-center mb-6">
+                <h2 className="text-2xl font-bold text-gray-900">Kyçje e Shpejtë</h2>
+                <p className="text-sm text-gray-500 mt-1">Shkruaj kodin PIN për të hyrë</p>
+              </div>
+
+              <div className="mb-6">
+                <div className="w-full h-16 rounded-2xl border-2 border-[#00a79d] bg-gray-50 flex items-center justify-center text-3xl font-bold tracking-[0.5em] text-[#00a79d]">
+                  {pin ? '•'.repeat(pin.length) : <span className="text-gray-300 text-lg tracking-normal">PIN</span>}
+                </div>
+                <p className="text-center text-sm text-gray-500 mt-2">1-6 shifra</p>
+              </div>
+
+              <div className="grid grid-cols-3 gap-3 mb-5">
+                {numpadButtons.map((btn) => {
+                  if (btn === 'clear') return (
+                    <button key={btn} onClick={clearPin} className="h-16 rounded-2xl bg-gray-100 hover:bg-gray-200 active:bg-gray-300 transition-all duration-150 flex items-center justify-center text-gray-500 font-medium">C</button>
+                  );
+                  if (btn === 'delete') return (
+                    <button key={btn} onClick={removeDigit} className="h-16 rounded-2xl bg-gray-100 hover:bg-gray-200 active:bg-gray-300 transition-all duration-150 flex items-center justify-center">
+                      <Delete className="h-6 w-6 text-gray-600" />
+                    </button>
+                  );
+                  return (
+                    <button key={btn} onClick={() => addDigit(btn)} className="h-16 rounded-2xl bg-gray-50 hover:bg-gray-100 active:bg-gray-200 border border-gray-200 transition-all duration-150 text-2xl font-semibold text-gray-700">{btn}</button>
+                  );
+                })}
+              </div>
+
+              {error && (
+                <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-2xl text-sm text-center mb-4">{error}</div>
+              )}
+
+              <Button onClick={handlePinLogin} disabled={pin.length < 1 || loading} className="w-full h-14 bg-[#00a79d] hover:bg-[#008f86] text-white font-semibold rounded-2xl shadow-md transition-all duration-200 text-lg flex items-center justify-center gap-2">
+                {loading ? <div className="spinner border-white border-t-transparent" /> : (<><CornerDownLeft className="h-5 w-5" />KYÇU</>)}
+              </Button>
+
+              <div className="mt-6 pt-6 border-t border-gray-100">
+                <button onClick={() => { setShowAdminLogin(true); setError(''); }} className="w-full text-center text-[#00a79d] hover:text-[#008f86] font-medium transition-colors flex items-center justify-center gap-2">
+                  <User className="h-4 w-4" />
+                  Kyçu si Administrator
+                </button>
+              </div>
+
+              <div className="mt-4 text-center text-xs text-gray-400">
+                Përdor tastet 0-9 • Backspace • Enter
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ADMIN LOGIN VIEW — Layout 2 kolonë */}
+      {!tenantLoading && showAdminLogin && (
+        <div className="w-full max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center">
+          {LeftPanel}
+
+          <div className="flex justify-center lg:justify-end">
+            <div className="w-full max-w-md bg-white rounded-[2rem] shadow-2xl p-8 md:p-10">
+              <div className="flex items-center justify-between mb-6">
+                <button onClick={() => { setShowAdminLogin(false); setUsername(''); setPassword(''); setError(''); setShowKeyboard(false); }} className="flex items-center gap-2 text-gray-500 hover:text-[#00a79d] transition-colors">
+                  <ArrowLeft className="h-4 w-4" />
+                  Kthehu
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowKeyboard(v => !v)}
+                  title="Tastiera në ekran"
+                  className={showKeyboard
+                    ? 'flex items-center justify-center h-10 w-10 rounded-xl bg-[#00a79d] text-white shadow-md shadow-[#00a79d]/30 transition-all'
+                    : 'flex items-center justify-center h-10 w-10 rounded-xl bg-gray-100 text-gray-500 hover:bg-gray-200 transition-all'}
+                >
+                  <Keyboard className="h-5 w-5" />
+                </button>
+              </div>
+
+              <div className="flex flex-col items-center justify-center mb-8">
+                <h2 className="text-2xl font-bold text-gray-900">Kyçu si Administrator</h2>
+                <p className="text-sm text-gray-500 mt-1">Vendos kredencialet për të vazhduar</p>
+              </div>
+
+              <form onSubmit={handleAdminLogin} className="space-y-5">
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <User className="h-5 w-5 text-gray-400" />
+                  </div>
+                  <input
+                    type="text"
+                    placeholder="Username"
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                    onFocus={() => setActiveField('username')}
+                    className="w-full pl-10 h-12 bg-gray-50 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-[#00a79d] focus:border-[#00a79d] outline-none transition-all"
+                    required
+                    autoFocus
+                  />
+                </div>
+
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <Lock className="h-5 w-5 text-[#00a79d]" />
+                  </div>
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    placeholder="Fjalëkalimi"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    onFocus={() => setActiveField('password')}
+                    className="w-full pl-10 pr-10 h-12 bg-gray-50 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-[#00a79d] focus:border-[#00a79d] outline-none transition-all"
+                    required
+                  />
+                  <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute inset-y-0 right-0 pr-3 flex items-center">
+                    {showPassword ? <EyeOff className="h-5 w-5 text-gray-400" /> : <Eye className="h-5 w-5 text-gray-400" />}
+                  </button>
+                </div>
+
+                {error && (
+                  <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-2xl text-sm text-center">{error}</div>
+                )}
+
+                <Button type="submit" disabled={loading} className="w-full h-12 bg-[#00a79d] hover:bg-[#008f86] text-white font-semibold rounded-2xl shadow-md transition-all duration-200">
+                  {loading ? <div className="spinner border-white border-t-transparent" /> : 'KYÇU'}
+                </Button>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Tastiera virtuale on-screen */}
+      {showKeyboard && showAdminLogin && (
+        <div className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-gray-200 shadow-2xl p-3 animate-slide-in">
+          <div className="max-w-3xl mx-auto">
+            <div className="flex items-center justify-between mb-2 px-1">
+              <span className="text-xs font-medium text-gray-500">
+                Tastiera • {activeField === 'password' ? 'Fjalëkalimi' : 'Username'}
+              </span>
+              <button type="button" onClick={() => setShowKeyboard(false)} className="flex items-center gap-1 text-gray-400 hover:text-gray-700 text-xs font-medium">
+                <X className="h-4 w-4" />
+                Mbyll
+              </button>
+            </div>
+
+            {keyboardRows.map((row, ri) => (
+              <div key={ri} className="flex justify-center gap-1.5 mb-1.5">
+                {row.map((k) => (
+                  <button
+                    key={k}
+                    type="button"
+                    onClick={() => handleVirtualKey(capsLock ? k.toUpperCase() : k)}
+                    className="h-11 min-w-[2.4rem] px-2 rounded-lg bg-gray-100 hover:bg-[#00a79d]/10 active:bg-[#00a79d]/20 text-gray-700 font-medium transition-all"
+                  >
+                    {capsLock ? k.toUpperCase() : k}
+                  </button>
+                ))}
+              </div>
+            ))}
+
+            <div className="flex justify-center gap-1.5">
+              <button
+                type="button"
+                onClick={() => setCapsLock(v => !v)}
+                className={capsLock
+                  ? 'h-11 px-5 rounded-lg bg-[#00a79d] text-white font-medium transition-all'
+                  : 'h-11 px-5 rounded-lg bg-gray-200 text-gray-600 hover:bg-gray-300 font-medium transition-all'}
+              >
+                Shift
+              </button>
+              <button type="button" onClick={() => handleVirtualKey(' ')} className="h-11 flex-1 max-w-md rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-500 font-medium transition-all">
+                Hapësirë
+              </button>
+              <button type="button" onClick={handleVirtualBackspace} className="h-11 px-5 rounded-lg bg-gray-200 hover:bg-gray-300 flex items-center justify-center transition-all">
+                <Delete className="h-5 w-5 text-gray-600" />
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Subscription Expired Modal */}
+      <Dialog open={showExpiredModal} onOpenChange={setShowExpiredModal}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-red-600">
+              <AlertTriangle className="h-6 w-6" />
+              Abonimi Ka Skaduar
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="flex justify-center">
+              <div className="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center">
+                <CreditCard className="h-10 w-10 text-red-500" />
+              </div>
+            </div>
+            <div className="text-center space-y-2">
+              <p className="text-lg font-semibold text-gray-900">Abonimi juaj ka skaduar!</p>
+              <p className="text-sm text-gray-600">
+                {expiredDays > 0 ? `Abonimi juaj ka skaduar para ${expiredDays} ditëve.` : 'Abonimi juaj ka skaduar sot.'}
+              </p>
+              <p className="text-sm text-gray-500">Për të vazhduar përdorimin e sistemit, kontaktoni administratorin për të rinovuar abonimin.</p>
+            </div>
+            <div className="bg-gray-50 rounded-xl p-4 space-y-2">
+              <p className="text-sm font-medium text-gray-700 text-center">Kontaktoni për rinovim:</p>
+              <div className="flex items-center justify-center gap-2 text-[#00a79d]">
+                <Phone className="h-4 w-4" />
+                <span className="font-medium">+383 44 123 456</span>
+              </div>
+            </div>
+            <Button onClick={() => setShowExpiredModal(false)} variant="outline" className="w-full">Mbyll</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+};
+
+export default Login;

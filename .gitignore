@@ -1,0 +1,29 @@
+# dependencies
+node_modules/
+frontend/node_modules/
+# builds
+build/
+dist/
+frontend/build/
+frontend/dist/
+frontend/dist_electron/
+# python
+**/__pycache__/
+*.pyc
+backend/venv/
+backend/.venv/
+venv/
+.venv/
+# env / sekrete (vendosen ne Render/Vercel, jo ne git)
+.env
+backend/.env
+frontend/.env
+*.env.local
+# backup-et tona
+*.bak*
+*.backup
+# misc
+.DS_Store
+*.log
+.vscode/
+.idea/

@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="sq">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DataPOS - Offline</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #00a79d 0%, #008f86 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+        }
+        .container {
+            text-align: center;
+            padding: 40px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            max-width: 500px;
+        }
+        .icon {
+            font-size: 80px;
+            margin-bottom: 20px;
+        }
+        h1 {
+            font-size: 28px;
+            margin-bottom: 15px;
+        }
+        p {
+            font-size: 16px;
+            opacity: 0.9;
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+        .retry-btn {
+            background: #fff;
+            color: #00a79d;
+            border: none;
+            padding: 15px 40px;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .retry-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+        .retry-btn:active {
+            transform: translateY(0);
+        }
+        .tips {
+            margin-top: 30px;
+            font-size: 14px;
+            opacity: 0.8;
+        }
+        .tips li {
+            margin: 8px 0;
+            list-style: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="icon">📡</div>
+        <h1>Nuk ka lidhje interneti</h1>
+        <p>
+            DataPOS kërkon lidhje interneti për të funksionuar. 
+            Ju lutemi kontrolloni lidhjen tuaj dhe provoni përsëri.
+        </p>
+        <button class="retry-btn" onclick="window.location.reload()">
+            🔄 Provo Përsëri
+        </button>
+        <ul class="tips">
+            <li>✓ Kontrolloni kabllot e rrjetit</li>
+            <li>✓ Verifikoni lidhjen WiFi</li>
+            <li>✓ Kontaktoni administratorin e sistemit</li>
+        </ul>
+    </div>
+</body>
+</html>
