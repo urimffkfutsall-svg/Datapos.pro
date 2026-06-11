@@ -225,6 +225,10 @@ const AuthProvider = ({ children }) => {
     toast.info('U Ã§kyÃ§Ã«t me sukses');
   }, []);
 
+  useEffect(() => {
+    updatePageTitle(user);
+  }, [user]);
+
   const value = { user, login, logout, loading, isAuthenticated: !!user };
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
