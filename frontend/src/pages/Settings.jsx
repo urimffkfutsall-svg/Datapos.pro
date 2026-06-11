@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { api } from '../App';
+import CouponsTab from '../components/CouponsTab';
 import { toast } from 'sonner';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../components/ui/card';
 import { Button } from '../components/ui/button';
@@ -532,6 +533,10 @@ const Settings = () => {
           <TabsTrigger value="tvsh" className="data-[state=active]:bg-[#00a79d] data-[state=active]:text-white">
             <Percent className="h-4 w-4 mr-2" />
             TVSH
+          </TabsTrigger>
+          <TabsTrigger value="kuponet" className="data-[state=active]:bg-[#00a79d] data-[state=active]:text-white">
+            <Percent className="h-4 w-4 mr-2" />
+            Kuponet
           </TabsTrigger>
         </TabsList>
 
@@ -1483,6 +1488,9 @@ const Settings = () => {
               </Table>
             </CardContent>
           </Card>
+        </TabsContent>
+        <TabsContent value="kuponet">
+          <CouponsTab />
         </TabsContent>
       </Tabs>
 
