@@ -42,14 +42,22 @@ if (typeof window !== 'undefined') {
   setTimeout(removeEmergentBadge, 2000);
 }
 
-// Update page title based on subdomain or tenant
-const updatePageTitle = (userData) => {
+// Check if hostname is a real production tenant subdomain (e.g., firma.datapos.pro)
+const isProductionTenantHost = () => {
   const hostname = window.location.hostname;
-  const parts = hostname.split('.');
-  if (parts.length > 2 && parts[0] !== 'www' && parts[0] !== 'app') {
-    const subdomain = parts[0];
+  return /^[a-z0-9-]+\.datapos\.pro$/i.test(hostname);
+};
+
+// Update page title based on tenant/user (subdomain only on production hosts)
+const updatePageTitle = (userData) => {
+  if (isProductionTenantHost()) {
+    const subdomain = window.location.hostname.split('.')[0];
     const companyName = subdomain.charAt(0).toUpperCase() + subdomain.slice(1);
-    document.title = `${companyName} - POS`;
+    document.title = `DataPOS - ${companyName}`;
+  } else if (userData?.tenant?.company_name) {
+    document.title = `DataPOS - ${userData.tenant.company_name}`;
+  } else if (userData?.company_name) {
+    document.title = `DataPOS - ${userData.company_name}`;
   } else if (userData?.role === 'super_admin') {
     document.title = 'DataPOS - Admin';
   } else {
@@ -58,30 +66,25 @@ const updatePageTitle = (userData) => {
 };
 
 if (typeof window !== 'undefined') {
-  const hostname = window.location.hostname;
-  const parts = hostname.split('.');
-  if (parts.length > 2 && parts[0] !== 'www' && parts[0] !== 'app') {
-    const subdomain = parts[0];
+  if (isProductionTenantHost()) {
+    const subdomain = window.location.hostname.split('.')[0];
     const companyName = subdomain.charAt(0).toUpperCase() + subdomain.slice(1);
-    document.title = `${companyName} - POS`;
+    document.title = `DataPOS - ${companyName}`;
+  } else {
+    document.title = 'DataPOS';
   }
 }
-
 // Backend URL
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || 'https://www.datapos.pro';
 const API = `${BACKEND_URL}/api`;
 
-// Get subdomain from current URL
+// Get subdomain from current URL (only for production tenant hosts)
 const getSubdomain = () => {
   const hostname = window.location.hostname;
+  if (!/^[a-z0-9-]+\.datapos\.pro$/i.test(hostname)) return null;
   const parts = hostname.split('.');
-  if (parts.length > 2 && parts[0] !== 'www' && parts[0] !== 'app' && parts[0] !== 'localhost') {
-    return parts[0].toLowerCase();
-  }
-  if (parts.length > 3 && parts[0] !== 'www' && parts[0] !== 'app') {
-    return parts[0].toLowerCase();
-  }
-  return null;
+  if (parts[0] === 'www' || parts[0] === 'app') return null;
+  return parts[0].toLowerCase();
 };
 
 // Contexts
