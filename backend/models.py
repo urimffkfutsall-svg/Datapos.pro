@@ -624,3 +624,56 @@ class CommentTemplateResponse(BaseModel):
     is_default: bool
     is_active: bool
     created_at: str
+
+# ============================
+# Coupon / Discount Codes
+# ============================
+class CouponBase(BaseModel):
+    code: str = Field(..., min_length=2, max_length=50)
+    name: str = Field(..., min_length=1, max_length=200)
+    discount_type: str = "percent"  # "percent" ose "fixed"
+    discount_value: float = Field(..., ge=0)
+    active: bool = True
+    valid_from: Optional[datetime] = None
+    valid_until: Optional[datetime] = None
+    max_uses: Optional[int] = Field(None, ge=1)
+    min_purchase_amount: Optional[float] = Field(None, ge=0)
+
+
+class CouponCreate(CouponBase):
+    pass
+
+
+class CouponUpdate(BaseModel):
+    code: Optional[str] = Field(None, min_length=2, max_length=50)
+    name: Optional[str] = Field(None, min_length=1, max_length=200)
+    discount_type: Optional[str] = None
+    discount_value: Optional[float] = Field(None, ge=0)
+    active: Optional[bool] = None
+    valid_from: Optional[datetime] = None
+    valid_until: Optional[datetime] = None
+    max_uses: Optional[int] = Field(None, ge=1)
+    min_purchase_amount: Optional[float] = Field(None, ge=0)
+
+
+class Coupon(CouponBase):
+    id: str
+    tenant_id: str
+    used_count: int = 0
+    created_at: datetime
+    updated_at: datetime
+
+
+class CouponValidateRequest(BaseModel):
+    code: str
+    subtotal: Optional[float] = None
+
+
+class CouponValidateResponse(BaseModel):
+    valid: bool
+    code: Optional[str] = None
+    name: Optional[str] = None
+    discount_type: Optional[str] = None
+    discount_value: Optional[float] = None
+    discount_amount: Optional[float] = None
+    error: Optional[str] = None
