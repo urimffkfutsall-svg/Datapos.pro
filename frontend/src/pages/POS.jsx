@@ -1828,19 +1828,20 @@ const POS = () => {
                         </TableCell>
                         <TableCell className="text-right text-gray-600">{`\u20AC${item.unit_price.toFixed(2)}`}</TableCell>
                         <TableCell>
-                          {canEdit ? (
+                          <div className="flex items-center justify-center gap-1">
                             <Input
                               type="number"
                               min="0"
                               max="100"
+                              step="1"
                               value={item.discount_percent}
                               onChange={(e) => updateDiscount(item.product_id, e.target.value)}
                               onClick={(e) => e.stopPropagation()}
-                              className="w-16 h-8 text-center rounded-lg"
+                              className="w-16 h-8 text-center rounded-lg border-[#00a79d]/30 focus:border-[#00a79d]"
+                              title="Zbritja ne perqindje"
                             />
-                          ) : (
-                            <span className="text-center">{item.discount_percent}%</span>
-                          )}
+                            <span className="text-xs text-gray-500 font-semibold">%</span>
+                          </div>
                         </TableCell>
                         <TableCell className="text-center text-gray-600">{item.vat_percent}</TableCell>
                         <TableCell className="text-right text-gray-600">{`\u20AC${(item.unit_price * (1 - item.discount_percent / 100) * (1 + item.vat_percent / 100)).toFixed(2)}`}</TableCell>
