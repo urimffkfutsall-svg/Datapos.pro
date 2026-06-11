@@ -15,8 +15,11 @@ from auth import get_current_user, get_tenant_filter
 router = APIRouter(prefix="/upload", tags=["Upload"])
 
 # Directory for storing uploaded files
-UPLOAD_DIR = Path("/app/uploads")
-UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
+UPLOAD_DIR = Path(os.environ.get("UPLOAD_DIR", "/tmp/uploads"))
+try:
+    UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
+except Exception:
+    pass
 
 ALLOWED_EXTENSIONS = {'.png', '.jpg', '.jpeg', '.gif', '.webp'}
 MAX_FILE_SIZE = 5 * 1024 * 1024  # 5MB
