@@ -51,6 +51,9 @@ const Products = () => {
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [showDialog, setShowDialog] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
+  const [stockAdjustQty, setStockAdjustQty] = useState('');
+  const [stockAdjustReason, setStockAdjustReason] = useState('');
+  const [stockAdjustLoading, setStockAdjustLoading] = useState(false);
   const importInputRef = useRef(null);
   const [formData, setFormData] = useState({
     name: '',
@@ -87,6 +90,30 @@ const Products = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [formData.is_package, formData.sale_price, formData.units_per_package]);
 
+const handleStockAdjust = async (type) => {
+  if (!editingProduct) return;
+  const qty = parseFloat(stockAdjustQty);
+  if (!qty || qty <= 0) { toast.error('Vendos një sasi të vlefshme'); return; }
+  if (!stockAdjustReason.trim()) { toast.error('Shkruaj arsyen e ndryshimit'); return; }
+  try {
+    setStockAdjustLoading(true);
+    await api.post('/stock/movements', {
+      product_id: editingProduct.id,
+      movement_type: type,
+      quantity: qty,
+      reason: stockAdjustReason.trim(),
+      branch_id: editingProduct.branch_id || null,
+    });
+    toast.success(type === 'in' ? '+' + qty + ' u shtua në stok' : '-' + qty + ' u hoq nga stoku');
+    setStockAdjustQty('');
+    setStockAdjustReason('');
+    await loadData();
+  } catch (err) {
+    toast.error(err.response?.data?.detail || 'Gabim gjatë ndryshimit të stokut');
+  } finally {
+    setStockAdjustLoading(false);
+  }
+};
   const loadData = async () => {
     try {
       setLoading(true);
@@ -312,6 +339,8 @@ const Products = () => {
 
   const resetForm = () => {
     setEditingProduct(null);
+    setStockAdjustQty('');
+    setStockAdjustReason('');
     setFormData({
       name: '',
       barcode: '',
@@ -764,6 +793,33 @@ const Products = () => {
                   </div>
                 )}
               </div>
+{editingProduct && (
+  <div className="space-y-3 md:col-span-2 rounded-2xl border border-amber-200 bg-amber-50/40 p-4">
+    <div className="flex items-center gap-2 text-sm font-semibold text-amber-900">
+      <Boxes className="h-4 w-4" />
+      Modifiko Stokun
+    </div>
+    <p className="text-xs text-gray-600">Stoku aktual: <strong>{editingProduct.current_stock ?? 0}</strong></p>
+    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+      <div className="space-y-1">
+        <Label htmlFor="stock_adjust_qty">Sasia</Label>
+        <Input id="stock_adjust_qty" type="number" step="1" min="1" value={stockAdjustQty} onChange={(e) => setStockAdjustQty(e.target.value)} placeholder="p.sh. 10" />
+      </div>
+      <div className="space-y-1">
+        <Label htmlFor="stock_adjust_reason">Arsyeja</Label>
+        <Input id="stock_adjust_reason" type="text" value={stockAdjustReason} onChange={(e) => setStockAdjustReason(e.target.value)} placeholder="p.sh. Furnizim, Kthim, Dëmtim" />
+      </div>
+    </div>
+    <div className="flex gap-2 pt-1">
+      <Button type="button" onClick={() => handleStockAdjust('in')} disabled={stockAdjustLoading} className="bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl flex-1">
+        + Shto në stok
+      </Button>
+      <Button type="button" onClick={() => handleStockAdjust('out')} disabled={stockAdjustLoading} className="bg-red-500 hover:bg-red-600 text-white rounded-xl flex-1">
+        − Hiq nga stoku
+      </Button>
+    </div>
+  </div>
+)}
             </div>
 
             <DialogFooter>
