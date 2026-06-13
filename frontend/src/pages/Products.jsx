@@ -75,17 +75,17 @@ const Products = () => {
     loadData();
   }, [categoryFilter]);
 
-  // Llogarit automatikisht çmimin për copë kur produkti është pako
+  // Llogarit automatikisht çmimin e pakos: package_price = units × sale_price
   useEffect(() => {
     if (!formData.is_package) return;
-    const pp = parseFloat(formData.package_price);
+    const sp = parseFloat(formData.sale_price);
     const u = parseFloat(formData.units_per_package);
-    if (pp > 0 && u > 0) {
-      const perUnit = (pp / u).toFixed(2);
-      setFormData((prev) => (prev.sale_price === perUnit ? prev : { ...prev, sale_price: perUnit }));
+    if (sp > 0 && u > 0) {
+      const total = (sp * u).toFixed(2);
+      setFormData((prev) => (prev.package_price === total ? prev : { ...prev, package_price: total }));
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [formData.is_package, formData.package_price, formData.units_per_package]);
+  }, [formData.is_package, formData.sale_price, formData.units_per_package]);
 
   const loadData = async () => {
     try {
@@ -753,25 +753,13 @@ const Products = () => {
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="package_price">Çmimi i Pakos (€)</Label>
-                      <Input
-                        id="package_price"
-                        type="number"
-                        step="0.01"
-                        value={formData.package_price}
-                        onChange={(e) => setFormData({ ...formData, package_price: e.target.value })}
-                        placeholder="0.00"
-                      />
+                      <Label>Çmimi i Pakos (€) — automatik</Label>
+                      <div className="flex items-center rounded-xl bg-[#00a79d]/10 border border-[#00a79d]/20 px-4 h-10">
+                        <span className="text-lg font-bold text-[#00a79d]">€{formData.package_price || '0.00'}</span>
+                      </div>
                     </div>
                     <div className="sm:col-span-2">
-                      {perUnitPreview ? (
-                        <div className="flex items-center justify-between rounded-xl bg-[#00a79d]/10 border border-[#00a79d]/20 px-4 py-3">
-                          <span className="text-sm text-gray-600">Çmimi për copë (llogaritet automatikisht)</span>
-                          <span className="text-lg font-bold text-[#00a79d]">€{perUnitPreview}</span>
-                        </div>
-                      ) : (
-                        <p className="text-xs text-gray-400">Shëno sasinë dhe çmimin e pakos për të parë çmimin për copë.</p>
-                      )}
+                      <p className="text-xs text-gray-500">Çmimi i pakos llogaritet automatikisht: <strong>Sa copë × Çmimi i Shitjes</strong>. Shembull: 12 × €4 = €48.</p>
                     </div>
                   </div>
                 )}
