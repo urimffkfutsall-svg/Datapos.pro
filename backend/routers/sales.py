@@ -89,6 +89,52 @@ async def create_sale(sale_data: SaleCreate, current_user: dict = Depends(get_cu
         await db.stock_movements.insert_one(mov_doc)
     
     grand_total = subtotal - total_discount + total_vat
+    # Apply coupon if provided
+    coupon_code = None
+    coupon_discount = 0.0
+    coupon_doc_for_inc = None
+    if sale_data.coupon_code:
+        coupon_code = sale_data.coupon_code.strip().upper()
+        coupon_doc_for_inc = await db.coupons.find_one({**tenant_filter, "code": coupon_code})
+        if not coupon_doc_for_inc:
+            raise HTTPException(status_code=400, detail=f"Kuponi '{coupon_code}' nuk u gjet")
+        if not coupon_doc_for_inc.get("active", True):
+            raise HTTPException(status_code=400, detail=f"Kuponi '{coupon_code}' nuk eshte aktiv")
+
+        def _to_dt(v):
+            if v is None:
+                return None
+            if isinstance(v, str):
+                v = datetime.fromisoformat(v.replace("Z", "+00:00"))
+            if v.tzinfo is None:
+                v = v.replace(tzinfo=timezone.utc)
+            return v
+
+        _now = datetime.now(timezone.utc)
+        _vf = _to_dt(coupon_doc_for_inc.get("valid_from"))
+        _vu = _to_dt(coupon_doc_for_inc.get("valid_until"))
+        if _vf and _now < _vf:
+            raise HTTPException(status_code=400, detail=f"Kuponi '{coupon_code}' nuk eshte aktiv ende")
+        if _vu and _now > _vu:
+            raise HTTPException(status_code=400, detail=f"Kuponi '{coupon_code}' ka skaduar")
+
+        _max_uses = coupon_doc_for_inc.get("max_uses")
+        _used = coupon_doc_for_inc.get("used_count", 0)
+        if _max_uses is not None and _used >= _max_uses:
+            raise HTTPException(status_code=400, detail=f"Kuponi '{coupon_code}' ka arritur limitin e perdorimit")
+
+        _min_purchase = coupon_doc_for_inc.get("min_purchase_amount")
+        if _min_purchase is not None and grand_total < float(_min_purchase):
+            raise HTTPException(status_code=400, detail=f"Shuma minimale per kete kupon eshte {float(_min_purchase):.2f} EUR")
+
+        _c_type = coupon_doc_for_inc.get("discount_type", "percent")
+        _c_value = float(coupon_doc_for_inc.get("discount_value", 0))
+        if _c_type == "percent":
+            coupon_discount = round(grand_total * (_c_value / 100.0), 2)
+        else:
+            coupon_discount = round(min(_c_value, grand_total), 2)
+
+        grand_total = max(0.0, round(grand_total - coupon_discount, 2))
     
     # Handle debt logic
     is_debt = sale_data.is_debt
@@ -131,7 +177,10 @@ async def create_sale(sale_data: SaleCreate, current_user: dict = Depends(get_cu
         # Debt fields
         is_debt=is_debt,
         debtor_name=debtor_name,
-        remaining_debt=round(remaining_debt, 2)
+        remaining_debt=round(remaining_debt, 2),
+        # Coupon fields
+        coupon_code=coupon_code,
+        coupon_discount=round(coupon_discount, 2)
     )
     
     doc = sale.model_dump()
@@ -140,6 +189,13 @@ async def create_sale(sale_data: SaleCreate, current_user: dict = Depends(get_cu
         doc['debt_paid_at'] = doc['debt_paid_at'].isoformat()
     doc = add_tenant_id(doc, current_user)
     await db.sales.insert_one(doc)
+
+    # Increment coupon used_count after successful sale
+    if coupon_doc_for_inc:
+        await db.coupons.update_one(
+            {**tenant_filter, "code": coupon_code},
+            {"$inc": {"used_count": 1}}
+        )
     
     # Only update cash drawer for non-debt sales
     if drawer and sale_data.cash_amount and not is_debt:

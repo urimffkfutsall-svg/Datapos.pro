@@ -316,6 +316,8 @@ class SaleCreate(BaseModel):
     is_debt: bool = False
     debtor_name: Optional[str] = None
     remaining_debt: Optional[float] = None
+    # Coupon fields
+    coupon_code: Optional[str] = None
 
 class SaleItem(BaseModel):
     product_id: str
@@ -350,6 +352,9 @@ class Sale(BaseModel):
     is_debt: bool = False
     debtor_name: Optional[str] = None
     remaining_debt: float = 0
+    # Coupon fields
+    coupon_code: Optional[str] = None
+    coupon_discount: float = 0
     debt_paid_at: Optional[datetime] = None
     debt_paid_by: Optional[str] = None
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
@@ -375,6 +380,9 @@ class SaleResponse(BaseModel):
     is_debt: bool = False
     debtor_name: Optional[str] = None
     remaining_debt: float = 0
+    # Coupon fields
+    coupon_code: Optional[str] = None
+    coupon_discount: float = 0
     debt_paid_at: Optional[str] = None
     debt_paid_by: Optional[str] = None
 
