@@ -95,6 +95,10 @@ const POS = () => {
   const [currentTime, setCurrentTime] = useState(new Date()); // For clock display
   // Debt (Borgj) state
   const [isDebt, setIsDebt] = useState(false);
+  const [couponEnabled, setCouponEnabled] = useState(false);
+  const [couponCode, setCouponCode] = useState('');
+  const [couponData, setCouponData] = useState(null);
+  const [couponLoading, setCouponLoading] = useState(false);
   const [debtorName, setDebtorName] = useState('');
   const [buyerInfo, setBuyerInfo] = useState({
     name: '',
@@ -1022,7 +1026,9 @@ const POS = () => {
 
     // Calculate paid amount and remaining debt
     const paidAmount = parseFloat(cashAmount) || 0;
-    const remainingDebt = isDebt ? Math.max(0, cartTotals.total - paidAmount) : 0;
+    const couponDiscount = couponData?.discount_amount || 0;
+    const finalTotal = Math.max(0, cartTotals.total - couponDiscount);
+    const remainingDebt = isDebt ? Math.max(0, finalTotal - paidAmount) : 0;
 
     try {
       const saleData = {
@@ -1035,13 +1041,14 @@ const POS = () => {
         })),
         payment_method: paymentMethod,
         cash_amount: paidAmount,
-        bank_amount: !isDebt && paymentMethod === 'bank' ? cartTotals.total : 0,
+        bank_amount: !isDebt && paymentMethod === 'bank' ? finalTotal : 0,
         customer_name: isDebt ? debtorName : (customerName || null),
         notes: customerNote || null,
         // Debt fields
         is_debt: isDebt,
         debtor_name: isDebt ? debtorName : null,
-        remaining_debt: remainingDebt
+        remaining_debt: remainingDebt,
+        coupon_code: couponData?.code || null
       };
 
       const response = await api.post('/sales', saleData);
@@ -1074,6 +1081,7 @@ const POS = () => {
           is_debt: isDebt,
           debtor_name: isDebt ? debtorName : null,
           remaining_debt: remainingDebt,
+        coupon_code: couponData?.code || null,
           paid_amount: paidAmount
         };
         printThermalReceipt(receiptData);
@@ -1385,7 +1393,7 @@ const POS = () => {
       // Enter in payment dialog - complete sale
       if (e.key === 'Enter' && showPayment) {
         e.preventDefault();
-        if (paymentMethod === 'bank' || (paymentMethod === 'cash' && parseFloat(cashAmount) >= cartTotals.total)) {
+        if (paymentMethod === 'bank' || (paymentMethod === 'cash' && parseFloat(cashAmount) >= (cartTotals.total - (couponData?.discount_amount || 0)))) {
           handlePayment();
         }
         return;
@@ -2123,7 +2131,7 @@ const POS = () => {
                 <div className="space-y-4">
                   <div className="relative">
                     <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[#00a79d] font-bold text-lg pointer-events-none">{'\u20AC'}</span>
-                    <input ref={cashInputRef} type="text" value={cashAmount} onChange={(e) => setCashAmount(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter' && parseFloat(cashAmount) >= cartTotals.total) { e.preventDefault(); handlePayment(); } }} placeholder={'Shkruaj shum\u00EBn e paguar...'} autoFocus data-testid="cash-amount-input" className="w-full h-14 pl-10 pr-4 rounded-2xl bg-white border border-gray-200 text-xl font-bold text-gray-900 tabular-nums placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#00a79d]/40 focus:border-[#00a79d]/40 transition" />
+                    <input ref={cashInputRef} type="text" value={cashAmount} onChange={(e) => setCashAmount(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter' && parseFloat(cashAmount) >= (cartTotals.total - (couponData?.discount_amount || 0))) { e.preventDefault(); handlePayment(); } }} placeholder={'Shkruaj shum\u00EBn e paguar...'} autoFocus data-testid="cash-amount-input" className="w-full h-14 pl-10 pr-4 rounded-2xl bg-white border border-gray-200 text-xl font-bold text-gray-900 tabular-nums placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#00a79d]/40 focus:border-[#00a79d]/40 transition" />
                   </div>
                   <div className="grid grid-cols-3 gap-2">
                     <div className="rounded-xl bg-gray-50 border border-gray-200 p-3">
