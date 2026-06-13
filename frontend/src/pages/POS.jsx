@@ -99,6 +99,7 @@ const POS = () => {
   const [couponCode, setCouponCode] = useState('');
   const [couponData, setCouponData] = useState(null);
   const [couponLoading, setCouponLoading] = useState(false);
+  const [packageDialog, setPackageDialog] = useState({ open: false, product: null });
   const [debtorName, setDebtorName] = useState('');
   const [buyerInfo, setBuyerInfo] = useState({
     name: '',
@@ -337,21 +338,32 @@ const POS = () => {
     p.barcode?.includes(search.trim()))
   ) : [];
 
-  const addToCart = useCallback((product) => {
-    setCart(prevCart => {
-      const existing = prevCart.find(item => item.product_id === product.id);
+const addToCart = useCallback((product, mode = null) => {
+  const isPkg = product.metadata?.is_package;
+  const pkgPrice = parseFloat(product.metadata?.package_price);
+  const unitsPkg = parseFloat(product.metadata?.units_per_package);
+  if (isPkg && pkgPrice > 0 && unitsPkg > 0 && mode === null) {
+    setPackageDialog({ open: true, product });
+    return;
+  }
+  const linePrice = mode === 'package' ? pkgPrice : (product.sale_price || 0);
+  const lineName = mode === 'package' ? `${product.name} (Pako)` : product.name;
+  const isPackageSale = mode === 'package';
+  setCart(prevCart => {
+      const existing = prevCart.find(item => item.product_id === product.id && !!item.is_package_sale === isPackageSale);
       if (existing) {
         return prevCart.map(item =>
-          item.product_id === product.id
+          item.product_id === product.id && !!item.is_package_sale === isPackageSale
             ? { ...item, quantity: item.quantity + 1 }
             : item
         );
       }
       return [...prevCart, {
         product_id: product.id,
-        product_name: product.name,
+        product_name: lineName,
         quantity: 1,
-        unit_price: product.sale_price || 0,
+        unit_price: linePrice,
+        is_package_sale: isPackageSale,
         discount_percent: 0,
         vat_percent: applyNoVat ? 0 : (product.vat_rate || 0),
         current_stock: product.current_stock, image_url: product.metadata?.image_url || null
@@ -3682,6 +3694,31 @@ const POS = () => {
       </Dialog>
 
       {/* Warranty List Dialog */}
+<Dialog open={packageDialog.open} onOpenChange={(open) => !open && setPackageDialog({ open: false, product: null })}>
+  <DialogContent className="sm:max-w-md">
+    <DialogHeader>
+      <DialogTitle>Si do ta shisni këtë produkt?</DialogTitle>
+    </DialogHeader>
+    <div className="space-y-3 py-2">
+      <p className="text-sm text-gray-600">
+        Produkti <strong>{packageDialog.product?.name}</strong> shitet edhe me pako edhe me copë.
+      </p>
+      <div className="rounded-xl border border-amber-200 bg-amber-50/40 p-3 text-xs text-amber-900 space-y-1">
+        <div>📦 Pako: <strong>{packageDialog.product?.metadata?.units_per_package} copë</strong> = <strong>{packageDialog.product?.metadata?.package_price} €</strong></div>
+        <div>🔹 Copë: <strong>{packageDialog.product?.sale_price} €</strong></div>
+      </div>
+    </div>
+    <DialogFooter className="flex flex-col sm:flex-row gap-2">
+      <Button type="button" onClick={() => { const p = packageDialog.product; setPackageDialog({ open: false, product: null }); addToCart(p, 'package'); }} className="flex-1 bg-amber-500 hover:bg-amber-600 text-white rounded-xl">
+        📦 Vazhdo me pako
+      </Button>
+      <Button type="button" onClick={() => { const p = packageDialog.product; setPackageDialog({ open: false, product: null }); addToCart(p, 'unit'); }} variant="outline" className="flex-1 rounded-xl">
+        🔹 Vazhdo me copë
+      </Button>
+    </DialogFooter>
+  </DialogContent>
+</Dialog>
+
       <Dialog open={showWarrantyList} onOpenChange={setShowWarrantyList}>
         <DialogContent className="sm:max-w-3xl max-h-[85vh] overflow-hidden flex flex-col">
           <DialogHeader className="pb-3 border-b">
