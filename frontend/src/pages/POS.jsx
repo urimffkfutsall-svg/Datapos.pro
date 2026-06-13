@@ -42,6 +42,7 @@ import {
   Package,
   User,
   Percent,
+  Ticket,
   Calculator,
   X,
   Delete,
@@ -432,7 +433,7 @@ const POS = () => {
     };
   }, { subtotal: 0, discount: 0, vat: 0, total: 0 });
 
-  const changeAmount = Math.max(0, (parseFloat(cashAmount) || 0) - cartTotals.total);
+  const changeAmount = Math.max(0, (parseFloat(cashAmount) || 0) - (cartTotals.total - (couponData?.discount_amount || 0)));
 
   // State for receipt preview
   const [showReceiptPreview, setShowReceiptPreview] = useState(false);
@@ -1874,7 +1875,7 @@ const POS = () => {
               </div>
               <div className="text-right">
                 <div className="text-[10px] uppercase tracking-widest text-white/70 font-semibold">Totali</div>
-                <div className="text-4xl font-extrabold text-white leading-none">{`\u20AC${cartTotals.total.toFixed(2)}`}</div>
+                <div className="text-4xl font-extrabold text-white leading-none">{`\u20AC${Math.max(0, cartTotals.total - (couponData?.discount_amount || 0)).toFixed(2)}`}</div>
               </div>
             </div>
           </div>
@@ -2027,6 +2028,65 @@ const POS = () => {
             <span className="hidden lg:inline">{applyNoVat ? 'Me TVSH' : 'Pa TVSH'}</span>
           </Button>
         )}
+
+        {/* Zbritje me kupon */}
+        {!couponEnabled && !couponData && (
+          <Button
+            variant="outline"
+            className="flex-1 lg:h-14 flex items-center justify-center gap-2 rounded-2xl border-amber-300 text-amber-700 hover:bg-amber-50 hover:border-amber-400"
+            onClick={() => setCouponEnabled(true)}
+            data-testid="pos-coupon-btn"
+          >
+            <Ticket className="h-5 w-5" strokeWidth={1.75} />
+            <span className="hidden lg:inline">Zbritje me kupon</span>
+          </Button>
+        )}
+        {couponEnabled && !couponData && (
+          <div className="flex-1 lg:h-14 flex items-center gap-1 rounded-2xl border border-amber-400 bg-amber-50 px-2 py-1">
+            <input
+              type="text"
+              value={couponCode}
+              onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+              onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleApplyCoupon(); } else if (e.key === 'Escape') { setCouponEnabled(false); setCouponCode(''); } }}
+              placeholder="Kodi"
+              autoFocus
+              className="flex-1 min-w-0 px-2 h-9 rounded-lg bg-white border border-amber-200 text-gray-900 placeholder-gray-400 font-mono text-sm focus:outline-none focus:ring-2 focus:ring-amber-300"
+              data-testid="pos-coupon-input"
+            />
+            <button
+              type="button"
+              onClick={handleApplyCoupon}
+              disabled={!couponCode.trim() || couponLoading}
+              className="px-2 h-9 rounded-lg bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs uppercase disabled:opacity-50"
+              title="Apliko (Enter)"
+            >
+              {couponLoading ? '...' : 'OK'}
+            </button>
+            <button
+              type="button"
+              onClick={() => { setCouponEnabled(false); setCouponCode(''); }}
+              className="h-9 w-9 rounded-lg text-gray-500 hover:text-gray-700 hover:bg-gray-100 flex items-center justify-center"
+              title="Anulo (Esc)"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+        )}
+        {couponData && (
+          <Button
+            variant="outline"
+            className="flex-1 lg:h-14 flex items-center justify-center gap-2 rounded-2xl border-amber-400 bg-amber-100 hover:bg-amber-200 text-amber-900"
+            onClick={handleRemoveCoupon}
+            data-testid="pos-coupon-active-btn"
+            title="Kliko per ta hequr kuponin"
+          >
+            <Ticket className="h-5 w-5" strokeWidth={1.75} />
+            <span className="hidden lg:inline text-xs leading-tight text-left">
+              <span className="font-mono font-bold block">{couponData.code}</span>
+              <span className="text-amber-700">{`-\u20AC${(couponData.discount_amount || 0).toFixed(2)}`}</span>
+            </span>
+          </Button>
+        )}
       </div>
 
       {/* Payment Dialog */}
@@ -2048,7 +2108,7 @@ const POS = () => {
               </DialogHeader>
               <div className="relative rounded-2xl bg-[#00a79d]/8 border border-[#00a79d]/15 p-5 text-center">
                 <div className="text-[10px] uppercase tracking-[0.3em] text-[#00a79d]/80 font-semibold mb-1">{'Totali p\u00EBr Pages\u00EB'}</div>
-                <div className="text-5xl font-extrabold tabular-nums text-[#00a79d]">{`\u20AC${cartTotals.total.toFixed(2)}`}</div>
+                <div className="text-5xl font-extrabold tabular-nums text-[#00a79d]">{`\u20AC${Math.max(0, cartTotals.total - (couponData?.discount_amount || 0)).toFixed(2)}`}</div>
                 <Zap className="absolute top-3 right-3 h-4 w-4 text-[#00a79d]/60" />
               </div>
               <div className="grid grid-cols-2 gap-2 p-1 rounded-2xl bg-gray-50 border border-gray-200">
@@ -2068,7 +2128,7 @@ const POS = () => {
                   <div className="grid grid-cols-3 gap-2">
                     <div className="rounded-xl bg-gray-50 border border-gray-200 p-3">
                       <div className="text-[9px] uppercase tracking-widest text-gray-500 font-semibold">Total</div>
-                      <div className="text-base font-bold text-gray-900 tabular-nums mt-0.5">{`\u20AC${cartTotals.total.toFixed(2)}`}</div>
+                      <div className="text-base font-bold text-gray-900 tabular-nums mt-0.5">{`\u20AC${Math.max(0, cartTotals.total - (couponData?.discount_amount || 0)).toFixed(2)}`}</div>
                     </div>
                     <div className="rounded-xl bg-gray-50 border border-gray-200 p-3">
                       <div className="text-[9px] uppercase tracking-widest text-gray-500 font-semibold">Paguar</div>
