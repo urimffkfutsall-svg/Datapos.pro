@@ -3,34 +3,12 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth, useTenant } from '../App';
 import { Button } from '../components/ui/button';
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
+  Dialog, DialogContent, DialogHeader, DialogTitle,
 } from '../components/ui/dialog';
 import {
-  Delete, CornerDownLeft, User, Lock, Eye, EyeOff, ArrowLeft,
-  AlertTriangle, CreditCard, Phone, Keyboard, X,
-  ShoppingCart, Package, Boxes, BarChart3, Building2, Users as UsersIcon, FileSearch
+  Delete, CornerDownLeft, User, Lock, Eye, EyeOff,
+  ArrowLeft, AlertTriangle, CreditCard, Phone,
 } from 'lucide-react';
-
-const services = [
-  { icon: ShoppingCart, title: 'Pikë Shitje (POS)',  desc: 'Kasa moderne me PIN dhe printim faturash' },
-  { icon: Package,      title: 'Produkte',           desc: 'Menaxhim i plotë i katalogut' },
-  { icon: Boxes,        title: 'Stoku',              desc: 'Kontrolli i inventarit në kohë reale' },
-  { icon: BarChart3,    title: 'Raporte & Shitje',   desc: 'Statistika dhe analiza biznesi' },
-  { icon: Building2,    title: 'Multi-Degë',         desc: 'Menaxho disa degë nga një vend' },
-  { icon: UsersIcon,    title: 'Përdorues & Role',   desc: 'Admin, Manager, Kasier' },
-  { icon: CreditCard,   title: 'Borxhe & Pagesa',    desc: 'Gjurmim borxhesh dhe pagesash' },
-  { icon: FileSearch,   title: 'Audit Logs',         desc: 'Historik i plotë i veprimeve' },
-];
-
-const keyboardRows = [
-  ['1','2','3','4','5','6','7','8','9','0'],
-  ['q','w','e','r','t','y','u','i','o','p'],
-  ['a','s','d','f','g','h','j','k','l'],
-  ['z','x','c','v','b','n','m','@','.'],
-];
 
 const Login = () => {
   const [pin, setPin] = useState('');
@@ -42,12 +20,10 @@ const Login = () => {
   const [error, setError] = useState('');
   const [showExpiredModal, setShowExpiredModal] = useState(false);
   const [expiredDays, setExpiredDays] = useState(0);
-  const [showKeyboard, setShowKeyboard] = useState(false);
-  const [activeField, setActiveField] = useState('username');
-  const [capsLock, setCapsLock] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
+
   const { login } = useAuth();
   const navigate = useNavigate();
-
   const tenantContext = useTenant();
   const tenant = tenantContext?.tenant;
   const tenantLoading = tenantContext?.tenantLoading;
@@ -79,7 +55,7 @@ const Login = () => {
         return;
       }
       setPin('');
-      setError('PIN i gabuar. Provoni përsëri.');
+      setError('PIN i gabuar. Provoni perseri.');
     }
   };
 
@@ -95,7 +71,7 @@ const Login = () => {
       if (result.status === 402 && handleSubscriptionExpired(result.error)) {
         return;
       }
-      setError(result.error || 'Username ose fjalëkalimi i gabuar');
+      setError(result.error || 'Username ose fjalekalimi i gabuar');
     }
   };
 
@@ -109,16 +85,6 @@ const Login = () => {
 
   const clearPin = () => setPin('');
 
-  const handleVirtualKey = (key) => {
-    if (activeField === 'password') setPassword(prev => prev + key);
-    else setUsername(prev => prev + key);
-  };
-
-  const handleVirtualBackspace = () => {
-    if (activeField === 'password') setPassword(prev => prev.slice(0, -1));
-    else setUsername(prev => prev.slice(0, -1));
-  };
-
   useEffect(() => {
     if (showAdminLogin) return;
     const handleKeyDown = (e) => {
@@ -131,229 +97,190 @@ const Login = () => {
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [showAdminLogin, pin, addDigit, removeDigit]);
 
   const numpadButtons = ['1','2','3','4','5','6','7','8','9','clear','0','delete'];
 
-  // Pjesa e majtë — e njëjta në të dyja pamjet
-  const LeftPanel = (
-    <div className="space-y-8">
-      <div className="flex items-center gap-5">
-        <img src={logoSrc} alt={brandName} className="h-28 md:h-32 object-contain" onError={(e) => e.target.style.display = 'none'} />
-        <div>
-          <h1 className="text-5xl md:text-6xl font-bold text-[#2563EB] tracking-tight">{brandName}</h1>
-          <p className="text-base text-gray-500 mt-1">Sistemi i mençur i pikës së shitjes</p>
-        </div>
-      </div>
-
-      <div>
-        <h2 className="text-xl font-semibold text-gray-800 mb-4">Shërbimet që ofron aplikacioni</h2>
-        <ul className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          {services.map(({ icon: Icon, title, desc }) => (
-            <li key={title} className="flex items-start gap-3 p-3 rounded-2xl bg-white border border-gray-200 hover:border-[#2563EB] hover:shadow-md transition-all">
-              <div className="shrink-0 w-10 h-10 rounded-xl bg-[#2563EB]/10 text-[#2563EB] flex items-center justify-center">
-                <Icon className="w-5 h-5" />
-              </div>
-              <div className="min-w-0">
-                <p className="font-medium text-gray-800 text-sm">{title}</p>
-                <p className="text-xs text-gray-500 leading-snug">{desc}</p>
-              </div>
-            </li>
-          ))}
-        </ul>
-      </div>
+  const LeftBrand = (
+    <div className="flex flex-col items-center justify-center h-full p-8 lg:p-12 relative z-10">
+      <img
+        src={logoSrc}
+        alt={brandName}
+        className="w-24 h-24 lg:w-32 lg:h-32 object-contain mb-6"
+        onError={(e) => e.target.style.display = 'none'}
+      />
+      <h1 className="text-3xl lg:text-4xl font-bold text-[#2563EB] tracking-tight text-center">
+        {brandName}
+      </h1>
+      <p className="text-sm text-gray-500 mt-3 text-center max-w-xs">
+        Sistemi POS moderne per biznesin tuaj
+      </p>
     </div>
   );
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-gray-100 to-gray-200 p-4">
-      <div className="fixed top-0 left-0 right-0 h-1 bg-[#2563EB]" />
+    <div className="min-h-screen bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center p-4">
+      <div className="w-full max-w-5xl">
+        <div className="relative bg-white rounded-3xl shadow-2xl overflow-hidden" style= minHeight: '560px' >
+          {/* Blue diagonal overlay behind right column */}
+          <div
+            className="absolute inset-0 bg-[#2563EB]"
+            style= clipPath: 'polygon(48% 0, 100% 0, 100% 100%, 32% 100%)' 
+          />
 
-      {/* PIN LOGIN VIEW — Layout 2 kolonë */}
-      {!tenantLoading && !showAdminLogin && (
-        <div className="w-full max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center">
-          {LeftPanel}
+          {/* 2 columns */}
+          <div className="relative grid grid-cols-1 lg:grid-cols-2" style= minHeight: '560px' >
+            {/* LEFT: Brand */}
+            {LeftBrand}
 
-          {/* RIGHT: Karton me PIN keypad */}
-          <div className="flex justify-center lg:justify-end">
-            <div className="w-full max-w-md bg-white rounded-[2rem] shadow-2xl p-8 md:p-10">
-              <div className="flex flex-col items-center justify-center mb-6">
-                <h2 className="text-2xl font-bold text-gray-900">Kyçje e Shpejtë</h2>
-                <p className="text-sm text-gray-500 mt-1">Shkruaj kodin PIN për të hyrë</p>
-              </div>
-
-              <div className="mb-6">
-                <div className="w-full h-16 rounded-2xl border-2 border-[#2563EB] bg-gray-50 flex items-center justify-center text-3xl font-bold tracking-[0.5em] text-[#2563EB]">
-                  {pin ? '•'.repeat(pin.length) : <span className="text-gray-300 text-lg tracking-normal">PIN</span>}
+            {/* RIGHT: Form */}
+            <div className="flex flex-col justify-center p-8 lg:p-12 text-white relative z-10">
+              {tenantLoading && (
+                <div className="flex items-center justify-center py-10">
+                  <div className="w-8 h-8 border-2 border-white border-t-transparent rounded-full animate-spin" />
                 </div>
-                <p className="text-center text-sm text-gray-500 mt-2">1-6 shifra</p>
-              </div>
-
-              <div className="grid grid-cols-3 gap-3 mb-5">
-                {numpadButtons.map((btn) => {
-                  if (btn === 'clear') return (
-                    <button key={btn} onClick={clearPin} className="h-16 rounded-2xl bg-gray-100 hover:bg-gray-200 active:bg-gray-300 transition-all duration-150 flex items-center justify-center text-gray-500 font-medium">C</button>
-                  );
-                  if (btn === 'delete') return (
-                    <button key={btn} onClick={removeDigit} className="h-16 rounded-2xl bg-gray-100 hover:bg-gray-200 active:bg-gray-300 transition-all duration-150 flex items-center justify-center">
-                      <Delete className="h-6 w-6 text-gray-600" />
-                    </button>
-                  );
-                  return (
-                    <button key={btn} onClick={() => addDigit(btn)} className="h-16 rounded-2xl bg-gray-50 hover:bg-gray-100 active:bg-gray-200 border border-gray-200 transition-all duration-150 text-2xl font-semibold text-gray-700">{btn}</button>
-                  );
-                })}
-              </div>
-
-              {error && (
-                <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-2xl text-sm text-center mb-4">{error}</div>
               )}
 
-              <Button onClick={handlePinLogin} disabled={pin.length < 1 || loading} className="w-full h-14 bg-[#2563EB] hover:bg-[#1D4ED8] text-white font-semibold rounded-2xl shadow-md transition-all duration-200 text-lg flex items-center justify-center gap-2">
-                {loading ? <div className="spinner border-white border-t-transparent" /> : (<><CornerDownLeft className="h-5 w-5" />KYÇU</>)}
-              </Button>
+              {!tenantLoading && !showAdminLogin && (
+                <>
+                  <h2 className="text-2xl lg:text-3xl font-bold mb-1">Kycje e Shpejte</h2>
+                  <p className="text-blue-100 text-sm mb-5">Shkruaj kodin PIN per te hyre</p>
 
-              <div className="mt-6 pt-6 border-t border-gray-100">
-                <button onClick={() => { setShowAdminLogin(true); setError(''); }} className="w-full text-center text-[#2563EB] hover:text-[#1D4ED8] font-medium transition-colors flex items-center justify-center gap-2">
-                  <User className="h-4 w-4" />
-                  Kyçu si Administrator
-                </button>
-              </div>
-
-              <div className="mt-4 text-center text-xs text-gray-400">
-                Përdor tastet 0-9 • Backspace • Enter
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ADMIN LOGIN VIEW — Layout 2 kolonë */}
-      {!tenantLoading && showAdminLogin && (
-        <div className="w-full max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center">
-          {LeftPanel}
-
-          <div className="flex justify-center lg:justify-end">
-            <div className="w-full max-w-md bg-white rounded-[2rem] shadow-2xl p-8 md:p-10">
-              <div className="flex items-center justify-between mb-6">
-                <button onClick={() => { setShowAdminLogin(false); setUsername(''); setPassword(''); setError(''); setShowKeyboard(false); }} className="flex items-center gap-2 text-gray-500 hover:text-[#2563EB] transition-colors">
-                  <ArrowLeft className="h-4 w-4" />
-                  Kthehu
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setShowKeyboard(v => !v)}
-                  title="Tastiera në ekran"
-                  className={showKeyboard
-                    ? 'flex items-center justify-center h-10 w-10 rounded-xl bg-[#2563EB] text-white shadow-md shadow-[#2563EB]/30 transition-all'
-                    : 'flex items-center justify-center h-10 w-10 rounded-xl bg-gray-100 text-gray-500 hover:bg-gray-200 transition-all'}
-                >
-                  <Keyboard className="h-5 w-5" />
-                </button>
-              </div>
-
-              <div className="flex flex-col items-center justify-center mb-8">
-                <h2 className="text-2xl font-bold text-gray-900">Kyçu si Administrator</h2>
-                <p className="text-sm text-gray-500 mt-1">Vendos kredencialet për të vazhduar</p>
-              </div>
-
-              <form onSubmit={handleAdminLogin} className="space-y-5">
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <User className="h-5 w-5 text-gray-400" />
+                  <div className="mb-4">
+                    <div className="w-full h-14 rounded-xl bg-white/10 backdrop-blur-sm border border-white/25 flex items-center justify-center text-2xl font-bold tracking-[0.5em] text-white">
+                      {pin ? '\u2022'.repeat(pin.length) : <span className="text-blue-200 text-base tracking-normal">PIN</span>}
+                    </div>
                   </div>
-                  <input
-                    type="text"
-                    placeholder="Username"
-                    value={username}
-                    onChange={(e) => setUsername(e.target.value)}
-                    onFocus={() => setActiveField('username')}
-                    className="w-full pl-10 h-12 bg-gray-50 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-[#2563EB] focus:border-[#2563EB] outline-none transition-all"
-                    required
-                    autoFocus
-                  />
-                </div>
 
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <Lock className="h-5 w-5 text-[#2563EB]" />
+                  <div className="grid grid-cols-3 gap-2.5 mb-4">
+                    {numpadButtons.map((btn) => {
+                      if (btn === 'clear') return (
+                        <button key={btn} onClick={clearPin} className="h-12 rounded-xl bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/25 text-white font-medium transition-all">C</button>
+                      );
+                      if (btn === 'delete') return (
+                        <button key={btn} onClick={removeDigit} className="h-12 rounded-xl bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/25 flex items-center justify-center transition-all">
+                          <Delete className="h-5 w-5 text-white" />
+                        </button>
+                      );
+                      return (
+                        <button key={btn} onClick={() => addDigit(btn)} className="h-12 rounded-xl bg-white hover:bg-blue-50 text-[#2563EB] text-xl font-bold transition-all shadow-sm">{btn}</button>
+                      );
+                    })}
                   </div>
-                  <input
-                    type={showPassword ? 'text' : 'password'}
-                    placeholder="Fjalëkalimi"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    onFocus={() => setActiveField('password')}
-                    className="w-full pl-10 pr-10 h-12 bg-gray-50 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-[#2563EB] focus:border-[#2563EB] outline-none transition-all"
-                    required
-                  />
-                  <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute inset-y-0 right-0 pr-3 flex items-center">
-                    {showPassword ? <EyeOff className="h-5 w-5 text-gray-400" /> : <Eye className="h-5 w-5 text-gray-400" />}
-                  </button>
-                </div>
 
-                {error && (
-                  <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-2xl text-sm text-center">{error}</div>
-                )}
+                  {error && (
+                    <div className="bg-red-500/20 border border-red-300/40 text-red-100 px-3 py-2 rounded-xl text-sm text-center mb-3">{error}</div>
+                  )}
 
-                <Button type="submit" disabled={loading} className="w-full h-12 bg-[#2563EB] hover:bg-[#1D4ED8] text-white font-semibold rounded-2xl shadow-md transition-all duration-200">
-                  {loading ? <div className="spinner border-white border-t-transparent" /> : 'KYÇU'}
-                </Button>
-              </form>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Tastiera virtuale on-screen */}
-      {showKeyboard && showAdminLogin && (
-        <div className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-gray-200 shadow-2xl p-3 animate-slide-in">
-          <div className="max-w-3xl mx-auto">
-            <div className="flex items-center justify-between mb-2 px-1">
-              <span className="text-xs font-medium text-gray-500">
-                Tastiera • {activeField === 'password' ? 'Fjalëkalimi' : 'Username'}
-              </span>
-              <button type="button" onClick={() => setShowKeyboard(false)} className="flex items-center gap-1 text-gray-400 hover:text-gray-700 text-xs font-medium">
-                <X className="h-4 w-4" />
-                Mbyll
-              </button>
-            </div>
-
-            {keyboardRows.map((row, ri) => (
-              <div key={ri} className="flex justify-center gap-1.5 mb-1.5">
-                {row.map((k) => (
-                  <button
-                    key={k}
-                    type="button"
-                    onClick={() => handleVirtualKey(capsLock ? k.toUpperCase() : k)}
-                    className="h-11 min-w-[2.4rem] px-2 rounded-lg bg-gray-100 hover:bg-[#2563EB]/10 active:bg-[#2563EB]/20 text-gray-700 font-medium transition-all"
+                  <Button
+                    onClick={handlePinLogin}
+                    disabled={pin.length < 1 || loading}
+                    className="w-full h-12 bg-white hover:bg-blue-50 text-[#2563EB] font-bold rounded-xl shadow-lg tracking-wider transition-all flex items-center justify-center gap-2"
                   >
-                    {capsLock ? k.toUpperCase() : k}
-                  </button>
-                ))}
-              </div>
-            ))}
+                    {loading ? <div className="w-5 h-5 border-2 border-[#2563EB] border-t-transparent rounded-full animate-spin" /> : (<><CornerDownLeft className="h-4 w-4" /> KYCU</>)}
+                  </Button>
 
-            <div className="flex justify-center gap-1.5">
-              <button
-                type="button"
-                onClick={() => setCapsLock(v => !v)}
-                className={capsLock
-                  ? 'h-11 px-5 rounded-lg bg-[#2563EB] text-white font-medium transition-all'
-                  : 'h-11 px-5 rounded-lg bg-gray-200 text-gray-600 hover:bg-gray-300 font-medium transition-all'}
-              >
-                Shift
-              </button>
-              <button type="button" onClick={() => handleVirtualKey(' ')} className="h-11 flex-1 max-w-md rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-500 font-medium transition-all">
-                Hapësirë
-              </button>
-              <button type="button" onClick={handleVirtualBackspace} className="h-11 px-5 rounded-lg bg-gray-200 hover:bg-gray-300 flex items-center justify-center transition-all">
-                <Delete className="h-5 w-5 text-gray-600" />
-              </button>
+                  <button
+                    onClick={() => { setShowAdminLogin(true); setError(''); }}
+                    className="mt-5 text-center w-full text-blue-100 hover:text-white text-sm font-medium transition-colors flex items-center justify-center gap-2"
+                  >
+                    <User className="h-4 w-4" />
+                    Kycu si Administrator
+                  </button>
+
+                  <p className="text-blue-200/70 text-xs text-center mt-3">
+                    Perdor tastet 0-9, Backspace, Enter
+                  </p>
+                </>
+              )}
+
+              {!tenantLoading && showAdminLogin && (
+                <>
+                  <button
+                    onClick={() => { setShowAdminLogin(false); setUsername(''); setPassword(''); setError(''); }}
+                    className="flex items-center gap-1 text-blue-100 hover:text-white text-sm mb-3 self-start transition-colors"
+                  >
+                    <ArrowLeft className="h-4 w-4" />
+                    Kthehu
+                  </button>
+                  <h2 className="text-2xl lg:text-3xl font-bold mb-1">Administrator</h2>
+                  <p className="text-blue-100 text-sm mb-5">Vendos kredencialet per te vazhduar</p>
+
+                  <form onSubmit={handleAdminLogin} className="space-y-4">
+                    <div>
+                      <label className="block text-blue-100 text-xs font-medium mb-1.5">Username</label>
+                      <div className="relative">
+                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                          <User className="h-4 w-4 text-gray-400" />
+                        </div>
+                        <input
+                          type="text"
+                          placeholder="Enter your username"
+                          value={username}
+                          onChange={(e) => setUsername(e.target.value)}
+                          className="w-full pl-10 h-11 bg-white text-gray-900 placeholder-gray-400 border-0 rounded-lg focus:ring-2 focus:ring-white outline-none transition-all"
+                          required
+                          autoFocus
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-blue-100 text-xs font-medium mb-1.5">Password</label>
+                      <div className="relative">
+                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                          <Lock className="h-4 w-4 text-gray-400" />
+                        </div>
+                        <input
+                          type={showPassword ? 'text' : 'password'}
+                          placeholder="Enter your password"
+                          value={password}
+                          onChange={(e) => setPassword(e.target.value)}
+                          className="w-full pl-10 pr-10 h-11 bg-white text-gray-900 placeholder-gray-400 border-0 rounded-lg focus:ring-2 focus:ring-white outline-none transition-all"
+                          required
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowPassword(!showPassword)}
+                          className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                        >
+                          {showPassword ? <EyeOff className="h-4 w-4 text-gray-400" /> : <Eye className="h-4 w-4 text-gray-400" />}
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center justify-between text-sm">
+                      <label className="flex items-center gap-2 cursor-pointer text-blue-100 select-none">
+                        <input
+                          type="checkbox"
+                          checked={rememberMe}
+                          onChange={(e) => setRememberMe(e.target.checked)}
+                          className="w-4 h-4 rounded border-white/40 bg-white/10 accent-white"
+                        />
+                        Remember me
+                      </label>
+                      <button type="button" className="text-white hover:underline text-sm">Recover password</button>
+                    </div>
+
+                    {error && (
+                      <div className="bg-red-500/20 border border-red-300/40 text-red-100 px-3 py-2 rounded-lg text-sm text-center">{error}</div>
+                    )}
+
+                    <Button
+                      type="submit"
+                      disabled={loading}
+                      className="w-full h-12 bg-[#3B82F6] hover:bg-[#60A5FA] text-white font-bold rounded-lg shadow-lg tracking-widest transition-all"
+                    >
+                      {loading ? <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" /> : 'SIGN IN'}
+                    </Button>
+                  </form>
+                </>
+              )}
             </div>
           </div>
         </div>
-      )}
+      </div>
 
       {/* Subscription Expired Modal */}
       <Dialog open={showExpiredModal} onOpenChange={setShowExpiredModal}>
@@ -373,12 +300,12 @@ const Login = () => {
             <div className="text-center space-y-2">
               <p className="text-lg font-semibold text-gray-900">Abonimi juaj ka skaduar!</p>
               <p className="text-sm text-gray-600">
-                {expiredDays > 0 ? `Abonimi juaj ka skaduar para ${expiredDays} ditëve.` : 'Abonimi juaj ka skaduar sot.'}
+                {expiredDays > 0 ? `Abonimi juaj ka skaduar para ${expiredDays} ditesh.` : 'Abonimi juaj ka skaduar sot.'}
               </p>
-              <p className="text-sm text-gray-500">Për të vazhduar përdorimin e sistemit, kontaktoni administratorin për të rinovuar abonimin.</p>
+              <p className="text-sm text-gray-500">Per te vazhduar perdorimin e sistemit, kontaktoni administratorin per te rinovuar abonimin.</p>
             </div>
             <div className="bg-gray-50 rounded-xl p-4 space-y-2">
-              <p className="text-sm font-medium text-gray-700 text-center">Kontaktoni për rinovim:</p>
+              <p className="text-sm font-medium text-gray-700 text-center">Kontaktoni per rinovim:</p>
               <div className="flex items-center justify-center gap-2 text-[#2563EB]">
                 <Phone className="h-4 w-4" />
                 <span className="font-medium">+383 44 123 456</span>
