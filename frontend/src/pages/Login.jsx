@@ -8,7 +8,17 @@ import {
 import {
   Delete, CornerDownLeft, User, Lock, Eye, EyeOff,
   ArrowLeft, AlertTriangle, CreditCard, Phone,
+  ShoppingCart, Package, BarChart3, Users, Boxes, Ticket,
 } from 'lucide-react';
+
+const SERVICES = [
+  { icon: ShoppingCart, label: 'Arka POS' },
+  { icon: Package,      label: 'Produkte' },
+  { icon: BarChart3,    label: 'Raporte' },
+  { icon: Users,        label: 'Klientet' },
+  { icon: Boxes,        label: 'Stoku' },
+  { icon: Ticket,       label: 'Kuponja' },
+];
 
 const Login = () => {
   const [pin, setPin] = useState('');
@@ -105,25 +115,47 @@ const Login = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center p-4">
       <div className="w-full max-w-5xl">
-        <div className="relative bg-white rounded-3xl shadow-2xl overflow-hidden min-h-[560px]">
+        <div className="relative bg-white rounded-3xl shadow-2xl overflow-hidden min-h-[600px]">
           <div className="absolute inset-0 bg-[#2563EB] [clip-path:polygon(48%_0,100%_0,100%_100%,32%_100%)]" />
 
-          <div className="relative grid grid-cols-1 lg:grid-cols-2 min-h-[560px]">
-            <div className="flex flex-col items-center justify-center h-full p-8 lg:p-12 relative z-10">
-              <img
-                src={logoSrc}
-                alt={brandName}
-                className="w-24 h-24 lg:w-32 lg:h-32 object-contain mb-6"
-                onError={(e) => { e.target.style.display = 'none'; }}
-              />
-              <h1 className="text-3xl lg:text-4xl font-bold text-[#2563EB] tracking-tight text-center">
-                {brandName}
-              </h1>
-              <p className="text-sm text-gray-500 mt-3 text-center max-w-xs">
-                Sistemi POS moderne per biznesin tuaj
-              </p>
+          <div className="relative grid grid-cols-1 lg:grid-cols-2 min-h-[600px]">
+            {/* LEFT: e bardhe - logo blu + brand + sherbimet */}
+            <div className="flex items-center h-full p-8 lg:pl-14 lg:pr-8 relative z-10">
+              <div className="w-full max-w-[240px] mx-auto lg:mx-0 flex flex-col items-center">
+                {/* Logo ne kontejner blu */}
+                <div className="w-24 h-24 bg-[#2563EB] rounded-3xl shadow-lg flex items-center justify-center mb-4">
+                  <img
+                    src={logoSrc}
+                    alt={brandName}
+                    className="w-16 h-16 object-contain"
+                    onError={(e) => { e.target.style.display = 'none'; }}
+                  />
+                </div>
+
+                {/* Emri firmes */}
+                <h1 className="text-2xl font-bold text-[#2563EB] tracking-tight text-center leading-tight break-words w-full">
+                  {brandName}
+                </h1>
+                <p className="text-[11px] text-gray-500 text-center mt-1 mb-5">Sistemi POS Moderne</p>
+
+                {/* Sherbimet - grid 2 kolonash */}
+                <div className="grid grid-cols-2 gap-2 w-full">
+                  {SERVICES.map((s, i) => {
+                    const Icon = s.icon;
+                    return (
+                      <div key={i} className="flex items-center gap-1.5 bg-gray-50 rounded-lg px-2 py-1.5 border border-gray-100">
+                        <div className="w-6 h-6 bg-blue-50 rounded-md flex items-center justify-center flex-shrink-0">
+                          <Icon className="w-3.5 h-3.5 text-[#2563EB]" />
+                        </div>
+                        <span className="text-[11px] text-gray-700 font-medium truncate">{s.label}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
             </div>
 
+            {/* RIGHT: forma blu */}
             <div className="flex flex-col justify-center p-8 lg:p-12 text-white relative z-10">
               {tenantLoading && (
                 <div className="flex items-center justify-center py-10">
