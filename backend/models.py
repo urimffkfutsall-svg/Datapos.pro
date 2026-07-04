@@ -35,7 +35,7 @@ class TenantStatus(str, Enum):
 # ============ TENANT MODELS ============
 class TenantBranding(BaseModel):
     logo_url: Optional[str] = None
-    primary_color: str = "#00a79d"
+    primary_color: str = "#2563EB"
     secondary_color: str = "#f3f4f6"
     company_name: str = "POS System"
 
@@ -46,7 +46,7 @@ class TenantCreate(BaseModel):
     phone: Optional[str] = None
     address: Optional[str] = None
     logo_url: Optional[str] = None
-    primary_color: str = "#00a79d"
+    primary_color: str = "#2563EB"
     secondary_color: str = "#f3f4f6"
     stripe_payment_link: Optional[str] = None
     admin_username: str
