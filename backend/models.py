@@ -142,6 +142,7 @@ class UserResponse(BaseModel):
 class LoginRequest(BaseModel):
     username: str
     password: str
+    tenant_id: Optional[str] = None
 
 class TokenResponse(BaseModel):
     access_token: str

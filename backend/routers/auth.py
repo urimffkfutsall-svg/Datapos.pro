@@ -13,13 +13,32 @@ router = APIRouter(prefix="/auth", tags=["Authentication"])
 @router.post("/login", response_model=TokenResponse)
 async def login(request: LoginRequest):
     """Login with username/password or PIN"""
-    user = await db.users.find_one({"username": request.username}, {"_id": 0})
-    
-    if not user:
-        user = await db.users.find_one({"pin": request.username}, {"_id": 0})
+    # Multi-tenant scoped user lookup
+    # Nese vjen tenant_id (nga subdomain), kufizoji rezultatet ne ate tenant.
+    # Super-admin lejohet cross-tenant per menaxhim global.
+    if request.tenant_id:
+        user = await db.users.find_one(
+            {"$or": [
+                {"tenant_id": request.tenant_id, "username": request.username},
+                {"tenant_id": request.tenant_id, "pin": request.username},
+                {"role": "super_admin", "username": request.username},
+            ]},
+            {"_id": 0}
+        )
+    else:
+        # Domain kryesor / pa subdomain -> lookup global (backwards compat)
+        user = await db.users.find_one({"username": request.username}, {"_id": 0})
+        if not user:
+            user = await db.users.find_one({"pin": request.username}, {"_id": 0})
     
     if not user:
         raise HTTPException(status_code=401, detail="Kredencialet e gabuara")
+
+    # Extra tenant guard: nese login vjen me tenant_id, useri s'lejohet cross-tenant
+    # (perjashtim super_admin qe eshte cross-tenant by design).
+    if request.tenant_id and user.get("role") != "super_admin":
+        if user.get("tenant_id") != request.tenant_id:
+            raise HTTPException(status_code=401, detail="Kredencialet e gabuara")
     
     if not user.get("is_active", True):
         raise HTTPException(status_code=401, detail="Llogaria është e çaktivizuar")

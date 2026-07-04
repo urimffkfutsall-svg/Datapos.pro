@@ -161,6 +161,7 @@ const TenantProvider = ({ children }) => {
 const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const tenantCtx = useContext(TenantContext);
 
   useEffect(() => {
     const isNewSession = sessionStorage.getItem('ipos_session_active') !== 'true';
@@ -198,7 +199,15 @@ const AuthProvider = ({ children }) => {
 
   const login = async (username, password) => {
     try {
-      const response = await api.post('/auth/login', { username, password });
+      // Multi-tenant: dergo tenant_id (nga subdomain) qe backend te kufizoje lookup-in
+      let tenant_id = tenantCtx?.tenant?.id || null;
+      if (!tenant_id) {
+        try {
+          const cached = JSON.parse(localStorage.getItem('tenant_context') || 'null');
+          tenant_id = cached?.id || null;
+        } catch (e) { tenant_id = null; }
+      }
+      const response = await api.post('/auth/login', { username, password, tenant_id });
       const { access_token, user: userData } = response.data;
       localStorage.setItem('t3next_token', access_token);
       localStorage.setItem('t3next_user', JSON.stringify(userData));
