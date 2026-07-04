@@ -9,6 +9,7 @@ import {
   Delete, CornerDownLeft, User, Lock, Eye, EyeOff,
   ArrowLeft, AlertTriangle, CreditCard, Phone,
   ShoppingCart, Package, BarChart3, Users, Boxes, Ticket, Store,
+  Keyboard,
 } from 'lucide-react';
 
 const SERVICES = [
@@ -18,6 +19,13 @@ const SERVICES = [
   { icon: Users,        label: 'Klientet' },
   { icon: Boxes,        label: 'Stoku' },
   { icon: Ticket,       label: 'Kuponja' },
+];
+
+const QWERTY_ROWS = [
+  ['1','2','3','4','5','6','7','8','9','0'],
+  ['q','w','e','r','t','y','u','i','o','p'],
+  ['a','s','d','f','g','h','j','k','l'],
+  ['z','x','c','v','b','n','m'],
 ];
 
 const Login = () => {
@@ -32,13 +40,17 @@ const Login = () => {
   const [expiredDays, setExpiredDays] = useState(0);
   const [rememberMe, setRememberMe] = useState(false);
 
+  // Virtual Keyboard state
+  const [vkOpen, setVkOpen] = useState(false);
+  const [vkTarget, setVkTarget] = useState('pin');
+  const [vkShift, setVkShift] = useState(false);
+
   const { login } = useAuth();
   const navigate = useNavigate();
   const tenantContext = useTenant();
   const tenant = tenantContext?.tenant;
   const tenantLoading = tenantContext?.tenantLoading;
 
-  const logoSrc = tenant?.logo_url || '/logo-icon.png';
   const brandName = tenant?.company_name || tenant?.name || 'DataPOS';
 
   const handleSubscriptionExpired = (errorDetail) => {
@@ -70,7 +82,7 @@ const Login = () => {
   };
 
   const handleAdminLogin = async (e) => {
-    e.preventDefault();
+    if (e && e.preventDefault) e.preventDefault();
     setLoading(true);
     setError('');
     const result = await login(username, password);
@@ -95,8 +107,41 @@ const Login = () => {
 
   const clearPin = () => setPin('');
 
+  // Virtual Keyboard handlers
+  const openVK = (target) => { setVkTarget(target); setVkShift(false); setVkOpen(true); };
+
+  const vkKeyPress = (key) => {
+    if (vkTarget === 'pin') {
+      if (/^[0-9]$/.test(key) && pin.length < 6) setPin(prev => prev + key);
+    } else if (vkTarget === 'username') {
+      setUsername(prev => prev + key);
+    } else if (vkTarget === 'password') {
+      setPassword(prev => prev + key);
+    }
+  };
+
+  const vkBackspace = () => {
+    if (vkTarget === 'pin') setPin(prev => prev.slice(0, -1));
+    else if (vkTarget === 'username') setUsername(prev => prev.slice(0, -1));
+    else if (vkTarget === 'password') setPassword(prev => prev.slice(0, -1));
+  };
+
+  const vkClear = () => {
+    if (vkTarget === 'pin') setPin('');
+    else if (vkTarget === 'username') setUsername('');
+    else if (vkTarget === 'password') setPassword('');
+  };
+
+  const vkEnter = () => {
+    setVkOpen(false);
+    setTimeout(() => {
+      if (vkTarget === 'pin') handlePinLogin();
+      else handleAdminLogin();
+    }, 50);
+  };
+
   useEffect(() => {
-    if (showAdminLogin) return;
+    if (showAdminLogin || vkOpen) return;
     const handleKeyDown = (e) => {
       const ae = document.activeElement;
       if (ae && (ae.tagName === 'INPUT' || ae.tagName === 'TEXTAREA')) return;
@@ -107,22 +152,31 @@ const Login = () => {
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [showAdminLogin, pin, addDigit, removeDigit]);
+    // eslint-disable-next-line
+  }, [showAdminLogin, vkOpen, pin, addDigit, removeDigit]);
 
   const numpadButtons = ['1','2','3','4','5','6','7','8','9','clear','0','delete'];
+
+  const vkFieldValue =
+    vkTarget === 'pin' ? '\u2022'.repeat(pin.length)
+    : vkTarget === 'username' ? username
+    : '\u2022'.repeat(password.length);
+  const vkFieldEmpty =
+    (vkTarget === 'pin' ? pin.length
+     : vkTarget === 'username' ? username.length
+     : password.length) === 0;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center p-4">
       <div className="w-full max-w-5xl">
-        <div className="relative bg-white rounded-3xl shadow-2xl overflow-hidden min-h-[600px]">
+        <div className="relative bg-white rounded-3xl shadow-2xl overflow-hidden min-h-[620px]">
           <div className="absolute inset-0 bg-[#2563EB] [clip-path:polygon(48%_0,100%_0,100%_100%,32%_100%)]" />
 
-          <div className="relative grid grid-cols-1 lg:grid-cols-2 min-h-[600px]">
-            {/* LEFT: e bardhe - logo blu + brand + sherbimet */}
-            <div className="flex items-center h-full p-8 lg:pl-14 lg:pr-8 relative z-10">
-              <div className="w-full max-w-[240px] mx-auto lg:mx-0 flex flex-col items-center">
-                {/* Logo ne kontejner blu */}
+          <div className="relative grid grid-cols-1 lg:grid-cols-2 min-h-[620px]">
+            {/* LEFT */}
+            <div className="flex flex-col p-6 lg:pl-14 lg:pr-8 relative z-10">
+              <div className="w-full max-w-[240px] mx-auto lg:mx-0 flex flex-col items-center flex-1 justify-center">
+                {/* Logo */}
                 <div className="w-24 h-24 bg-[#2563EB] rounded-3xl shadow-lg flex items-center justify-center mb-4">
                   {tenant?.logo_url ? (
                     <img
@@ -136,13 +190,12 @@ const Login = () => {
                   )}
                 </div>
 
-                {/* Emri firmes */}
                 <h1 className="text-2xl font-bold text-[#2563EB] tracking-tight text-center leading-tight break-words w-full">
                   {brandName}
                 </h1>
                 <p className="text-[11px] text-gray-500 text-center mt-1 mb-5">Sistemi POS Moderne</p>
 
-                {/* Sherbimet - grid 2 kolonash */}
+                {/* Services */}
                 <div className="grid grid-cols-2 gap-2 w-full">
                   {SERVICES.map((s, i) => {
                     const Icon = s.icon;
@@ -157,9 +210,28 @@ const Login = () => {
                   })}
                 </div>
               </div>
+
+              {/* Footer */}
+              <div className="w-full max-w-[240px] mx-auto lg:mx-0 mt-4">
+                <div className="pt-3 border-t border-gray-200 text-center space-y-0.5">
+                  <p className="text-[11px] text-gray-600">
+                    Powered by <span className="font-bold text-[#2563EB]">DataPOS</span>
+                  </p>
+                  <p className="text-[10px] text-gray-400 pt-1">&copy; Copyright 2026</p>
+                  <a
+                    href="https://www.datapos.pro"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-[10px] text-[#2563EB] hover:underline block"
+                  >
+                    www.datapos.pro
+                  </a>
+                  <p className="text-[10px] text-gray-500">+383 45 278 279</p>
+                </div>
+              </div>
             </div>
 
-            {/* RIGHT: forma blu */}
+            {/* RIGHT */}
             <div className="flex flex-col justify-center p-8 lg:p-12 text-white relative z-10">
               {tenantLoading && (
                 <div className="flex items-center justify-center py-10">
@@ -169,13 +241,20 @@ const Login = () => {
 
               {!tenantLoading && !showAdminLogin && (
                 <>
-                  <h2 className="text-2xl lg:text-3xl font-bold mb-1">Kycje e Shpejte</h2>
-                  <p className="text-blue-100 text-sm mb-5">Shkruaj kodin PIN per te hyre</p>
+                  <p className="text-blue-100 text-sm mb-4">Shkruaj kodin PIN per te hyre</p>
 
-                  <div className="mb-4">
-                    <div className="w-full h-14 rounded-xl bg-white/10 backdrop-blur-sm border border-white/25 flex items-center justify-center text-2xl font-bold tracking-[0.5em] text-white">
+                  <div className="relative mb-4">
+                    <div className="w-full h-14 rounded-xl bg-white/10 backdrop-blur-sm border border-white/25 flex items-center justify-center text-2xl font-bold tracking-[0.5em] text-white pr-14">
                       {pin ? '\u2022'.repeat(pin.length) : <span className="text-blue-200 text-base tracking-normal">PIN</span>}
                     </div>
+                    <button
+                      type="button"
+                      onClick={() => openVK('pin')}
+                      className="absolute right-2 top-1/2 -translate-y-1/2 w-10 h-10 flex items-center justify-center bg-white/15 hover:bg-white/30 rounded-lg transition-colors"
+                      title="Hap tastieren virtuale"
+                    >
+                      <Keyboard className="h-4 w-4 text-white" />
+                    </button>
                   </div>
 
                   <div className="grid grid-cols-3 gap-2.5 mb-4">
@@ -244,10 +323,18 @@ const Login = () => {
                           placeholder="Enter your username"
                           value={username}
                           onChange={(e) => setUsername(e.target.value)}
-                          className="w-full pl-10 h-11 bg-white text-gray-900 placeholder-gray-400 border-0 rounded-lg focus:ring-2 focus:ring-white outline-none transition-all"
+                          className="w-full pl-10 pr-10 h-11 bg-white text-gray-900 placeholder-gray-400 border-0 rounded-lg focus:ring-2 focus:ring-white outline-none transition-all"
                           required
                           autoFocus
                         />
+                        <button
+                          type="button"
+                          onClick={() => openVK('username')}
+                          className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                          title="Hap tastieren virtuale"
+                        >
+                          <Keyboard className="h-4 w-4 text-gray-400 hover:text-[#2563EB]" />
+                        </button>
                       </div>
                     </div>
 
@@ -262,15 +349,23 @@ const Login = () => {
                           placeholder="Enter your password"
                           value={password}
                           onChange={(e) => setPassword(e.target.value)}
-                          className="w-full pl-10 pr-10 h-11 bg-white text-gray-900 placeholder-gray-400 border-0 rounded-lg focus:ring-2 focus:ring-white outline-none transition-all"
+                          className="w-full pl-10 pr-20 h-11 bg-white text-gray-900 placeholder-gray-400 border-0 rounded-lg focus:ring-2 focus:ring-white outline-none transition-all"
                           required
                         />
                         <button
                           type="button"
                           onClick={() => setShowPassword(!showPassword)}
-                          className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                          className="absolute inset-y-0 right-10 pr-1 flex items-center"
                         >
                           {showPassword ? <EyeOff className="h-4 w-4 text-gray-400" /> : <Eye className="h-4 w-4 text-gray-400" />}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => openVK('password')}
+                          className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                          title="Hap tastieren virtuale"
+                        >
+                          <Keyboard className="h-4 w-4 text-gray-400 hover:text-[#2563EB]" />
                         </button>
                       </div>
                     </div>
@@ -307,6 +402,78 @@ const Login = () => {
         </div>
       </div>
 
+      {/* Virtual Keyboard Modal */}
+      <Dialog open={vkOpen} onOpenChange={setVkOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-[#2563EB]">
+              <Keyboard className="h-5 w-5" />
+              Tastiera Virtuale
+            </DialogTitle>
+          </DialogHeader>
+
+          <div className="mb-3">
+            <p className="text-xs text-gray-500 mb-1.5 font-medium">
+              {vkTarget === 'pin' ? 'Kodi PIN' : vkTarget === 'username' ? 'Emri i perdoruesit' : 'Fjalekalimi'}
+            </p>
+            <div className="p-3 bg-gray-100 rounded-lg text-lg font-mono min-h-[48px] break-all border border-gray-200">
+              {vkFieldEmpty ? <span className="text-gray-400 text-sm">Fillo te shkruash...</span> : vkFieldValue}
+            </div>
+          </div>
+
+          {vkTarget === 'pin' ? (
+            <div className="grid grid-cols-3 gap-2">
+              {['1','2','3','4','5','6','7','8','9'].map(k => (
+                <button
+                  key={k}
+                  onClick={() => vkKeyPress(k)}
+                  className="h-14 bg-gray-100 hover:bg-blue-100 active:bg-blue-200 rounded-lg text-xl font-bold transition-colors"
+                >{k}</button>
+              ))}
+              <button onClick={vkClear} className="h-14 bg-red-50 hover:bg-red-100 text-red-600 rounded-lg font-medium transition-colors">C</button>
+              <button onClick={() => vkKeyPress('0')} className="h-14 bg-gray-100 hover:bg-blue-100 active:bg-blue-200 rounded-lg text-xl font-bold transition-colors">0</button>
+              <button onClick={vkBackspace} className="h-14 bg-gray-100 hover:bg-blue-100 rounded-lg flex items-center justify-center transition-colors">
+                <Delete className="h-5 w-5" />
+              </button>
+              <button onClick={vkEnter} className="col-span-3 h-12 bg-[#2563EB] hover:bg-[#1D4ED8] text-white rounded-lg font-bold tracking-wider transition-colors">KYCU</button>
+            </div>
+          ) : (
+            <div className="space-y-1.5">
+              {QWERTY_ROWS.map((row, i) => (
+                <div key={i} className="flex gap-1 justify-center">
+                  {row.map(k => {
+                    const isLetter = /[a-z]/.test(k);
+                    const display = isLetter && vkShift ? k.toUpperCase() : k;
+                    return (
+                      <button
+                        key={k}
+                        onClick={() => vkKeyPress(display)}
+                        className="w-9 h-11 sm:w-10 sm:h-12 bg-gray-100 hover:bg-blue-100 active:bg-blue-200 rounded-md font-medium text-sm transition-colors"
+                      >{display}</button>
+                    );
+                  })}
+                </div>
+              ))}
+              <div className="flex gap-1 justify-center pt-1 flex-wrap">
+                <button
+                  onClick={() => setVkShift(!vkShift)}
+                  className={"px-3 h-11 rounded-md font-medium text-xs transition-colors " + (vkShift ? "bg-[#2563EB] text-white" : "bg-gray-100 hover:bg-blue-100")}
+                >Shift</button>
+                <button onClick={() => vkKeyPress('@')} className="px-3 h-11 bg-gray-100 hover:bg-blue-100 rounded-md text-sm transition-colors">@</button>
+                <button onClick={() => vkKeyPress('.')} className="px-3 h-11 bg-gray-100 hover:bg-blue-100 rounded-md text-sm transition-colors">.</button>
+                <button onClick={() => vkKeyPress('_')} className="px-3 h-11 bg-gray-100 hover:bg-blue-100 rounded-md text-sm transition-colors">_</button>
+                <button onClick={() => vkKeyPress('-')} className="px-3 h-11 bg-gray-100 hover:bg-blue-100 rounded-md text-sm transition-colors">-</button>
+                <button onClick={() => vkKeyPress(' ')} className="flex-1 min-w-[100px] max-w-[200px] h-11 bg-gray-100 hover:bg-blue-100 rounded-md text-xs transition-colors">Space</button>
+                <button onClick={vkBackspace} className="px-3 h-11 bg-gray-100 hover:bg-blue-100 rounded-md flex items-center transition-colors"><Delete className="h-4 w-4" /></button>
+                <button onClick={vkClear} className="px-3 h-11 bg-red-50 hover:bg-red-100 text-red-600 rounded-md text-xs font-medium transition-colors">Clear</button>
+                <button onClick={vkEnter} className="px-4 h-11 bg-[#2563EB] hover:bg-[#1D4ED8] text-white rounded-md text-sm font-bold transition-colors">Enter</button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Subscription Expired Modal */}
       <Dialog open={showExpiredModal} onOpenChange={setShowExpiredModal}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
@@ -324,7 +491,7 @@ const Login = () => {
             <div className="text-center space-y-2">
               <p className="text-lg font-semibold text-gray-900">Abonimi juaj ka skaduar!</p>
               <p className="text-sm text-gray-600">
-                {expiredDays > 0 ? `Abonimi juaj ka skaduar para ${expiredDays} ditesh.` : 'Abonimi juaj ka skaduar sot.'}
+                {expiredDays > 0 ? "Abonimi juaj ka skaduar para " + expiredDays + " ditesh." : 'Abonimi juaj ka skaduar sot.'}
               </p>
               <p className="text-sm text-gray-500">Per te vazhduar perdorimin e sistemit, kontaktoni administratorin per te rinovuar abonimin.</p>
             </div>
@@ -332,7 +499,7 @@ const Login = () => {
               <p className="text-sm font-medium text-gray-700 text-center">Kontaktoni per rinovim:</p>
               <div className="flex items-center justify-center gap-2 text-[#2563EB]">
                 <Phone className="h-4 w-4" />
-                <span className="font-medium">+383 44 123 456</span>
+                <span className="font-medium">+383 45 278 279</span>
               </div>
             </div>
             <Button onClick={() => setShowExpiredModal(false)} variant="outline" className="w-full">Mbyll</Button>
