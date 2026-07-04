@@ -4,14 +4,8 @@ import { useAuth } from '../App';
 import {
   LayoutDashboard, ShoppingCart, Package, Warehouse, Users, Building2,
   BarChart3, Settings, LogOut, ClipboardList, Menu, X, CreditCard,
-  Search, Bell, Sparkles, ChevronRight,
+  Search, Bell, Sparkles, Sun, Moon,
 } from 'lucide-react';
-import { Button } from './ui/button';
-import { ScrollArea } from './ui/scroll-area';
-import {
-  DropdownMenu, DropdownMenuContent, DropdownMenuItem,
-  DropdownMenuSeparator, DropdownMenuTrigger, DropdownMenuLabel,
-} from './ui/dropdown-menu';
 import { Avatar, AvatarFallback } from './ui/avatar';
 
 const MainLayout = () => {
@@ -19,177 +13,176 @@ const MainLayout = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [darkMode, setDarkMode] = useState(false);
 
   const handleLogout = () => { logout(); navigate('/login'); };
 
-  const menuGroups = [
-    { title: 'Kryesore', items: [
-      { path: '/app/dashboard', icon: LayoutDashboard, label: 'Paneli', roles: ['admin','manager','cashier'] },
-      { path: '/pos', icon: ShoppingCart, label: 'Arka', roles: ['admin','manager','cashier'] },
-    ]},
-    { title: 'Menaxhim', items: [
-      { path: '/app/products', icon: Package, label: 'Produktet', roles: ['admin','manager'] },
-      { path: '/app/stock', icon: Warehouse, label: 'Stoku', roles: ['admin','manager'] },
-      { path: '/app/debts', icon: CreditCard, label: 'Borxhet', roles: ['admin','manager'] },
-      { path: '/app/users', icon: Users, label: 'P\u00EBrdoruesit', roles: ['admin','manager'] },
-      { path: '/app/branches', icon: Building2, label: 'Deg\u00EBt', roles: ['admin'] },
-    ]},
-    { title: 'Analitik\u00EB', items: [
-      { path: '/app/reports', icon: BarChart3, label: 'Raportet', roles: ['admin','manager'] },
-      { path: '/app/audit-logs', icon: ClipboardList, label: 'Audit Log', roles: ['admin'] },
-    ]},
-    { title: 'Sistemi', items: [
-      { path: '/app/settings', icon: Settings, label: 'Cil\u00EBsimet', roles: ['admin'] },
-      { path: '/app/super-admin', icon: Sparkles, label: 'Menaxho Firmat', roles: ['super_admin'] },
-    ]},
+  const menuItems = [
+    { path: '/app/dashboard',    icon: LayoutDashboard, label: 'Paneli',          roles: ['admin','manager','cashier'] },
+    { path: '/pos',              icon: ShoppingCart,    label: 'Arka POS',        roles: ['admin','manager','cashier'] },
+    { path: '/app/products',     icon: Package,         label: 'Produktet',       roles: ['admin','manager'] },
+    { path: '/app/stock',        icon: Warehouse,       label: 'Stoku',           roles: ['admin','manager'] },
+    { path: '/app/debts',        icon: CreditCard,      label: 'Borxhet',         roles: ['admin','manager'] },
+    { path: '/app/users',        icon: Users,           label: 'Perdoruesit',     roles: ['admin','manager'] },
+    { path: '/app/branches',     icon: Building2,       label: 'Deget',           roles: ['admin'] },
+    { path: '/app/reports',      icon: BarChart3,       label: 'Raportet',        roles: ['admin','manager'] },
+    { path: '/app/audit-logs',   icon: ClipboardList,   label: 'Audit Log',       roles: ['admin'] },
+    { path: '/app/settings',     icon: Settings,        label: 'Cilesimet',       roles: ['admin'] },
+    { path: '/app/super-admin',  icon: Sparkles,        label: 'Menaxho Firmat',  roles: ['super_admin'] },
   ];
 
-  const filteredGroups = menuGroups
-    .map(g => ({ ...g, items: g.items.filter(i => i.roles.includes(user?.role)) }))
-    .filter(g => g.items.length > 0);
-
-  const currentItem = menuGroups.flatMap(g => g.items).find(i => location.pathname.startsWith(i.path));
+  const filteredItems = menuItems.filter(i => i.roles.includes(user?.role));
+  const currentItem = menuItems.find(i => location.pathname.startsWith(i.path));
 
   const roleLabels = {
     super_admin: 'Super Admin',
     admin: 'Administrator',
     manager: 'Menaxher',
-    cashier: 'Ark\u00EBtar',
+    cashier: 'Arketar',
   };
 
-  const NavItemEl = ({ item }) => (
-    <NavLink
-      to={item.path}
-      onClick={() => setSidebarOpen(false)}
-      className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
-    >
-      <item.icon className="h-[18px] w-[18px] flex-shrink-0" strokeWidth={1.75} />
-      <span>{item.label}</span>
-    </NavLink>
-  );
+  const navItemClass = ({ isActive }) =>
+    "flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all text-sm font-medium " +
+    (isActive
+      ? "bg-white text-[#1E3A8A] shadow-lg font-semibold"
+      : "text-blue-100 hover:bg-white/10 hover:text-white");
 
   return (
-    <div className="min-h-screen bg-mesh-subtle">
+    <div className="min-h-screen bg-gray-50">
       {/* Mobile Header */}
-      <header className="lg:hidden fixed top-0 left-0 right-0 z-50 glass-strong border-b border-gray-200/60 px-4 py-3">
+      <header className="lg:hidden fixed top-0 left-0 right-0 z-50 bg-white border-b border-gray-200 px-4 py-3 shadow-sm">
         <div className="flex items-center justify-between">
-          <Button variant="ghost" size="icon" onClick={() => setSidebarOpen(!sidebarOpen)} data-testid="mobile-menu-btn">
+          <button
+            onClick={() => setSidebarOpen(!sidebarOpen)}
+            className="w-10 h-10 flex items-center justify-center rounded-lg hover:bg-gray-100"
+          >
             {sidebarOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-          </Button>
+          </button>
           <div className="flex items-center gap-2">
-            <img src="/logo-icon.png" alt="DataPOS" className="h-8 w-8 object-contain" />
-            <span className="font-bold text-gray-800 font-display tracking-tight">DataPOS</span>
+            <div className="w-8 h-8 bg-[#2563EB] rounded-lg flex items-center justify-center">
+              <Sparkles className="h-4 w-4 text-white" />
+            </div>
+            <span className="font-bold text-gray-800">DataPOS</span>
           </div>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" data-testid="user-menu-mobile">
-                <Avatar className="h-8 w-8">
-                  <AvatarFallback className="bg-gradient-to-br from-[#2563EB] to-[#007a73] text-white text-sm font-semibold">
-                    {user?.full_name?.charAt(0) || 'U'}
-                  </AvatarFallback>
-                </Avatar>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56">
-              <div className="px-3 py-2">
-                <p className="font-semibold text-sm">{user?.full_name}</p>
-                <p className="text-xs text-gray-500">@{user?.username}</p>
-              </div>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={handleLogout} className="text-red-600">
-                <LogOut className="h-4 w-4 mr-2" />{'\u00C7ky\u00E7u'}
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <div className="w-10" />
         </div>
       </header>
 
       {/* Sidebar */}
       <aside
-        className={`fixed inset-y-0 left-0 z-40 w-64 glass-strong border-r border-gray-200/60 transform transition-transform duration-300 ease-in-out lg:translate-x-0 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}
+        className={
+          "fixed inset-y-0 left-0 z-40 w-64 bg-gradient-to-b from-[#1E3A8A] via-[#1E40AF] to-[#2563EB] transform transition-transform duration-300 ease-in-out lg:translate-x-0 flex flex-col shadow-2xl " +
+          (sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0")
+        }
       >
-        <div className="h-16 flex items-center gap-2.5 border-b border-gray-200/60 px-5">
-          <div className="relative">
-            <img src="/logo-icon.png" alt="DataPOS" className="h-9 w-9 object-contain" />
-            <div className="absolute -inset-1 bg-gradient-to-r from-[#2563EB]/20 to-[#00c4b8]/20 rounded-full blur-md -z-10" />
+        {/* Brand */}
+        <div className="h-14 flex items-center gap-2.5 px-5 border-b border-white/10 flex-shrink-0">
+          <div className="w-8 h-8 bg-white/15 rounded-lg flex items-center justify-center">
+            <Sparkles className="h-4 w-4 text-white" />
           </div>
           <div className="flex flex-col leading-tight">
-            <span className="font-display font-bold text-gray-800 tracking-tight">DataPOS</span>
-            <span className="text-[10px] text-gray-500 font-medium tracking-wide uppercase">AI POS System</span>
+            <span className="font-bold text-white tracking-tight text-sm">DataPOS</span>
+            <span className="text-[9px] text-blue-200 font-medium tracking-wider uppercase">POS System</span>
           </div>
         </div>
 
-        <ScrollArea className="h-[calc(100vh-9rem)] py-4 px-3">
-          <nav className="space-y-5">
-            {filteredGroups.map((group) => (
-              <div key={group.title}>
-                <h3 className="px-3 mb-1.5 text-[10px] font-semibold text-gray-400 uppercase tracking-wider">{group.title}</h3>
-                <div className="space-y-0.5">
-                  {group.items.map((item) => <NavItemEl key={item.path} item={item} />)}
-                </div>
-              </div>
-            ))}
-          </nav>
-        </ScrollArea>
+        {/* User profile card */}
+        <div className="px-5 py-5 border-b border-white/10 flex-shrink-0">
+          <div className="flex flex-col items-center text-center">
+            <Avatar className="h-16 w-16 ring-4 ring-white/20 mb-3">
+              <AvatarFallback className="bg-white text-[#1E3A8A] text-2xl font-bold">
+                {user?.full_name?.charAt(0)?.toUpperCase() || user?.username?.charAt(0)?.toUpperCase() || 'U'}
+              </AvatarFallback>
+            </Avatar>
+            <p className="text-sm font-semibold text-white truncate max-w-full">
+              {user?.full_name || user?.username || 'Perdorues'}
+            </p>
+            <p className="text-[11px] text-blue-200 truncate max-w-full mt-0.5">
+              {user?.email || ('@' + (user?.username || 'user'))}
+            </p>
+            <span className="mt-2 text-[10px] font-medium bg-white/15 text-white px-2.5 py-0.5 rounded-full">
+              {roleLabels[user?.role] || user?.role}
+            </span>
+          </div>
+        </div>
 
-        <div className="absolute bottom-0 left-0 right-0 p-3 border-t border-gray-200/60 bg-white/50 backdrop-blur-md">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <button className="w-full flex items-center gap-3 p-2 rounded-xl hover:bg-gray-100/80 transition-colors" data-testid="user-menu-desktop">
-                <Avatar className="h-9 w-9 ring-2 ring-white shadow-sm">
-                  <AvatarFallback className="bg-gradient-to-br from-[#2563EB] to-[#007a73] text-white text-sm font-semibold">
-                    {user?.full_name?.charAt(0) || 'U'}
-                  </AvatarFallback>
-                </Avatar>
-                <div className="flex-1 min-w-0 text-left">
-                  <p className="text-sm font-semibold text-gray-800 truncate">{user?.full_name}</p>
-                  <p className="text-[11px] text-gray-500 truncate">{roleLabels[user?.role] || user?.role}</p>
-                </div>
-                <ChevronRight className="h-4 w-4 text-gray-400" />
-              </button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56" side="top">
-              <DropdownMenuLabel>
-                <p className="text-sm">{user?.full_name}</p>
-                <p className="text-xs text-gray-500 font-normal">@{user?.username}</p>
-              </DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => navigate('/app/settings')}>
-                <Settings className="h-4 w-4 mr-2" />{'Cil\u00EBsimet'}
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={handleLogout} className="text-red-600">
-                <LogOut className="h-4 w-4 mr-2" />{'\u00C7ky\u00E7u'}
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+        {/* Nav items */}
+        <div className="flex-1 overflow-y-auto py-4 px-3 min-h-0">
+          <nav className="space-y-1">
+            {filteredItems.map((item) => {
+              const Icon = item.icon;
+              return (
+                <NavLink
+                  key={item.path}
+                  to={item.path}
+                  onClick={() => setSidebarOpen(false)}
+                  className={navItemClass}
+                >
+                  <Icon className="h-[18px] w-[18px] flex-shrink-0" strokeWidth={2} />
+                  <span>{item.label}</span>
+                </NavLink>
+              );
+            })}
+          </nav>
+        </div>
+
+        {/* Logout */}
+        <div className="p-3 border-t border-white/10 flex-shrink-0">
+          <button
+            onClick={handleLogout}
+            className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-blue-100 hover:bg-red-500/20 hover:text-white transition-all text-sm font-medium"
+          >
+            <LogOut className="h-[18px] w-[18px]" strokeWidth={2} />
+            <span>Ckycu</span>
+          </button>
         </div>
       </aside>
 
+      {/* Mobile overlay */}
       {sidebarOpen && (
-        <div className="fixed inset-0 bg-black/30 backdrop-blur-sm z-30 lg:hidden" onClick={() => setSidebarOpen(false)} />
+        <div
+          className="fixed inset-0 bg-black/40 backdrop-blur-sm z-30 lg:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
       )}
 
+      {/* Main */}
       <main className="lg:ml-64 min-h-screen pt-16 lg:pt-0">
-        <div className="hidden lg:flex sticky top-0 z-20 h-14 items-center justify-between px-6 glass-strong border-b border-gray-200/60">
-          <div className="flex items-center gap-2 text-sm">
-            <span className="text-gray-400">DataPOS</span>
-            <ChevronRight className="h-3.5 w-3.5 text-gray-300" />
-            <span className="font-semibold text-gray-800">{currentItem?.label || 'Paneli'}</span>
+        {/* Desktop Header */}
+        <div className="hidden lg:flex sticky top-0 z-20 h-20 items-center justify-between px-8 bg-white border-b border-gray-200 shadow-sm">
+          <div>
+            <h1 className="text-xl font-bold text-gray-900">
+              Welcome, {user?.full_name || user?.username || 'Perdorues'} !
+            </h1>
+            <p className="text-xs text-gray-500 mt-0.5">
+              {currentItem?.label || 'Paneli'}
+            </p>
           </div>
-          <div className="flex items-center gap-2">
-            <button className="flex items-center gap-2 px-3 py-1.5 text-sm text-gray-500 bg-gray-100/60 hover:bg-gray-100 rounded-lg transition-colors">
-              <Search className="h-4 w-4" />
-              <span>{'K\u00EBrko...'}</span>
-              <kbd className="ml-2">Ctrl K</kbd>
+          <div className="flex items-center gap-3">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <input
+                type="text"
+                placeholder="Kerko..."
+                className="pl-9 pr-4 h-10 w-64 bg-gray-100 rounded-lg text-sm border-0 focus:ring-2 focus:ring-[#2563EB] focus:bg-white outline-none transition-all"
+              />
+            </div>
+            <button
+              onClick={() => setDarkMode(!darkMode)}
+              className="w-10 h-10 flex items-center justify-center bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+              title="Ndrysho temen"
+            >
+              {darkMode ? <Sun className="h-5 w-5 text-gray-600" /> : <Moon className="h-5 w-5 text-gray-600" />}
             </button>
-            <Button variant="ghost" size="icon" className="relative">
+            <button className="relative w-10 h-10 flex items-center justify-center bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors">
               <Bell className="h-5 w-5 text-gray-600" strokeWidth={1.75} />
-              <span className="absolute top-2 right-2 h-2 w-2 bg-red-500 rounded-full" />
-            </Button>
+              <span className="absolute top-2 right-2 h-2 w-2 bg-red-500 rounded-full ring-2 ring-white" />
+            </button>
           </div>
         </div>
-        <div className="p-4 md:p-6 page-content" key={location.pathname}>
+
+        {/* Page content */}
+        <div className="p-4 md:p-6" key={location.pathname}>
           <Outlet />
         </div>
       </main>
