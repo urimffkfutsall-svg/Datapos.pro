@@ -102,39 +102,28 @@ const Login = () => {
 
   const numpadButtons = ['1','2','3','4','5','6','7','8','9','clear','0','delete'];
 
-  const LeftBrand = (
-    <div className="flex flex-col items-center justify-center h-full p-8 lg:p-12 relative z-10">
-      <img
-        src={logoSrc}
-        alt={brandName}
-        className="w-24 h-24 lg:w-32 lg:h-32 object-contain mb-6"
-        onError={(e) => e.target.style.display = 'none'}
-      />
-      <h1 className="text-3xl lg:text-4xl font-bold text-[#2563EB] tracking-tight text-center">
-        {brandName}
-      </h1>
-      <p className="text-sm text-gray-500 mt-3 text-center max-w-xs">
-        Sistemi POS moderne per biznesin tuaj
-      </p>
-    </div>
-  );
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center p-4">
       <div className="w-full max-w-5xl">
-        <div className="relative bg-white rounded-3xl shadow-2xl overflow-hidden" style= minHeight: '560px' >
-          {/* Blue diagonal overlay behind right column */}
-          <div
-            className="absolute inset-0 bg-[#2563EB]"
-            style= clipPath: 'polygon(48% 0, 100% 0, 100% 100%, 32% 100%)' 
-          />
+        <div className="relative bg-white rounded-3xl shadow-2xl overflow-hidden min-h-[560px]">
+          <div className="absolute inset-0 bg-[#2563EB] [clip-path:polygon(48%_0,100%_0,100%_100%,32%_100%)]" />
 
-          {/* 2 columns */}
-          <div className="relative grid grid-cols-1 lg:grid-cols-2" style= minHeight: '560px' >
-            {/* LEFT: Brand */}
-            {LeftBrand}
+          <div className="relative grid grid-cols-1 lg:grid-cols-2 min-h-[560px]">
+            <div className="flex flex-col items-center justify-center h-full p-8 lg:p-12 relative z-10">
+              <img
+                src={logoSrc}
+                alt={brandName}
+                className="w-24 h-24 lg:w-32 lg:h-32 object-contain mb-6"
+                onError={(e) => { e.target.style.display = 'none'; }}
+              />
+              <h1 className="text-3xl lg:text-4xl font-bold text-[#2563EB] tracking-tight text-center">
+                {brandName}
+              </h1>
+              <p className="text-sm text-gray-500 mt-3 text-center max-w-xs">
+                Sistemi POS moderne per biznesin tuaj
+              </p>
+            </div>
 
-            {/* RIGHT: Form */}
             <div className="flex flex-col justify-center p-8 lg:p-12 text-white relative z-10">
               {tenantLoading && (
                 <div className="flex items-center justify-center py-10">
@@ -282,7 +271,6 @@ const Login = () => {
         </div>
       </div>
 
-      {/* Subscription Expired Modal */}
       <Dialog open={showExpiredModal} onOpenChange={setShowExpiredModal}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
