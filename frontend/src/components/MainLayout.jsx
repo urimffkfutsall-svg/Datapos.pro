@@ -4,7 +4,7 @@ import { useAuth } from '../App';
 import {
   LayoutDashboard, ShoppingCart, Package, Warehouse, Users, Building2,
   BarChart3, Settings, LogOut, ClipboardList, Menu, X, CreditCard,
-  Search, Bell, Sparkles, Sun, Moon,
+  Search, Bell, Sparkles, Sun, Moon, Smartphone,
 } from 'lucide-react';
 import { Avatar, AvatarFallback } from './ui/avatar';
 
