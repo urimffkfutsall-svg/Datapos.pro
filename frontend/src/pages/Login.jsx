@@ -8,7 +8,7 @@ import {
 import {
   Delete, CornerDownLeft, User, Lock, Eye, EyeOff,
   ArrowLeft, AlertTriangle, CreditCard, Phone,
-  ShoppingCart, Package, BarChart3, Users, Boxes, Ticket,
+  ShoppingCart, Package, BarChart3, Users, Boxes, Ticket, Store,
 } from 'lucide-react';
 
 const SERVICES = [
@@ -124,12 +124,16 @@ const Login = () => {
               <div className="w-full max-w-[240px] mx-auto lg:mx-0 flex flex-col items-center">
                 {/* Logo ne kontejner blu */}
                 <div className="w-24 h-24 bg-[#2563EB] rounded-3xl shadow-lg flex items-center justify-center mb-4">
-                  <img
-                    src={logoSrc}
-                    alt={brandName}
-                    className="w-16 h-16 object-contain"
-                    onError={(e) => { e.target.style.display = 'none'; }}
-                  />
+                  {tenant?.logo_url ? (
+                    <img
+                      src={tenant.logo_url}
+                      alt={brandName}
+                      className="w-16 h-16 object-contain rounded-2xl"
+                      onError={(e) => { e.target.style.display = 'none'; }}
+                    />
+                  ) : (
+                    <Store className="w-12 h-12 text-white" strokeWidth={1.5} />
+                  )}
                 </div>
 
                 {/* Emri firmes */}
