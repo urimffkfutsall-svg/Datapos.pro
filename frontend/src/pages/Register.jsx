@@ -117,18 +117,18 @@ const Register = () => {
       <div className="min-h-screen bg-[#0a1628] flex items-center justify-center p-4 relative overflow-hidden">
         {/* Background Elements */}
         <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute top-0 left-1/4 w-96 h-96 bg-[#00a79d]/10 rounded-full blur-3xl"></div>
-          <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-[#00a79d]/5 rounded-full blur-3xl"></div>
+          <div className="absolute top-0 left-1/4 w-96 h-96 bg-[#2563EB]/10 rounded-full blur-3xl"></div>
+          <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-[#2563EB]/5 rounded-full blur-3xl"></div>
         </div>
 
         <div className="relative w-full max-w-md">
           <div className="bg-[#0f1f35]/80 backdrop-blur-xl rounded-2xl border border-white/10 shadow-2xl p-8 text-center">
-            <div className="w-20 h-20 bg-[#00a79d]/20 rounded-full flex items-center justify-center mx-auto mb-6">
-              <CheckCircle className="w-10 h-10 text-[#00a79d]" />
+            <div className="w-20 h-20 bg-[#2563EB]/20 rounded-full flex items-center justify-center mx-auto mb-6">
+              <CheckCircle className="w-10 h-10 text-[#2563EB]" />
             </div>
             <h2 className="text-2xl font-bold text-white mb-4">Regjistrimi u Krye!</h2>
             <p className="text-gray-400 mb-4">
-              Llogaria juaj u krijua me sukses. Keni <span className="text-[#00a79d] font-semibold">30 ditë provë falas</span> për të testuar sistemin.
+              Llogaria juaj u krijua me sukses. Keni <span className="text-[#2563EB] font-semibold">30 ditë provë falas</span> për të testuar sistemin.
             </p>
             
             {/* Login Credentials */}
@@ -137,7 +137,7 @@ const Register = () => {
               <div className="space-y-2">
                 <div className="flex items-center justify-between bg-white/5 rounded-lg px-3 py-2">
                   <span className="text-gray-400 text-sm">Username:</span>
-                  <span className="text-[#00a79d] font-semibold">{formData.username}</span>
+                  <span className="text-[#2563EB] font-semibold">{formData.username}</span>
                 </div>
                 <div className="flex items-center justify-between bg-white/5 rounded-lg px-3 py-2">
                   <span className="text-gray-400 text-sm">Fjalëkalimi:</span>
@@ -149,14 +149,14 @@ const Register = () => {
               </p>
             </div>
             
-            <div className="bg-[#00a79d]/10 border border-[#00a79d]/20 rounded-xl p-3 mb-6">
+            <div className="bg-[#2563EB]/10 border border-[#2563EB]/20 rounded-xl p-3 mb-6">
               <p className="text-sm text-gray-300">
                 Duke u ridrejtuar te faqja e kyçjes...
               </p>
             </div>
             <Button
               onClick={() => navigate('/login')}
-              className="w-full h-12 bg-[#00a79d] hover:bg-[#008f86] text-white font-semibold rounded-xl"
+              className="w-full h-12 bg-[#2563EB] hover:bg-[#1D4ED8] text-white font-semibold rounded-xl"
             >
               Kyçu Tani
             </Button>
@@ -170,8 +170,8 @@ const Register = () => {
     <div className="min-h-screen bg-[#0a1628] flex items-center justify-center p-4 relative overflow-hidden">
       {/* Background Elements */}
       <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute top-0 left-1/4 w-96 h-96 bg-[#00a79d]/10 rounded-full blur-3xl"></div>
-        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-[#00a79d]/5 rounded-full blur-3xl"></div>
+        <div className="absolute top-0 left-1/4 w-96 h-96 bg-[#2563EB]/10 rounded-full blur-3xl"></div>
+        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-[#2563EB]/5 rounded-full blur-3xl"></div>
       </div>
 
       {/* Grid Pattern */}
@@ -189,7 +189,7 @@ const Register = () => {
 
         <div className="bg-[#0f1f35]/80 backdrop-blur-xl rounded-2xl border border-white/10 shadow-2xl overflow-hidden">
           {/* Header */}
-          <div className="bg-gradient-to-r from-[#00a79d]/20 to-transparent p-6 border-b border-white/10">
+          <div className="bg-gradient-to-r from-[#2563EB]/20 to-transparent p-6 border-b border-white/10">
             <div className="flex items-center gap-3 mb-2">
               <img 
                 src="https://customer-assets.emergentagent.com/job_retailsys-1/artifacts/9i1h1bxb_logo%20icon.png" 
@@ -202,17 +202,17 @@ const Register = () => {
           </div>
 
           {/* Trial Benefits */}
-          <div className="grid grid-cols-3 gap-3 p-4 bg-[#00a79d]/5 border-b border-white/10">
+          <div className="grid grid-cols-3 gap-3 p-4 bg-[#2563EB]/5 border-b border-white/10">
             <div className="flex items-center gap-2 text-center">
-              <Gift className="w-4 h-4 text-[#00a79d]" />
+              <Gift className="w-4 h-4 text-[#2563EB]" />
               <span className="text-xs text-gray-300">30 Ditë Falas</span>
             </div>
             <div className="flex items-center gap-2 text-center">
-              <Shield className="w-4 h-4 text-[#00a79d]" />
+              <Shield className="w-4 h-4 text-[#2563EB]" />
               <span className="text-xs text-gray-300">Pa Kartë Krediti</span>
             </div>
             <div className="flex items-center gap-2 text-center">
-              <Clock className="w-4 h-4 text-[#00a79d]" />
+              <Clock className="w-4 h-4 text-[#2563EB]" />
               <span className="text-xs text-gray-300">Anulo Kurdo</span>
             </div>
           </div>
@@ -230,7 +230,7 @@ const Register = () => {
                   placeholder="p.sh. Mobileri Urimi"
                   value={formData.company_name}
                   onChange={handleChange}
-                  className={`pl-12 h-12 bg-white/5 border-white/10 text-white placeholder:text-gray-500 rounded-xl focus:border-[#00a79d] focus:ring-[#00a79d]/20 ${errors.company_name ? 'border-red-500' : ''}`}
+                  className={`pl-12 h-12 bg-white/5 border-white/10 text-white placeholder:text-gray-500 rounded-xl focus:border-[#2563EB] focus:ring-[#2563EB]/20 ${errors.company_name ? 'border-red-500' : ''}`}
                 />
               </div>
               {errors.company_name && <p className="text-red-400 text-xs">{errors.company_name}</p>}
@@ -247,7 +247,7 @@ const Register = () => {
                   placeholder="p.sh. Urim Krasniqi"
                   value={formData.full_name}
                   onChange={handleChange}
-                  className={`pl-12 h-12 bg-white/5 border-white/10 text-white placeholder:text-gray-500 rounded-xl focus:border-[#00a79d] focus:ring-[#00a79d]/20 ${errors.full_name ? 'border-red-500' : ''}`}
+                  className={`pl-12 h-12 bg-white/5 border-white/10 text-white placeholder:text-gray-500 rounded-xl focus:border-[#2563EB] focus:ring-[#2563EB]/20 ${errors.full_name ? 'border-red-500' : ''}`}
                 />
               </div>
               {errors.full_name && <p className="text-red-400 text-xs">{errors.full_name}</p>}
@@ -264,7 +264,7 @@ const Register = () => {
                   placeholder="p.sh. urimi123"
                   value={formData.username}
                   onChange={handleChange}
-                  className={`pl-12 h-12 bg-white/5 border-white/10 text-white placeholder:text-gray-500 rounded-xl focus:border-[#00a79d] focus:ring-[#00a79d]/20 ${errors.username ? 'border-red-500' : ''}`}
+                  className={`pl-12 h-12 bg-white/5 border-white/10 text-white placeholder:text-gray-500 rounded-xl focus:border-[#2563EB] focus:ring-[#2563EB]/20 ${errors.username ? 'border-red-500' : ''}`}
                 />
               </div>
               {errors.username && <p className="text-red-400 text-xs">{errors.username}</p>}
@@ -281,7 +281,7 @@ const Register = () => {
                   placeholder="email@kompania.com"
                   value={formData.email}
                   onChange={handleChange}
-                  className={`pl-12 h-12 bg-white/5 border-white/10 text-white placeholder:text-gray-500 rounded-xl focus:border-[#00a79d] focus:ring-[#00a79d]/20 ${errors.email ? 'border-red-500' : ''}`}
+                  className={`pl-12 h-12 bg-white/5 border-white/10 text-white placeholder:text-gray-500 rounded-xl focus:border-[#2563EB] focus:ring-[#2563EB]/20 ${errors.email ? 'border-red-500' : ''}`}
                 />
               </div>
               {errors.email && <p className="text-red-400 text-xs">{errors.email}</p>}
@@ -298,7 +298,7 @@ const Register = () => {
                   placeholder="+383 44 123 456"
                   value={formData.phone}
                   onChange={handleChange}
-                  className={`pl-12 h-12 bg-white/5 border-white/10 text-white placeholder:text-gray-500 rounded-xl focus:border-[#00a79d] focus:ring-[#00a79d]/20 ${errors.phone ? 'border-red-500' : ''}`}
+                  className={`pl-12 h-12 bg-white/5 border-white/10 text-white placeholder:text-gray-500 rounded-xl focus:border-[#2563EB] focus:ring-[#2563EB]/20 ${errors.phone ? 'border-red-500' : ''}`}
                 />
               </div>
               {errors.phone && <p className="text-red-400 text-xs">{errors.phone}</p>}
@@ -315,7 +315,7 @@ const Register = () => {
                   placeholder="Shkruani fjalëkalimin"
                   value={formData.password}
                   onChange={handleChange}
-                  className={`pl-12 pr-12 h-12 bg-white/5 border-white/10 text-white placeholder:text-gray-500 rounded-xl focus:border-[#00a79d] focus:ring-[#00a79d]/20 ${errors.password ? 'border-red-500' : ''}`}
+                  className={`pl-12 pr-12 h-12 bg-white/5 border-white/10 text-white placeholder:text-gray-500 rounded-xl focus:border-[#2563EB] focus:ring-[#2563EB]/20 ${errors.password ? 'border-red-500' : ''}`}
                 />
                 <button
                   type="button"
@@ -339,7 +339,7 @@ const Register = () => {
                   placeholder="Shkruani fjalëkalimin përsëri"
                   value={formData.confirmPassword}
                   onChange={handleChange}
-                  className={`pl-12 h-12 bg-white/5 border-white/10 text-white placeholder:text-gray-500 rounded-xl focus:border-[#00a79d] focus:ring-[#00a79d]/20 ${errors.confirmPassword ? 'border-red-500' : ''}`}
+                  className={`pl-12 h-12 bg-white/5 border-white/10 text-white placeholder:text-gray-500 rounded-xl focus:border-[#2563EB] focus:ring-[#2563EB]/20 ${errors.confirmPassword ? 'border-red-500' : ''}`}
                 />
               </div>
               {errors.confirmPassword && <p className="text-red-400 text-xs">{errors.confirmPassword}</p>}
@@ -349,7 +349,7 @@ const Register = () => {
             <Button
               type="submit"
               disabled={loading}
-              className="w-full h-12 bg-[#00a79d] hover:bg-[#008f86] text-white font-semibold rounded-xl transition-all duration-200 mt-6"
+              className="w-full h-12 bg-[#2563EB] hover:bg-[#1D4ED8] text-white font-semibold rounded-xl transition-all duration-200 mt-6"
             >
               {loading ? (
                 <Loader2 className="w-5 h-5 animate-spin" />
@@ -362,7 +362,7 @@ const Register = () => {
             <div className="text-center pt-4 border-t border-white/10">
               <p className="text-gray-400 text-sm">
                 Keni tashmë llogari?{' '}
-                <Link to="/login" className="text-[#00a79d] hover:text-[#00c9b7] font-medium">
+                <Link to="/login" className="text-[#2563EB] hover:text-[#00c9b7] font-medium">
                   Kyçuni këtu
                 </Link>
               </p>

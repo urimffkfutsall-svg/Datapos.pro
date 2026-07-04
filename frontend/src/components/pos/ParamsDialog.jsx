@@ -33,7 +33,7 @@ export const ParamsDialog = ({
             </div>
             <div className="flex justify-between">
               <span className="text-gray-500">Bilanci i Pritshëm:</span>
-              <span className="font-semibold text-[#00a79d]">€{cashDrawer?.expected_balance?.toFixed(2) || '0.00'}</span>
+              <span className="font-semibold text-[#2563EB]">€{cashDrawer?.expected_balance?.toFixed(2) || '0.00'}</span>
             </div>
           </div>
           <div className="p-4 bg-gray-50 rounded-lg">

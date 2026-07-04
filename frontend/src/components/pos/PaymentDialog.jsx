@@ -71,7 +71,7 @@ export const PaymentDialog = ({
           <div className="grid grid-cols-2 gap-2">
             <Button
               variant={paymentMethod === 'cash' ? 'default' : 'outline'}
-              className={paymentMethod === 'cash' ? 'bg-[#00a79d] hover:bg-[#008f86]' : ''}
+              className={paymentMethod === 'cash' ? 'bg-[#2563EB] hover:bg-[#1D4ED8]' : ''}
               onClick={() => setPaymentMethod('cash')}
               data-testid="payment-cash-btn"
             >
@@ -80,7 +80,7 @@ export const PaymentDialog = ({
             </Button>
             <Button
               variant={paymentMethod === 'bank' ? 'default' : 'outline'}
-              className={paymentMethod === 'bank' ? 'bg-[#00a79d] hover:bg-[#008f86]' : ''}
+              className={paymentMethod === 'bank' ? 'bg-[#2563EB] hover:bg-[#1D4ED8]' : ''}
               onClick={() => setPaymentMethod('bank')}
               data-testid="payment-bank-btn"
             >
@@ -93,7 +93,7 @@ export const PaymentDialog = ({
           {paymentMethod === 'cash' && (
             <>
               <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[#00a79d] font-bold">€</span>
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[#2563EB] font-bold">€</span>
                 <Input
                   ref={cashInputRef}
                   type="text"
@@ -155,7 +155,7 @@ export const PaymentDialog = ({
           {paymentMethod === 'bank' && (
             <div className="p-4 bg-gray-50 rounded-lg text-center">
               <p className="text-sm text-gray-500 mb-2">Pagesa me kartë/bank</p>
-              <p className="text-2xl font-bold text-[#00a79d]">€{cartTotals.total.toFixed(2)}</p>
+              <p className="text-2xl font-bold text-[#2563EB]">€{cartTotals.total.toFixed(2)}</p>
             </div>
           )}
 
@@ -166,7 +166,7 @@ export const PaymentDialog = ({
                 id="printReceipt"
                 checked={printReceipt}
                 onCheckedChange={setPrintReceipt}
-                className="border-[#00a79d] data-[state=checked]:bg-[#00a79d]"
+                className="border-[#2563EB] data-[state=checked]:bg-[#2563EB]"
                 data-testid="print-receipt-checkbox"
               />
               <label htmlFor="printReceipt" className="text-sm font-medium cursor-pointer flex-1">

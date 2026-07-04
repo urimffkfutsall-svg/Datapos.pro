@@ -506,35 +506,35 @@ const Settings = () => {
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
         <TabsList className="bg-white border shadow-sm p-1 h-auto flex-wrap">
-          <TabsTrigger value="kompania" className="data-[state=active]:bg-[#00a79d] data-[state=active]:text-white">
+          <TabsTrigger value="kompania" className="data-[state=active]:bg-[#2563EB] data-[state=active]:text-white">
             <Building2 className="h-4 w-4 mr-2" />
             KOMPANIA
           </TabsTrigger>
-          <TabsTrigger value="filialet" className="data-[state=active]:bg-[#00a79d] data-[state=active]:text-white">
+          <TabsTrigger value="filialet" className="data-[state=active]:bg-[#2563EB] data-[state=active]:text-white">
             <Store className="h-4 w-4 mr-2" />
             FILIALET
           </TabsTrigger>
-          <TabsTrigger value="depot" className="data-[state=active]:bg-[#00a79d] data-[state=active]:text-white">
+          <TabsTrigger value="depot" className="data-[state=active]:bg-[#2563EB] data-[state=active]:text-white">
             <Warehouse className="h-4 w-4 mr-2" />
             DEPOT
           </TabsTrigger>
-          <TabsTrigger value="projektet" className="data-[state=active]:bg-[#00a79d] data-[state=active]:text-white">
+          <TabsTrigger value="projektet" className="data-[state=active]:bg-[#2563EB] data-[state=active]:text-white">
             <FolderOpen className="h-4 w-4 mr-2" />
             PROJEKTET
           </TabsTrigger>
-          <TabsTrigger value="numri" className="data-[state=active]:bg-[#00a79d] data-[state=active]:text-white">
+          <TabsTrigger value="numri" className="data-[state=active]:bg-[#2563EB] data-[state=active]:text-white">
             <FileText className="h-4 w-4 mr-2" />
             NUMRI DOKUMENTIT
           </TabsTrigger>
-          <TabsTrigger value="shabllonet" className="data-[state=active]:bg-[#00a79d] data-[state=active]:text-white">
+          <TabsTrigger value="shabllonet" className="data-[state=active]:bg-[#2563EB] data-[state=active]:text-white">
             <Receipt className="h-4 w-4 mr-2" />
             SHABLLONET E FATURAVE
           </TabsTrigger>
-          <TabsTrigger value="tvsh" className="data-[state=active]:bg-[#00a79d] data-[state=active]:text-white">
+          <TabsTrigger value="tvsh" className="data-[state=active]:bg-[#2563EB] data-[state=active]:text-white">
             <Percent className="h-4 w-4 mr-2" />
             TVSH
           </TabsTrigger>
-          <TabsTrigger value="kuponet" className="data-[state=active]:bg-[#00a79d] data-[state=active]:text-white">
+          <TabsTrigger value="kuponet" className="data-[state=active]:bg-[#2563EB] data-[state=active]:text-white">
             <Percent className="h-4 w-4 mr-2" />
             Kuponet
           </TabsTrigger>
@@ -549,7 +549,7 @@ const Settings = () => {
                 <Button 
                   onClick={handleSaveCompany} 
                   disabled={loading}
-                  className="w-fit bg-[#00a79d] hover:bg-[#008f86] rounded-xl shadow-md shadow-[#00a79d]/20"
+                  className="w-fit bg-[#2563EB] hover:bg-[#1D4ED8] rounded-xl shadow-md shadow-[#2563EB]/20"
                 >
                   <Save className="h-4 w-4 mr-2" />
                   {loading ? 'Po ruhet...' : 'Ruaj të Dhënat'}
@@ -967,7 +967,7 @@ const Settings = () => {
                       checked={posSettings.orientimi_fatures === 'vertikal'}
                       onCheckedChange={(checked) => setPosSettings({ ...posSettings, orientimi_fatures: checked ? 'vertikal' : 'horizontal' })}
                     />
-                    <span className={posSettings.orientimi_fatures === 'vertikal' ? 'text-[#00a79d]' : 'text-gray-400'}>Vertikal</span>
+                    <span className={posSettings.orientimi_fatures === 'vertikal' ? 'text-[#2563EB]' : 'text-gray-400'}>Vertikal</span>
                   </div>
                 </div>
 
@@ -1063,7 +1063,7 @@ const Settings = () => {
                   </div>
                 </div>
 
-                <Button onClick={handleSavePosSettings} className="w-full bg-[#00a79d] hover:bg-[#008f86] rounded-xl shadow-md shadow-[#00a79d]/20">
+                <Button onClick={handleSavePosSettings} className="w-full bg-[#2563EB] hover:bg-[#1D4ED8] rounded-xl shadow-md shadow-[#2563EB]/20">
                   <Save className="h-4 w-4 mr-2" />
                   Ruaj Cilësimet
                 </Button>
@@ -1078,7 +1078,7 @@ const Settings = () => {
             <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle>Filialet / Degët</CardTitle>
               <Button 
-                className="bg-[#00a79d] hover:bg-[#008f86] rounded-xl shadow-md shadow-[#00a79d]/20"
+                className="bg-[#2563EB] hover:bg-[#1D4ED8] rounded-xl shadow-md shadow-[#2563EB]/20"
                 onClick={() => {
                   setEditingBranch(null);
                   setbranchForm({ name: '', address: '', phone: '', is_active: true });
@@ -1140,7 +1140,7 @@ const Settings = () => {
             <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle>Depot / Magazinat</CardTitle>
               <Button 
-                className="bg-[#00a79d] hover:bg-[#008f86] rounded-xl shadow-md shadow-[#00a79d]/20"
+                className="bg-[#2563EB] hover:bg-[#1D4ED8] rounded-xl shadow-md shadow-[#2563EB]/20"
                 onClick={() => {
                   setEditingWarehouse(null);
                   setWarehouseForm({ name: '', code: '', address: '', phone: '', is_active: true, is_default: false });
@@ -1210,7 +1210,7 @@ const Settings = () => {
           <Card className="border border-gray-200/60 rounded-3xl shadow-sm bg-white/80 backdrop-blur-md">
             <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle>Projektet</CardTitle>
-              <Button className="bg-[#00a79d] hover:bg-[#008f86] rounded-xl shadow-md shadow-[#00a79d]/20">
+              <Button className="bg-[#2563EB] hover:bg-[#1D4ED8] rounded-xl shadow-md shadow-[#2563EB]/20">
                 <Plus className="h-4 w-4 mr-2" />
                 Shto Projekt
               </Button>
@@ -1272,7 +1272,7 @@ const Settings = () => {
                   </ul>
                 </div>
               </div>
-              <Button className="bg-[#00a79d] hover:bg-[#008f86] rounded-xl shadow-md shadow-[#00a79d]/20">
+              <Button className="bg-[#2563EB] hover:bg-[#1D4ED8] rounded-xl shadow-md shadow-[#2563EB]/20">
                 <Save className="h-4 w-4 mr-2" />
                 Ruaj Formatet
               </Button>
@@ -1308,7 +1308,7 @@ const Settings = () => {
                 <CardDescription>Menaxho template-t e komenteve për kuponat termike</CardDescription>
               </div>
               <Button 
-                className="bg-[#00a79d] hover:bg-[#008f86] rounded-xl shadow-md shadow-[#00a79d]/20"
+                className="bg-[#2563EB] hover:bg-[#1D4ED8] rounded-xl shadow-md shadow-[#2563EB]/20"
                 onClick={() => openCommentDialog()}
               >
                 <Plus className="h-4 w-4 mr-2" />
@@ -1328,14 +1328,14 @@ const Settings = () => {
                     <div 
                       key={template.id}
                       className={`flex items-center justify-between p-4 border rounded-lg ${
-                        template.is_default ? 'border-[#00a79d] bg-[#00a79d]/5' : 'bg-gray-50'
+                        template.is_default ? 'border-[#2563EB] bg-[#2563EB]/5' : 'bg-gray-50'
                       } ${!template.is_active ? 'opacity-50' : ''}`}
                     >
                       <div className="flex-1">
                         <div className="flex items-center gap-2">
                           <span className="font-medium">{template.title}</span>
                           {template.is_default && (
-                            <span className="px-2 py-0.5 text-xs bg-[#00a79d] text-white rounded-full">
+                            <span className="px-2 py-0.5 text-xs bg-[#2563EB] text-white rounded-full">
                               Default
                             </span>
                           )}
@@ -1378,14 +1378,14 @@ const Settings = () => {
                 <CardTitle>Shabllonet e Faturave</CardTitle>
                 <CardDescription>Menaxho template-t e faturave dhe dokumenteve</CardDescription>
               </div>
-              <Button className="bg-[#00a79d] hover:bg-[#008f86] rounded-xl shadow-md shadow-[#00a79d]/20">
+              <Button className="bg-[#2563EB] hover:bg-[#1D4ED8] rounded-xl shadow-md shadow-[#2563EB]/20">
                 <Plus className="h-4 w-4 mr-2" />
                 Shto Shabllon
               </Button>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <Card className="border hover:border-[#00a79d] cursor-pointer transition-colors">
+                <Card className="border hover:border-[#2563EB] cursor-pointer transition-colors">
                   <CardContent className="p-4">
                     <div className="h-32 bg-gray-100 rounded mb-3 flex items-center justify-center">
                       <Receipt className="h-12 w-12 text-gray-400" />
@@ -1394,7 +1394,7 @@ const Settings = () => {
                     <p className="text-sm text-gray-500">A4 - Portrait</p>
                   </CardContent>
                 </Card>
-                <Card className="border hover:border-[#00a79d] cursor-pointer transition-colors">
+                <Card className="border hover:border-[#2563EB] cursor-pointer transition-colors">
                   <CardContent className="p-4">
                     <div className="h-32 bg-gray-100 rounded mb-3 flex items-center justify-center">
                       <Receipt className="h-12 w-12 text-gray-400" />
@@ -1403,7 +1403,7 @@ const Settings = () => {
                     <p className="text-sm text-gray-500">80mm - Receipt</p>
                   </CardContent>
                 </Card>
-                <Card className="border hover:border-[#00a79d] cursor-pointer transition-colors">
+                <Card className="border hover:border-[#2563EB] cursor-pointer transition-colors">
                   <CardContent className="p-4">
                     <div className="h-32 bg-gray-100 rounded mb-3 flex items-center justify-center">
                       <Receipt className="h-12 w-12 text-gray-400" />
@@ -1426,7 +1426,7 @@ const Settings = () => {
                 <CardDescription>Menaxho normat e tatimit mbi vlerën e shtuar</CardDescription>
               </div>
               <Button 
-                className="bg-[#00a79d] hover:bg-[#008f86] rounded-xl shadow-md shadow-[#00a79d]/20"
+                className="bg-[#2563EB] hover:bg-[#1D4ED8] rounded-xl shadow-md shadow-[#2563EB]/20"
                 onClick={() => {
                   setEditingVat(null);
                   setVatForm({ name: '', rate: 18, code: '', is_default: false, is_active: true });
@@ -1528,7 +1528,7 @@ const Settings = () => {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowBranchDialog(false)}>Anulo</Button>
-            <Button onClick={handleSaveBranch} className="bg-[#00a79d] hover:bg-[#008f86] rounded-xl shadow-md shadow-[#00a79d]/20">
+            <Button onClick={handleSaveBranch} className="bg-[#2563EB] hover:bg-[#1D4ED8] rounded-xl shadow-md shadow-[#2563EB]/20">
               {editingBranch ? 'Ruaj' : 'Shto'}
             </Button>
           </DialogFooter>
@@ -1593,7 +1593,7 @@ const Settings = () => {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowWarehouseDialog(false)}>Anulo</Button>
-            <Button onClick={handleSaveWarehouse} className="bg-[#00a79d] hover:bg-[#008f86] rounded-xl shadow-md shadow-[#00a79d]/20" disabled={!warehouseForm.name}>
+            <Button onClick={handleSaveWarehouse} className="bg-[#2563EB] hover:bg-[#1D4ED8] rounded-xl shadow-md shadow-[#2563EB]/20" disabled={!warehouseForm.name}>
               {editingWarehouse ? 'Ruaj' : 'Shto'}
             </Button>
           </DialogFooter>
@@ -1654,7 +1654,7 @@ const Settings = () => {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowVatDialog(false)}>Anulo</Button>
-            <Button onClick={handleSaveVat} className="bg-[#00a79d] hover:bg-[#008f86] rounded-xl shadow-md shadow-[#00a79d]/20" disabled={!vatForm.name}>
+            <Button onClick={handleSaveVat} className="bg-[#2563EB] hover:bg-[#1D4ED8] rounded-xl shadow-md shadow-[#2563EB]/20" disabled={!vatForm.name}>
               {editingVat ? 'Ruaj' : 'Shto'}
             </Button>
           </DialogFooter>
@@ -1714,7 +1714,7 @@ const Settings = () => {
             <Button variant="outline" onClick={() => setShowCommentDialog(false)}>Anulo</Button>
             <Button 
               onClick={handleSaveComment} 
-              className="bg-[#00a79d] hover:bg-[#008f86] rounded-xl shadow-md shadow-[#00a79d]/20" 
+              className="bg-[#2563EB] hover:bg-[#1D4ED8] rounded-xl shadow-md shadow-[#2563EB]/20" 
               disabled={!commentForm.title || !commentForm.content || loading}
             >
               {loading ? 'Duke ruajtur...' : (editingComment ? 'Ruaj' : 'Shto')}

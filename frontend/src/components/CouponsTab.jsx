@@ -144,14 +144,14 @@ const CouponsTab = () => {
         <div className="flex items-center justify-between flex-wrap gap-3">
           <div>
             <CardTitle className="flex items-center gap-2">
-              <Ticket className="h-5 w-5 text-[#00a79d]" />
+              <Ticket className="h-5 w-5 text-[#2563EB]" />
               Kodet e zbritjes
             </CardTitle>
             <CardDescription>
               Krijoni kode kuponi qe arketari mund t'i perdore te arka per te aplikuar zbritje ne shitje.
             </CardDescription>
           </div>
-          <Button onClick={openCreate} className="bg-[#00a79d] hover:bg-[#008f86] text-white">
+          <Button onClick={openCreate} className="bg-[#2563EB] hover:bg-[#1D4ED8] text-white">
             <Plus className="h-4 w-4 mr-2" />
             Krijo Kupon
           </Button>
@@ -182,7 +182,7 @@ const CouponsTab = () => {
             <TableBody>
               {coupons.map(c => (
                 <TableRow key={c.id}>
-                  <TableCell className="font-mono font-bold text-[#00a79d]">{c.code}</TableCell>
+                  <TableCell className="font-mono font-bold text-[#2563EB]">{c.code}</TableCell>
                   <TableCell>{c.name}</TableCell>
                   <TableCell className="font-semibold">{fmtDiscount(c)}</TableCell>
                   <TableCell>
@@ -304,7 +304,7 @@ const CouponsTab = () => {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setDialogOpen(false)}>Anulo</Button>
-            <Button onClick={handleSave} className="bg-[#00a79d] hover:bg-[#008f86] text-white">
+            <Button onClick={handleSave} className="bg-[#2563EB] hover:bg-[#1D4ED8] text-white">
               {editingId ? 'Ruaj' : 'Krijo'}
             </Button>
           </DialogFooter>

@@ -120,7 +120,7 @@ const Branches = () => {
           <p className="text-gray-500">Menaxho filialet e biznesit</p>
         </div>
         <Button
-          className="bg-[#00a79d] hover:bg-[#008f86] gap-2 rounded-xl shadow-md shadow-[#00a79d]/20"
+          className="bg-[#2563EB] hover:bg-[#1D4ED8] gap-2 rounded-xl shadow-md shadow-[#2563EB]/20"
           onClick={() => {
             resetForm();
             setShowDialog(true);
@@ -177,8 +177,8 @@ const Branches = () => {
               <CardHeader className="pb-2">
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-3">
-                    <div className="h-10 w-10 rounded-2xl bg-gradient-to-br from-[#00a79d]/15 to-[#00a79d]/5 flex items-center justify-center">
-                      <Building2 className="h-5 w-5 text-[#00a79d]" />
+                    <div className="h-10 w-10 rounded-2xl bg-gradient-to-br from-[#2563EB]/15 to-[#2563EB]/5 flex items-center justify-center">
+                      <Building2 className="h-5 w-5 text-[#2563EB]" />
                     </div>
                     <div>
                       <CardTitle className="text-lg">{branch.name}</CardTitle>
@@ -276,7 +276,7 @@ const Branches = () => {
               <Button type="button" variant="outline" onClick={() => setShowDialog(false)}>
                 Anulo
               </Button>
-              <Button type="submit" className="bg-[#00a79d] hover:bg-[#008f86] rounded-xl shadow-md shadow-[#00a79d]/20" data-testid="save-branch-btn">
+              <Button type="submit" className="bg-[#2563EB] hover:bg-[#1D4ED8] rounded-xl shadow-md shadow-[#2563EB]/20" data-testid="save-branch-btn">
                 {editingBranch ? 'Ruaj Ndryshimet' : 'Krijo Degën'}
               </Button>
             </DialogFooter>

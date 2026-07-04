@@ -386,8 +386,8 @@ const Dashboard = () => {
                   <span className="text-sm text-green-500">+12.5%</span>
                 </div>
               </div>
-              <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-[#00a79d]/15 to-[#00a79d]/5 flex items-center justify-center">
-                <DollarSign className="h-6 w-6 text-[#00a79d]" />
+              <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-[#2563EB]/15 to-[#2563EB]/5 flex items-center justify-center">
+                <DollarSign className="h-6 w-6 text-[#2563EB]" />
               </div>
             </div>
           </CardContent>
@@ -406,8 +406,8 @@ const Dashboard = () => {
                   <span className="text-sm text-green-500">+8.2%</span>
                 </div>
               </div>
-              <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-[#00a79d]/15 to-[#00a79d]/5 flex items-center justify-center">
-                <ShoppingCart className="h-6 w-6 text-[#00a79d]" />
+              <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-[#2563EB]/15 to-[#2563EB]/5 flex items-center justify-center">
+                <ShoppingCart className="h-6 w-6 text-[#2563EB]" />
               </div>
             </div>
           </CardContent>
@@ -472,10 +472,10 @@ const Dashboard = () => {
                   <Line
                     type="monotone"
                     dataKey="sales"
-                    stroke="#00a79d"
+                    stroke="#2563EB"
                     strokeWidth={3}
-                    dot={{ fill: '#00a79d', strokeWidth: 2 }}
-                    activeDot={{ r: 6, fill: '#00a79d' }}
+                    dot={{ fill: '#2563EB', strokeWidth: 2 }}
+                    activeDot={{ r: 6, fill: '#2563EB' }}
                   />
                 </LineChart>
               </ResponsiveContainer>
@@ -502,7 +502,7 @@ const Dashboard = () => {
                       borderRadius: '8px',
                     }}
                   />
-                  <Bar dataKey="sales" fill="#00a79d" radius={[0, 4, 4, 0]} />
+                  <Bar dataKey="sales" fill="#2563EB" radius={[0, 4, 4, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -520,7 +520,7 @@ const Dashboard = () => {
               variant="ghost"
               size="sm"
               onClick={() => navigate('/reports')}
-              className="text-[#00a79d] hover:text-[#D32F2F]"
+              className="text-[#2563EB] hover:text-[#D32F2F]"
             >
               Shiko të gjitha
               <ArrowRight className="h-4 w-4 ml-1" />
@@ -558,7 +558,7 @@ const Dashboard = () => {
           </CardHeader>
           <CardContent className="space-y-3">
             <Button
-              className="w-full justify-start gap-3 h-12 bg-[#00a79d] hover:bg-[#008f86] text-white"
+              className="w-full justify-start gap-3 h-12 bg-[#2563EB] hover:bg-[#1D4ED8] text-white"
               onClick={() => navigate('/pos')}
               data-testid="quick-action-pos"
             >
@@ -645,7 +645,7 @@ const Dashboard = () => {
       <Card className="border border-gray-200/60 rounded-3xl shadow-sm bg-white/80 backdrop-blur-md">
         <CardHeader className="pb-2">
           <CardTitle className="text-lg font-bold tracking-tight flex items-center gap-2">
-            <Sparkles className="h-5 w-5 text-[#00a79d]" />
+            <Sparkles className="h-5 w-5 text-[#2563EB]" />
             Aplikacione të Reja - Së Shpejti
           </CardTitle>
           <p className="text-sm text-gray-500">Sistemet e ardhshme që do të lehtësojnë punën tuaj</p>

@@ -120,7 +120,7 @@ const Stock = () => {
             Rifresko
           </Button>
           <Button
-            className="bg-[#00a79d] hover:bg-[#008f86] gap-2 rounded-xl shadow-md shadow-[#00a79d]/20"
+            className="bg-[#2563EB] hover:bg-[#1D4ED8] gap-2 rounded-xl shadow-md shadow-[#2563EB]/20"
             onClick={() => setShowMovementDialog(true)}
             data-testid="add-movement-btn"
           >
@@ -210,7 +210,7 @@ const Stock = () => {
               ) : (
                 <Table>
                   <TableHeader>
-                    <TableRow className="bg-[#00a79d]/8 hover:bg-[#00a79d]/8 border-b border-[#00a79d]/15">
+                    <TableRow className="bg-[#2563EB]/8 hover:bg-[#2563EB]/8 border-b border-[#2563EB]/15">
                       <TableHead>Produkti</TableHead>
                       <TableHead>Barkodi</TableHead>
                       <TableHead>Kategoria</TableHead>
@@ -249,7 +249,7 @@ const Stock = () => {
             <CardContent className="p-0">
               <Table>
                 <TableHeader>
-                  <TableRow className="bg-[#00a79d]/8 hover:bg-[#00a79d]/8 border-b border-[#00a79d]/15">
+                  <TableRow className="bg-[#2563EB]/8 hover:bg-[#2563EB]/8 border-b border-[#2563EB]/15">
                     <TableHead>Data</TableHead>
                     <TableHead>Produkti</TableHead>
                     <TableHead>Lloji</TableHead>
@@ -311,7 +311,7 @@ const Stock = () => {
             <CardContent className="p-0">
               <Table>
                 <TableHeader>
-                  <TableRow className="bg-[#00a79d]/8 hover:bg-[#00a79d]/8 border-b border-[#00a79d]/15">
+                  <TableRow className="bg-[#2563EB]/8 hover:bg-[#2563EB]/8 border-b border-[#2563EB]/15">
                     <TableHead>Produkti</TableHead>
                     <TableHead>Barkodi</TableHead>
                     <TableHead className="text-center">Stoku</TableHead>
@@ -454,7 +454,7 @@ const Stock = () => {
               </Button>
               <Button
                 type="submit"
-                className="bg-[#00a79d] hover:bg-[#008f86] rounded-xl shadow-md shadow-[#00a79d]/20"
+                className="bg-[#2563EB] hover:bg-[#1D4ED8] rounded-xl shadow-md shadow-[#2563EB]/20"
                 data-testid="save-movement-btn"
               >
                 Regjistro

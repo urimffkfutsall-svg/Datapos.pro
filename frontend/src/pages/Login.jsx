@@ -141,7 +141,7 @@ const Login = () => {
       <div className="flex items-center gap-5">
         <img src={logoSrc} alt={brandName} className="h-28 md:h-32 object-contain" onError={(e) => e.target.style.display = 'none'} />
         <div>
-          <h1 className="text-5xl md:text-6xl font-bold text-[#00a79d] tracking-tight">{brandName}</h1>
+          <h1 className="text-5xl md:text-6xl font-bold text-[#2563EB] tracking-tight">{brandName}</h1>
           <p className="text-base text-gray-500 mt-1">Sistemi i mençur i pikës së shitjes</p>
         </div>
       </div>
@@ -150,8 +150,8 @@ const Login = () => {
         <h2 className="text-xl font-semibold text-gray-800 mb-4">Shërbimet që ofron aplikacioni</h2>
         <ul className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {services.map(({ icon: Icon, title, desc }) => (
-            <li key={title} className="flex items-start gap-3 p-3 rounded-2xl bg-white border border-gray-200 hover:border-[#00a79d] hover:shadow-md transition-all">
-              <div className="shrink-0 w-10 h-10 rounded-xl bg-[#00a79d]/10 text-[#00a79d] flex items-center justify-center">
+            <li key={title} className="flex items-start gap-3 p-3 rounded-2xl bg-white border border-gray-200 hover:border-[#2563EB] hover:shadow-md transition-all">
+              <div className="shrink-0 w-10 h-10 rounded-xl bg-[#2563EB]/10 text-[#2563EB] flex items-center justify-center">
                 <Icon className="w-5 h-5" />
               </div>
               <div className="min-w-0">
@@ -167,7 +167,7 @@ const Login = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-gray-100 to-gray-200 p-4">
-      <div className="fixed top-0 left-0 right-0 h-1 bg-[#00a79d]" />
+      <div className="fixed top-0 left-0 right-0 h-1 bg-[#2563EB]" />
 
       {/* PIN LOGIN VIEW — Layout 2 kolonë */}
       {!tenantLoading && !showAdminLogin && (
@@ -183,7 +183,7 @@ const Login = () => {
               </div>
 
               <div className="mb-6">
-                <div className="w-full h-16 rounded-2xl border-2 border-[#00a79d] bg-gray-50 flex items-center justify-center text-3xl font-bold tracking-[0.5em] text-[#00a79d]">
+                <div className="w-full h-16 rounded-2xl border-2 border-[#2563EB] bg-gray-50 flex items-center justify-center text-3xl font-bold tracking-[0.5em] text-[#2563EB]">
                   {pin ? '•'.repeat(pin.length) : <span className="text-gray-300 text-lg tracking-normal">PIN</span>}
                 </div>
                 <p className="text-center text-sm text-gray-500 mt-2">1-6 shifra</p>
@@ -209,12 +209,12 @@ const Login = () => {
                 <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-2xl text-sm text-center mb-4">{error}</div>
               )}
 
-              <Button onClick={handlePinLogin} disabled={pin.length < 1 || loading} className="w-full h-14 bg-[#00a79d] hover:bg-[#008f86] text-white font-semibold rounded-2xl shadow-md transition-all duration-200 text-lg flex items-center justify-center gap-2">
+              <Button onClick={handlePinLogin} disabled={pin.length < 1 || loading} className="w-full h-14 bg-[#2563EB] hover:bg-[#1D4ED8] text-white font-semibold rounded-2xl shadow-md transition-all duration-200 text-lg flex items-center justify-center gap-2">
                 {loading ? <div className="spinner border-white border-t-transparent" /> : (<><CornerDownLeft className="h-5 w-5" />KYÇU</>)}
               </Button>
 
               <div className="mt-6 pt-6 border-t border-gray-100">
-                <button onClick={() => { setShowAdminLogin(true); setError(''); }} className="w-full text-center text-[#00a79d] hover:text-[#008f86] font-medium transition-colors flex items-center justify-center gap-2">
+                <button onClick={() => { setShowAdminLogin(true); setError(''); }} className="w-full text-center text-[#2563EB] hover:text-[#1D4ED8] font-medium transition-colors flex items-center justify-center gap-2">
                   <User className="h-4 w-4" />
                   Kyçu si Administrator
                 </button>
@@ -236,7 +236,7 @@ const Login = () => {
           <div className="flex justify-center lg:justify-end">
             <div className="w-full max-w-md bg-white rounded-[2rem] shadow-2xl p-8 md:p-10">
               <div className="flex items-center justify-between mb-6">
-                <button onClick={() => { setShowAdminLogin(false); setUsername(''); setPassword(''); setError(''); setShowKeyboard(false); }} className="flex items-center gap-2 text-gray-500 hover:text-[#00a79d] transition-colors">
+                <button onClick={() => { setShowAdminLogin(false); setUsername(''); setPassword(''); setError(''); setShowKeyboard(false); }} className="flex items-center gap-2 text-gray-500 hover:text-[#2563EB] transition-colors">
                   <ArrowLeft className="h-4 w-4" />
                   Kthehu
                 </button>
@@ -245,7 +245,7 @@ const Login = () => {
                   onClick={() => setShowKeyboard(v => !v)}
                   title="Tastiera në ekran"
                   className={showKeyboard
-                    ? 'flex items-center justify-center h-10 w-10 rounded-xl bg-[#00a79d] text-white shadow-md shadow-[#00a79d]/30 transition-all'
+                    ? 'flex items-center justify-center h-10 w-10 rounded-xl bg-[#2563EB] text-white shadow-md shadow-[#2563EB]/30 transition-all'
                     : 'flex items-center justify-center h-10 w-10 rounded-xl bg-gray-100 text-gray-500 hover:bg-gray-200 transition-all'}
                 >
                   <Keyboard className="h-5 w-5" />
@@ -268,7 +268,7 @@ const Login = () => {
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
                     onFocus={() => setActiveField('username')}
-                    className="w-full pl-10 h-12 bg-gray-50 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-[#00a79d] focus:border-[#00a79d] outline-none transition-all"
+                    className="w-full pl-10 h-12 bg-gray-50 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-[#2563EB] focus:border-[#2563EB] outline-none transition-all"
                     required
                     autoFocus
                   />
@@ -276,7 +276,7 @@ const Login = () => {
 
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <Lock className="h-5 w-5 text-[#00a79d]" />
+                    <Lock className="h-5 w-5 text-[#2563EB]" />
                   </div>
                   <input
                     type={showPassword ? 'text' : 'password'}
@@ -284,7 +284,7 @@ const Login = () => {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     onFocus={() => setActiveField('password')}
-                    className="w-full pl-10 pr-10 h-12 bg-gray-50 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-[#00a79d] focus:border-[#00a79d] outline-none transition-all"
+                    className="w-full pl-10 pr-10 h-12 bg-gray-50 border border-gray-200 rounded-2xl focus:ring-2 focus:ring-[#2563EB] focus:border-[#2563EB] outline-none transition-all"
                     required
                   />
                   <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute inset-y-0 right-0 pr-3 flex items-center">
@@ -296,7 +296,7 @@ const Login = () => {
                   <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-2xl text-sm text-center">{error}</div>
                 )}
 
-                <Button type="submit" disabled={loading} className="w-full h-12 bg-[#00a79d] hover:bg-[#008f86] text-white font-semibold rounded-2xl shadow-md transition-all duration-200">
+                <Button type="submit" disabled={loading} className="w-full h-12 bg-[#2563EB] hover:bg-[#1D4ED8] text-white font-semibold rounded-2xl shadow-md transition-all duration-200">
                   {loading ? <div className="spinner border-white border-t-transparent" /> : 'KYÇU'}
                 </Button>
               </form>
@@ -326,7 +326,7 @@ const Login = () => {
                     key={k}
                     type="button"
                     onClick={() => handleVirtualKey(capsLock ? k.toUpperCase() : k)}
-                    className="h-11 min-w-[2.4rem] px-2 rounded-lg bg-gray-100 hover:bg-[#00a79d]/10 active:bg-[#00a79d]/20 text-gray-700 font-medium transition-all"
+                    className="h-11 min-w-[2.4rem] px-2 rounded-lg bg-gray-100 hover:bg-[#2563EB]/10 active:bg-[#2563EB]/20 text-gray-700 font-medium transition-all"
                   >
                     {capsLock ? k.toUpperCase() : k}
                   </button>
@@ -339,7 +339,7 @@ const Login = () => {
                 type="button"
                 onClick={() => setCapsLock(v => !v)}
                 className={capsLock
-                  ? 'h-11 px-5 rounded-lg bg-[#00a79d] text-white font-medium transition-all'
+                  ? 'h-11 px-5 rounded-lg bg-[#2563EB] text-white font-medium transition-all'
                   : 'h-11 px-5 rounded-lg bg-gray-200 text-gray-600 hover:bg-gray-300 font-medium transition-all'}
               >
                 Shift
@@ -379,7 +379,7 @@ const Login = () => {
             </div>
             <div className="bg-gray-50 rounded-xl p-4 space-y-2">
               <p className="text-sm font-medium text-gray-700 text-center">Kontaktoni për rinovim:</p>
-              <div className="flex items-center justify-center gap-2 text-[#00a79d]">
+              <div className="flex items-center justify-center gap-2 text-[#2563EB]">
                 <Phone className="h-4 w-4" />
                 <span className="font-medium">+383 44 123 456</span>
               </div>

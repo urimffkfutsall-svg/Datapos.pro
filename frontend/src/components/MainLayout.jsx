@@ -84,7 +84,7 @@ const MainLayout = () => {
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="icon" data-testid="user-menu-mobile">
                 <Avatar className="h-8 w-8">
-                  <AvatarFallback className="bg-gradient-to-br from-[#00a79d] to-[#007a73] text-white text-sm font-semibold">
+                  <AvatarFallback className="bg-gradient-to-br from-[#2563EB] to-[#007a73] text-white text-sm font-semibold">
                     {user?.full_name?.charAt(0) || 'U'}
                   </AvatarFallback>
                 </Avatar>
@@ -111,7 +111,7 @@ const MainLayout = () => {
         <div className="h-16 flex items-center gap-2.5 border-b border-gray-200/60 px-5">
           <div className="relative">
             <img src="/logo-icon.png" alt="DataPOS" className="h-9 w-9 object-contain" />
-            <div className="absolute -inset-1 bg-gradient-to-r from-[#00a79d]/20 to-[#00c4b8]/20 rounded-full blur-md -z-10" />
+            <div className="absolute -inset-1 bg-gradient-to-r from-[#2563EB]/20 to-[#00c4b8]/20 rounded-full blur-md -z-10" />
           </div>
           <div className="flex flex-col leading-tight">
             <span className="font-display font-bold text-gray-800 tracking-tight">DataPOS</span>
@@ -137,7 +137,7 @@ const MainLayout = () => {
             <DropdownMenuTrigger asChild>
               <button className="w-full flex items-center gap-3 p-2 rounded-xl hover:bg-gray-100/80 transition-colors" data-testid="user-menu-desktop">
                 <Avatar className="h-9 w-9 ring-2 ring-white shadow-sm">
-                  <AvatarFallback className="bg-gradient-to-br from-[#00a79d] to-[#007a73] text-white text-sm font-semibold">
+                  <AvatarFallback className="bg-gradient-to-br from-[#2563EB] to-[#007a73] text-white text-sm font-semibold">
                     {user?.full_name?.charAt(0) || 'U'}
                   </AvatarFallback>
                 </Avatar>

@@ -74,7 +74,7 @@ const AuditLogs = () => {
       create_product: 'bg-green-100 text-green-700',
       update_product: 'bg-yellow-100 text-yellow-700',
       delete_product: 'bg-red-100 text-red-700',
-      create_sale: 'bg-[#00a79d]/20 text-[#00a79d]',
+      create_sale: 'bg-[#2563EB]/20 text-[#2563EB]',
       stock_movement: 'bg-purple-100 text-purple-700',
       open_drawer: 'bg-green-100 text-green-700',
       close_drawer: 'bg-orange-100 text-orange-700'
@@ -219,7 +219,7 @@ const AuditLogs = () => {
           ) : (
             <Table>
               <TableHeader>
-                <TableRow className="bg-[#00a79d]/8 hover:bg-[#00a79d]/8 border-b border-[#00a79d]/15">
+                <TableRow className="bg-[#2563EB]/8 hover:bg-[#2563EB]/8 border-b border-[#2563EB]/15">
                   <TableHead>Data & Ora</TableHead>
                   <TableHead>Përdoruesi</TableHead>
                   <TableHead>Veprimi</TableHead>
@@ -241,8 +241,8 @@ const AuditLogs = () => {
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-2">
-                          <div className="h-8 w-8 rounded-xl bg-[#00a79d]/10 flex items-center justify-center">
-                            <span className="text-sm font-medium text-[#00a79d]">
+                          <div className="h-8 w-8 rounded-xl bg-[#2563EB]/10 flex items-center justify-center">
+                            <span className="text-sm font-medium text-[#2563EB]">
                               {user?.full_name?.charAt(0) || 'U'}
                             </span>
                           </div>

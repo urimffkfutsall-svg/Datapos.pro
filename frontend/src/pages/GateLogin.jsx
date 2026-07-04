@@ -33,8 +33,8 @@ const GateLogin = () => {
     <div className="min-h-screen bg-[#0a1628] flex items-center justify-center relative overflow-hidden">
       {/* Background Elements */}
       <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute top-0 left-1/4 w-96 h-96 bg-[#00a79d]/10 rounded-full blur-3xl"></div>
-        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-[#00a79d]/5 rounded-full blur-3xl"></div>
+        <div className="absolute top-0 left-1/4 w-96 h-96 bg-[#2563EB]/10 rounded-full blur-3xl"></div>
+        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-[#2563EB]/5 rounded-full blur-3xl"></div>
       </div>
 
       {/* Grid Pattern */}
@@ -45,8 +45,8 @@ const GateLogin = () => {
         <div className="bg-gradient-to-b from-white/[0.08] to-white/[0.02] backdrop-blur-sm rounded-2xl border border-white/10 p-8 shadow-2xl">
           {/* Header */}
           <div className="text-center mb-8">
-            <div className="w-16 h-16 bg-[#00a79d]/20 rounded-2xl flex items-center justify-center mx-auto mb-4">
-              <Shield className="w-8 h-8 text-[#00a79d]" />
+            <div className="w-16 h-16 bg-[#2563EB]/20 rounded-2xl flex items-center justify-center mx-auto mb-4">
+              <Shield className="w-8 h-8 text-[#2563EB]" />
             </div>
             <h1 className="text-2xl font-bold text-white mb-2">Autorizimi</h1>
             <p className="text-gray-400 text-sm">Kyçuni për të vazhduar në sistem</p>
@@ -66,7 +66,7 @@ const GateLogin = () => {
                   placeholder="Shkruani username"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
-                  className="w-full pl-12 pr-4 h-12 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:ring-2 focus:ring-[#00a79d] focus:border-[#00a79d] outline-none transition-all"
+                  className="w-full pl-12 pr-4 h-12 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:ring-2 focus:ring-[#2563EB] focus:border-[#2563EB] outline-none transition-all"
                   required
                 />
               </div>
@@ -84,7 +84,7 @@ const GateLogin = () => {
                   placeholder="Shkruani fjalëkalimin"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full pl-12 pr-12 h-12 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:ring-2 focus:ring-[#00a79d] focus:border-[#00a79d] outline-none transition-all"
+                  className="w-full pl-12 pr-12 h-12 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:ring-2 focus:ring-[#2563EB] focus:border-[#2563EB] outline-none transition-all"
                   required
                 />
                 <button
@@ -112,7 +112,7 @@ const GateLogin = () => {
             <Button
               type="submit"
               disabled={loading}
-              className="w-full h-12 bg-[#00a79d] hover:bg-[#008f86] text-white font-semibold rounded-xl transition-all duration-200 flex items-center justify-center gap-2"
+              className="w-full h-12 bg-[#2563EB] hover:bg-[#1D4ED8] text-white font-semibold rounded-xl transition-all duration-200 flex items-center justify-center gap-2"
             >
               {loading ? (
                 <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />

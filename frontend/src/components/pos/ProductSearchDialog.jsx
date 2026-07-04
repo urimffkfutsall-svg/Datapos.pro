@@ -62,7 +62,7 @@ export const ProductSearchDialog = ({
                       <p className="text-sm text-gray-500">Barkod: {product.barcode || '-'}</p>
                     </div>
                     <div className="text-right">
-                      <p className="font-bold text-[#00a79d]">€{(product.sale_price || 0).toFixed(2)}</p>
+                      <p className="font-bold text-[#2563EB]">€{(product.sale_price || 0).toFixed(2)}</p>
                       <p className={`text-xs ${product.current_stock > 0 ? 'text-green-600' : 'text-red-500 font-semibold'}`}>
                         {product.current_stock > 0 ? `Stok: ${product.current_stock}` : 'Pa stok!'}
                       </p>

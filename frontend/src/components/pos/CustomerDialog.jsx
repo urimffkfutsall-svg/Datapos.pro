@@ -49,7 +49,7 @@ export const CustomerDialog = ({
           <Button variant="outline" onClick={() => { setCustomerName(''); setCustomerNote(''); }}>
             Pastro
           </Button>
-          <Button onClick={() => onOpenChange(false)} className="bg-[#00a79d] hover:bg-[#008f86]">
+          <Button onClick={() => onOpenChange(false)} className="bg-[#2563EB] hover:bg-[#1D4ED8]">
             Ruaj
           </Button>
         </DialogFooter>

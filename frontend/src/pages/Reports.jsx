@@ -158,7 +158,7 @@ const Reports = () => {
     setDateRange({ from, to });
   };
 
-  const COLORS = ['#00a79d', '#00a79d', '#10B981', '#F59E0B', '#8B5CF6'];
+  const COLORS = ['#2563EB', '#2563EB', '#10B981', '#F59E0B', '#8B5CF6'];
 
   return (
     <div className="space-y-6 animate-fade-in" data-testid="reports-page">
@@ -358,7 +358,7 @@ const Reports = () => {
                 <Card className="border border-gray-200/60 rounded-3xl shadow-sm bg-white/80 backdrop-blur-md">
                   <CardContent className="p-6">
                     <p className="text-sm text-gray-500">Të Ardhura Totale</p>
-                    <p className="text-2xl font-bold text-[#00a79d]">
+                    <p className="text-2xl font-bold text-[#2563EB]">
                       €{salesReport.summary.total_revenue.toFixed(2)}
                     </p>
                   </CardContent>
@@ -372,7 +372,7 @@ const Reports = () => {
                 <Card className="border border-gray-200/60 rounded-3xl shadow-sm bg-white/80 backdrop-blur-md">
                   <CardContent className="p-6">
                     <p className="text-sm text-gray-500">TVSH Total</p>
-                    <p className="text-2xl font-bold text-[#00a79d]">
+                    <p className="text-2xl font-bold text-[#2563EB]">
                       €{salesReport.summary.total_vat.toFixed(2)}
                     </p>
                   </CardContent>
@@ -410,9 +410,9 @@ const Reports = () => {
                         <Line
                           type="monotone"
                           dataKey="total"
-                          stroke="#00a79d"
+                          stroke="#2563EB"
                           strokeWidth={3}
-                          dot={{ fill: '#00a79d' }}
+                          dot={{ fill: '#2563EB' }}
                         />
                       </LineChart>
                     </ResponsiveContainer>
@@ -428,7 +428,7 @@ const Reports = () => {
                 <CardContent className="p-0">
                   <Table>
                     <TableHeader>
-                      <TableRow className="bg-[#00a79d]/8 hover:bg-[#00a79d]/8 border-b border-[#00a79d]/15">
+                      <TableRow className="bg-[#2563EB]/8 hover:bg-[#2563EB]/8 border-b border-[#2563EB]/15">
                         <TableHead>Data</TableHead>
                         <TableHead className="text-right">Transaksione</TableHead>
                         <TableHead className="text-right">Totali</TableHead>
@@ -564,7 +564,7 @@ const Reports = () => {
                 <CardContent className="p-0">
                   <Table>
                     <TableHeader>
-                      <TableRow className="bg-[#00a79d]/8 hover:bg-[#00a79d]/8 border-b border-[#00a79d]/15">
+                      <TableRow className="bg-[#2563EB]/8 hover:bg-[#2563EB]/8 border-b border-[#2563EB]/15">
                         <TableHead>Data</TableHead>
                         <TableHead className="text-right">Të Ardhura</TableHead>
                         <TableHead className="text-right">Kosto</TableHead>
@@ -609,7 +609,7 @@ const Reports = () => {
                 <Card className="border border-gray-200/60 rounded-3xl shadow-sm bg-white/80 backdrop-blur-md">
                   <CardContent className="p-6">
                     <p className="text-sm text-gray-500">Artikuj në Stok</p>
-                    <p className="text-2xl font-bold text-[#00a79d]">{stockReport.summary.total_items}</p>
+                    <p className="text-2xl font-bold text-[#2563EB]">{stockReport.summary.total_items}</p>
                   </CardContent>
                 </Card>
                 <Card className="border border-gray-200/60 rounded-3xl shadow-sm bg-white/80 backdrop-blur-md">
@@ -636,7 +636,7 @@ const Reports = () => {
                 <CardContent className="p-0">
                   <Table>
                     <TableHeader>
-                      <TableRow className="bg-[#00a79d]/8 hover:bg-[#00a79d]/8 border-b border-[#00a79d]/15">
+                      <TableRow className="bg-[#2563EB]/8 hover:bg-[#2563EB]/8 border-b border-[#2563EB]/15">
                         <TableHead>Produkti</TableHead>
                         <TableHead>Barkodi</TableHead>
                         <TableHead className="text-center">Stoku</TableHead>
@@ -692,7 +692,7 @@ const Reports = () => {
                           }}
                           formatter={(value) => [`€${value.toFixed(2)}`, 'Shitjet']}
                         />
-                        <Bar dataKey="total_sales" fill="#00a79d" radius={[0, 4, 4, 0]} />
+                        <Bar dataKey="total_sales" fill="#2563EB" radius={[0, 4, 4, 0]} />
                       </BarChart>
                     </ResponsiveContainer>
                   </div>
@@ -707,7 +707,7 @@ const Reports = () => {
                 <CardContent className="p-0">
                   <Table>
                     <TableHeader>
-                      <TableRow className="bg-[#00a79d]/8 hover:bg-[#00a79d]/8 border-b border-[#00a79d]/15">
+                      <TableRow className="bg-[#2563EB]/8 hover:bg-[#2563EB]/8 border-b border-[#2563EB]/15">
                         <TableHead>Arkëtari</TableHead>
                         <TableHead className="text-right">Transaksione</TableHead>
                         <TableHead className="text-right">Artikuj</TableHead>
@@ -725,7 +725,7 @@ const Reports = () => {
                           </TableCell>
                           <TableCell className="text-right">{cashier.total_transactions}</TableCell>
                           <TableCell className="text-right">{cashier.total_items}</TableCell>
-                          <TableCell className="text-right font-bold text-[#00a79d]">
+                          <TableCell className="text-right font-bold text-[#2563EB]">
                             €{cashier.total_sales.toFixed(2)}
                           </TableCell>
                         </TableRow>

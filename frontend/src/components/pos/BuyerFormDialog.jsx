@@ -74,7 +74,7 @@ export const BuyerFormDialog = ({
           </Button>
           <Button 
             onClick={onProceed}
-            className="bg-[#00a79d] hover:bg-[#008f86]"
+            className="bg-[#2563EB] hover:bg-[#1D4ED8]"
           >
             <FileDown className="h-4 w-4 mr-2" />
             Vazhdo me Faturën

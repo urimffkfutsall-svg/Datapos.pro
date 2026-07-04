@@ -405,7 +405,7 @@ const handleStockAdjust = async (type) => {
             onChange={handleImportFile}
           />
           <Button
-            className="bg-[#00a79d] hover:bg-[#008f86] gap-2"
+            className="bg-[#2563EB] hover:bg-[#1D4ED8] gap-2"
             onClick={() => {
               resetForm();
               setShowDialog(true);
@@ -463,7 +463,7 @@ const handleStockAdjust = async (type) => {
           ) : (
             <Table>
               <TableHeader>
-                <TableRow className="bg-[#00a79d]/8 hover:bg-[#00a79d]/8 border-b border-[#00a79d]/15">
+                <TableRow className="bg-[#2563EB]/8 hover:bg-[#2563EB]/8 border-b border-[#2563EB]/15">
                   <TableHead className="w-[64px]">Foto</TableHead>
                   <TableHead>Emri</TableHead>
                   <TableHead>Barkodi</TableHead>
@@ -497,7 +497,7 @@ const handleStockAdjust = async (type) => {
                         <div className="flex items-center gap-2">
                           <span>{product.name || '-'}</span>
                           {product.metadata?.is_package && (
-                            <Badge className="bg-[#00a79d]/10 text-[#00a79d] text-xs">Pako</Badge>
+                            <Badge className="bg-[#2563EB]/10 text-[#2563EB] text-xs">Pako</Badge>
                           )}
                         </div>
                       </TableCell>
@@ -759,10 +759,10 @@ const handleStockAdjust = async (type) => {
                     type="checkbox"
                     checked={formData.is_package}
                     onChange={(e) => setFormData({ ...formData, is_package: e.target.checked })}
-                    className="h-4 w-4 accent-[#00a79d]"
+                    className="h-4 w-4 accent-[#2563EB]"
                   />
                   <span className="flex items-center gap-2 text-sm font-medium text-gray-800">
-                    <Boxes className="h-4 w-4 text-[#00a79d]" />
+                    <Boxes className="h-4 w-4 text-[#2563EB]" />
                     Ky produkt është pako (përmban disa copë)
                   </span>
                 </label>
@@ -783,8 +783,8 @@ const handleStockAdjust = async (type) => {
                     </div>
                     <div className="space-y-2">
                       <Label>Çmimi i Pakos (€) — automatik</Label>
-                      <div className="flex items-center rounded-xl bg-[#00a79d]/10 border border-[#00a79d]/20 px-4 h-10">
-                        <span className="text-lg font-bold text-[#00a79d]">€{formData.package_price || '0.00'}</span>
+                      <div className="flex items-center rounded-xl bg-[#2563EB]/10 border border-[#2563EB]/20 px-4 h-10">
+                        <span className="text-lg font-bold text-[#2563EB]">€{formData.package_price || '0.00'}</span>
                       </div>
                     </div>
                     <div className="sm:col-span-2">
@@ -826,7 +826,7 @@ const handleStockAdjust = async (type) => {
               <Button type="button" variant="outline" onClick={() => setShowDialog(false)}>
                 Anulo
               </Button>
-              <Button type="submit" className="bg-[#00a79d] hover:bg-[#008f86] rounded-xl shadow-md shadow-[#00a79d]/20" data-testid="save-product-btn">
+              <Button type="submit" className="bg-[#2563EB] hover:bg-[#1D4ED8] rounded-xl shadow-md shadow-[#2563EB]/20" data-testid="save-product-btn">
                 {editingProduct ? 'Ruaj Ndryshimet' : 'Shto Produktin'}
               </Button>
             </DialogFooter>

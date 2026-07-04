@@ -174,7 +174,7 @@ const Users = () => {
           <p className="text-gray-500">Menaxho përdoruesit e sistemit</p>
         </div>
         <Button
-          className="bg-[#00a79d] hover:bg-[#008f86] gap-2 rounded-xl shadow-md shadow-[#00a79d]/20"
+          className="bg-[#2563EB] hover:bg-[#1D4ED8] gap-2 rounded-xl shadow-md shadow-[#2563EB]/20"
           onClick={() => {
             resetForm();
             setShowDialog(true);
@@ -237,7 +237,7 @@ const Users = () => {
           ) : (
             <Table>
               <TableHeader>
-                <TableRow className="bg-[#00a79d]/8 hover:bg-[#00a79d]/8 border-b border-[#00a79d]/15">
+                <TableRow className="bg-[#2563EB]/8 hover:bg-[#2563EB]/8 border-b border-[#2563EB]/15">
                   <TableHead>Përdoruesi</TableHead>
                   <TableHead>Username</TableHead>
                   <TableHead>Roli</TableHead>
@@ -254,7 +254,7 @@ const Users = () => {
                       <TableCell>
                         <div className="flex items-center gap-3">
                           <Avatar>
-                            <AvatarFallback className="bg-[#00a79d] text-white">
+                            <AvatarFallback className="bg-[#2563EB] text-white">
                               {user.full_name?.charAt(0) || 'U'}
                             </AvatarFallback>
                           </Avatar>
@@ -429,7 +429,7 @@ const Users = () => {
               <Button type="button" variant="outline" onClick={() => setShowDialog(false)}>
                 Anulo
               </Button>
-              <Button type="submit" className="bg-[#00a79d] hover:bg-[#008f86] rounded-xl shadow-md shadow-[#00a79d]/20" data-testid="save-user-btn">
+              <Button type="submit" className="bg-[#2563EB] hover:bg-[#1D4ED8] rounded-xl shadow-md shadow-[#2563EB]/20" data-testid="save-user-btn">
                 {editingUser ? 'Ruaj Ndryshimet' : 'Krijo Përdoruesin'}
               </Button>
             </DialogFooter>

@@ -38,7 +38,7 @@ export const DocumentsDialog = ({
                   </div>
                   <div className="flex items-center gap-3">
                     <div className="text-right">
-                      <p className="font-bold text-[#00a79d]">€{sale.grand_total?.toFixed(2)}</p>
+                      <p className="font-bold text-[#2563EB]">€{sale.grand_total?.toFixed(2)}</p>
                       <p className="text-xs text-gray-400 capitalize">{sale.payment_method}</p>
                     </div>
                     <Button

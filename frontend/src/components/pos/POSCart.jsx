@@ -31,7 +31,7 @@ export const POSCart = ({
   return (
     <Card className="flex-1 border-0 shadow-sm overflow-hidden">
       {/* Header */}
-      <div className="bg-[#00a79d]/10 px-4 py-2 border-b border-[#00a79d]/20">
+      <div className="bg-[#2563EB]/10 px-4 py-2 border-b border-[#2563EB]/20">
         <div className="grid grid-cols-12 gap-2 text-xs font-semibold text-gray-600">
           <div className="col-span-1">Nr</div>
           <div className="col-span-3">Emërtimi</div>
@@ -61,7 +61,7 @@ export const POSCart = ({
                 return (
                   <TableRow 
                     key={item.product_id} 
-                    className={`table-row-hover cursor-pointer ${selectedItemIndex === index ? 'bg-[#00a79d]/10' : ''}`}
+                    className={`table-row-hover cursor-pointer ${selectedItemIndex === index ? 'bg-[#2563EB]/10' : ''}`}
                     onClick={() => setSelectedItemIndex(index)}
                   >
                     {/* Nr */}
@@ -88,7 +88,7 @@ export const POSCart = ({
                             }
                           }}
                         >
-                          <SelectTrigger className="border-[#00a79d]">
+                          <SelectTrigger className="border-[#2563EB]">
                             <SelectValue>{item.product_name || 'Zgjidh'}</SelectValue>
                           </SelectTrigger>
                           <SelectContent>
@@ -140,7 +140,7 @@ export const POSCart = ({
                             ));
                           }}
                           onClick={(e) => e.stopPropagation()}
-                          className="w-20 h-7 text-right text-sm border-[#00a79d]"
+                          className="w-20 h-7 text-right text-sm border-[#2563EB]"
                           min="0"
                           step="0.01"
                         />
@@ -157,7 +157,7 @@ export const POSCart = ({
                           value={item.discount_percent || 0}
                           onChange={(e) => updateDiscount(item.product_id, parseFloat(e.target.value) || 0)}
                           onClick={(e) => e.stopPropagation()}
-                          className="w-16 h-7 text-center text-sm border-[#00a79d]"
+                          className="w-16 h-7 text-center text-sm border-[#2563EB]"
                           min="0"
                           max="100"
                         />
@@ -177,7 +177,7 @@ export const POSCart = ({
                     </TableCell>
                     
                     {/* Total */}
-                    <TableCell className="text-right font-bold text-[#00a79d]">
+                    <TableCell className="text-right font-bold text-[#2563EB]">
                       €{total.toFixed(2)}
                       <Button
                         variant="ghost"

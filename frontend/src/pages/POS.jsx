@@ -1527,10 +1527,10 @@ const addToCart = useCallback((product, mode = null) => {
                   onError={(e) => e.target.style.display = 'none'}
                 />
               ) : (
-                <span className="text-2xl font-bold text-[#00a79d]">→</span>
+                <span className="text-2xl font-bold text-[#2563EB]">→</span>
               )}
               {/* Company Name */}
-              <span className="text-xl font-bold text-[#00a79d]">
+              <span className="text-xl font-bold text-[#2563EB]">
                 {companySettings?.company_name || 'DataPOS'}
               </span>
               <span className="text-gray-400 mx-2">|</span>
@@ -1558,8 +1558,8 @@ const addToCart = useCallback((product, mode = null) => {
           {/* Open Drawer Content */}
           <div className="flex flex-col items-center justify-center h-[calc(100vh-5rem)]" data-testid="pos-open-drawer">
             <div className="text-center space-y-6">
-              <div className="h-24 w-24 mx-auto bg-[#00a79d]/10 rounded-full flex items-center justify-center">
-                <Calculator className="h-12 w-12 text-[#00a79d]" />
+              <div className="h-24 w-24 mx-auto bg-[#2563EB]/10 rounded-full flex items-center justify-center">
+                <Calculator className="h-12 w-12 text-[#2563EB]" />
               </div>
               <div>
                 <h2 className="text-3xl font-bold text-gray-900">Arka është e Mbyllur</h2>
@@ -1568,7 +1568,7 @@ const addToCart = useCallback((product, mode = null) => {
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Button
                   onClick={() => setShowOpenDrawer(true)}
-                  className="bg-[#00a79d] hover:bg-[#008f86] text-white px-8 py-6 text-lg"
+                  className="bg-[#2563EB] hover:bg-[#1D4ED8] text-white px-8 py-6 text-lg"
                   data-testid="open-drawer-btn"
                 >
                   <Calculator className="h-5 w-5 mr-2" />
@@ -1607,7 +1607,7 @@ const addToCart = useCallback((product, mode = null) => {
                   </div>
                   <Button
                     onClick={handleOpenDrawer}
-                    className="w-full bg-[#00a79d] hover:bg-[#008f86]"
+                    className="w-full bg-[#2563EB] hover:bg-[#1D4ED8]"
                     data-testid="confirm-open-drawer"
                   >
                     Konfirmo
@@ -1624,14 +1624,14 @@ const addToCart = useCallback((product, mode = null) => {
     return (
       <div className="flex flex-col items-center justify-center h-[70vh]" data-testid="pos-open-drawer">
         <div className="text-center space-y-4">
-          <div className="h-20 w-20 mx-auto bg-[#00a79d]/10 rounded-full flex items-center justify-center">
-            <Calculator className="h-10 w-10 text-[#00a79d]" />
+          <div className="h-20 w-20 mx-auto bg-[#2563EB]/10 rounded-full flex items-center justify-center">
+            <Calculator className="h-10 w-10 text-[#2563EB]" />
           </div>
           <h2 className="text-2xl font-bold text-gray-900">Arka është e Mbyllur</h2>
           <p className="text-gray-500">Hapni arkën për të filluar shitjen</p>
           <Button
             onClick={() => setShowOpenDrawer(true)}
-            className="bg-[#00a79d] hover:bg-[#008f86] text-white px-8 py-6 text-lg"
+            className="bg-[#2563EB] hover:bg-[#1D4ED8] text-white px-8 py-6 text-lg"
             data-testid="open-drawer-btn"
           >
             Hap Arkën
@@ -1659,7 +1659,7 @@ const addToCart = useCallback((product, mode = null) => {
               </div>
               <Button
                 onClick={handleOpenDrawer}
-                className="w-full bg-[#00a79d] hover:bg-[#008f86]"
+                className="w-full bg-[#2563EB] hover:bg-[#1D4ED8]"
                 data-testid="confirm-open-drawer"
               >
                 Konfirmo
@@ -1686,7 +1686,7 @@ const addToCart = useCallback((product, mode = null) => {
         {/* Header with search */}
         <div className="flex items-center gap-3 mb-3 lg:mb-4">
           <div className="hidden sm:flex items-center gap-2.5 px-3 py-2 rounded-2xl bg-white/70 backdrop-blur-md border border-gray-200/60 shadow-sm">
-            <div className="h-8 w-8 rounded-xl bg-gradient-to-br from-[#00a79d] to-[#007a73] flex items-center justify-center text-white text-sm font-semibold">
+            <div className="h-8 w-8 rounded-xl bg-gradient-to-br from-[#2563EB] to-[#007a73] flex items-center justify-center text-white text-sm font-semibold">
               {user?.full_name?.charAt(0) || 'U'}
             </div>
             <div className="hidden md:flex flex-col leading-tight">
@@ -1696,7 +1696,7 @@ const addToCart = useCallback((product, mode = null) => {
           </div>
 
           <div className="flex-1 relative">
-            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-[#00a79d]" />
+            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-[#2563EB]" />
             <Input
               ref={searchRef}
               type="text"
@@ -1708,7 +1708,7 @@ const addToCart = useCallback((product, mode = null) => {
               }}
               onFocus={() => search.trim() && setShowSearchResults(true)}
               onBlur={() => setTimeout(() => setShowSearchResults(false), 200)}
-              className="pl-12 h-12 text-base rounded-2xl border-gray-200/80 bg-white/80 backdrop-blur-md shadow-sm focus-visible:ring-2 focus-visible:ring-[#00a79d]/40 focus-visible:border-[#00a79d]"
+              className="pl-12 h-12 text-base rounded-2xl border-gray-200/80 bg-white/80 backdrop-blur-md shadow-sm focus-visible:ring-2 focus-visible:ring-[#2563EB]/40 focus-visible:border-[#2563EB]"
               data-testid="pos-search-input"
             />
 
@@ -1717,7 +1717,7 @@ const addToCart = useCallback((product, mode = null) => {
                 {mainSearchResults.map((product) => (
                   <div
                     key={product.id}
-                    className={`p-3 rounded-xl cursor-pointer transition-colors ${product.current_stock > 0 ? 'hover:bg-[#00a79d]/10' : 'bg-gray-50 opacity-70'}`}
+                    className={`p-3 rounded-xl cursor-pointer transition-colors ${product.current_stock > 0 ? 'hover:bg-[#2563EB]/10' : 'bg-gray-50 opacity-70'}`}
                     onMouseDown={(e) => {
                       e.preventDefault();
                       addToCart(product);
@@ -1729,7 +1729,7 @@ const addToCart = useCallback((product, mode = null) => {
                         <p className="text-xs text-gray-400">Barkod: {product.barcode || '-'}</p>
                       </div>
                       <div className="text-right flex-shrink-0">
-                        <p className="font-bold text-[#00a79d]">{`\u20AC${(product.sale_price || 0).toFixed(2)}`}</p>
+                        <p className="font-bold text-[#2563EB]">{`\u20AC${(product.sale_price || 0).toFixed(2)}`}</p>
                         <p className={`text-xs ${product.current_stock > 0 ? 'text-emerald-600' : 'text-red-500 font-semibold'}`}>
                           {product.current_stock > 0 ? `Stok: ${product.current_stock}` : 'Pa stok!'}
                         </p>
@@ -1747,16 +1747,16 @@ const addToCart = useCallback((product, mode = null) => {
             )}
           </div>
           {customerName && (
-            <div className="flex items-center gap-2 px-3 py-2 bg-[#00a79d]/10 rounded-2xl border border-[#00a79d]/20">
-              <User className="h-4 w-4 text-[#00a79d]" />
-              <span className="text-sm font-semibold text-[#00a79d]">{customerName}</span>
+            <div className="flex items-center gap-2 px-3 py-2 bg-[#2563EB]/10 rounded-2xl border border-[#2563EB]/20">
+              <User className="h-4 w-4 text-[#2563EB]" />
+              <span className="text-sm font-semibold text-[#2563EB]">{customerName}</span>
             </div>
           )}
         </div>
 
         {/* Cart Table */}
         <Card className="flex-1 border border-gray-200/60 rounded-3xl shadow-sm overflow-hidden bg-white/80 backdrop-blur-md flex flex-col">
-          <div className="bg-gradient-to-r from-[#00a79d]/15 to-[#00c4b8]/10 px-4 py-3 border-b border-[#00a79d]/15">
+          <div className="bg-gradient-to-r from-[#2563EB]/15 to-[#00c4b8]/10 px-4 py-3 border-b border-[#2563EB]/15">
             <div className="grid grid-cols-12 gap-2 text-[11px] font-bold text-gray-600 uppercase tracking-wide">
               <div className="col-span-1">Nr</div>
               <div className="col-span-3">{'Em\u00EBrtimi'}</div>
@@ -1787,7 +1787,7 @@ const addToCart = useCallback((product, mode = null) => {
                     return (
                       <TableRow
                         key={item.product_id}
-                        className={`cursor-pointer transition-colors ${selectedItemIndex === index ? 'bg-[#00a79d]/10' : 'hover:bg-gray-50'}`}
+                        className={`cursor-pointer transition-colors ${selectedItemIndex === index ? 'bg-[#2563EB]/10' : 'hover:bg-gray-50'}`}
                         onClick={() => setSelectedItemIndex(index)}
                       >
                         <TableCell className="w-12 text-gray-400 font-medium">{index + 1}</TableCell>
@@ -1831,7 +1831,7 @@ const addToCart = useCallback((product, mode = null) => {
                             <Button
                               variant="ghost"
                               size="icon"
-                              className="h-7 w-7 rounded-lg hover:bg-[#00a79d]/10 hover:text-[#00a79d]"
+                              className="h-7 w-7 rounded-lg hover:bg-[#2563EB]/10 hover:text-[#2563EB]"
                               onClick={(e) => { e.stopPropagation(); updateQuantity(item.product_id, -1); }}
                             >
                               <Minus className="h-3 w-3" />
@@ -1840,7 +1840,7 @@ const addToCart = useCallback((product, mode = null) => {
                             <Button
                               variant="ghost"
                               size="icon"
-                              className="h-7 w-7 rounded-lg hover:bg-[#00a79d]/10 hover:text-[#00a79d]"
+                              className="h-7 w-7 rounded-lg hover:bg-[#2563EB]/10 hover:text-[#2563EB]"
                               onClick={(e) => { e.stopPropagation(); updateQuantity(item.product_id, 1); }}
                             >
                               <Plus className="h-3 w-3" />
@@ -1858,7 +1858,7 @@ const addToCart = useCallback((product, mode = null) => {
                               value={item.discount_percent}
                               onChange={(e) => updateDiscount(item.product_id, e.target.value)}
                               onClick={(e) => e.stopPropagation()}
-                              className="w-16 h-8 text-center rounded-lg border-[#00a79d]/30 focus:border-[#00a79d]"
+                              className="w-16 h-8 text-center rounded-lg border-[#2563EB]/30 focus:border-[#2563EB]"
                               title="Zbritja ne perqindje"
                             />
                             <span className="text-xs text-gray-500 font-semibold">%</span>
@@ -1886,7 +1886,7 @@ const addToCart = useCallback((product, mode = null) => {
           </div>
 
           {/* Cart Totals */}
-          <div className="mt-auto border-t border-[#00a79d]/15 bg-gradient-to-r from-[#00a79d] to-[#007a73] p-4">
+          <div className="mt-auto border-t border-[#2563EB]/15 bg-gradient-to-r from-[#2563EB] to-[#007a73] p-4">
             <div className="flex justify-between items-center gap-4 flex-wrap">
               <div className="flex gap-5 text-sm text-white/85">
                 <span>Subtotal: <span className="font-semibold text-white">{`\u20AC${cartTotals.subtotal.toFixed(2)}`}</span></span>
@@ -1989,7 +1989,7 @@ const addToCart = useCallback((product, mode = null) => {
 
         <Button
           variant="outline"
-          className={`flex-1 lg:h-14 flex items-center justify-center gap-2 rounded-2xl border-gray-200 hover:bg-gray-50 hover:border-gray-300 ${customerName ? 'border-[#00a79d] text-[#00a79d] bg-[#00a79d]/5' : ''}`}
+          className={`flex-1 lg:h-14 flex items-center justify-center gap-2 rounded-2xl border-gray-200 hover:bg-gray-50 hover:border-gray-300 ${customerName ? 'border-[#2563EB] text-[#2563EB] bg-[#2563EB]/5' : ''}`}
           onClick={() => setShowCustomer(true)}
           data-testid="pos-customer-btn"
         >
@@ -2040,7 +2040,7 @@ const addToCart = useCallback((product, mode = null) => {
 
         {(user?.role === 'admin' || user?.role === 'manager') && (
           <Button
-            className={`flex-1 lg:h-14 flex items-center justify-center gap-2 rounded-2xl text-white ${applyNoVat ? 'bg-orange-500 hover:bg-orange-600' : 'bg-[#00a79d] hover:bg-[#008f86]'}`}
+            className={`flex-1 lg:h-14 flex items-center justify-center gap-2 rounded-2xl text-white ${applyNoVat ? 'bg-orange-500 hover:bg-orange-600' : 'bg-[#2563EB] hover:bg-[#1D4ED8]'}`}
             onClick={handleNoVat}
             data-testid="pos-no-vat-btn"
           >
@@ -2112,11 +2112,11 @@ const addToCart = useCallback((product, mode = null) => {
       {/* Payment Dialog */}
       <Dialog open={showPayment} onOpenChange={setShowPayment}>
         <DialogContent className="sm:max-w-md p-0 overflow-hidden border-0 bg-transparent shadow-none">
-          <div className="relative rounded-3xl overflow-hidden bg-[#faf9f4] border border-[#00a79d]/15 shadow-xl shadow-[#00a79d]/10">
+          <div className="relative rounded-3xl overflow-hidden bg-[#faf9f4] border border-[#2563EB]/15 shadow-xl shadow-[#2563EB]/10">
             <div className="relative p-6 space-y-5">
               <DialogHeader className="flex flex-row items-center justify-between space-y-0">
                 <div className="flex items-center gap-3">
-                  <div className="h-10 w-1 rounded-full bg-[#00a79d]"></div>
+                  <div className="h-10 w-1 rounded-full bg-[#2563EB]"></div>
                   <div className="text-left">
                     <DialogTitle className="text-lg font-bold text-gray-900 tracking-tight m-0">{'P\u00EBrfundimi i Pages\u00EBs'}</DialogTitle>
                     <p className="text-xs text-gray-400 font-medium mt-0.5">{'Zgjidh m\u00EBnyr\u00EBn e pages\u00EBs'}</p>
@@ -2126,24 +2126,24 @@ const addToCart = useCallback((product, mode = null) => {
                   <X className="h-4 w-4" />
                 </button>
               </DialogHeader>
-              <div className="relative rounded-2xl bg-[#00a79d]/8 border border-[#00a79d]/15 p-5 text-center">
-                <div className="text-[10px] uppercase tracking-[0.3em] text-[#00a79d]/80 font-semibold mb-1">{'Totali p\u00EBr Pages\u00EB'}</div>
-                <div className="text-5xl font-extrabold tabular-nums text-[#00a79d]">{`\u20AC${Math.max(0, cartTotals.total - (couponData?.discount_amount || 0)).toFixed(2)}`}</div>
-                <Zap className="absolute top-3 right-3 h-4 w-4 text-[#00a79d]/60" />
+              <div className="relative rounded-2xl bg-[#2563EB]/8 border border-[#2563EB]/15 p-5 text-center">
+                <div className="text-[10px] uppercase tracking-[0.3em] text-[#2563EB]/80 font-semibold mb-1">{'Totali p\u00EBr Pages\u00EB'}</div>
+                <div className="text-5xl font-extrabold tabular-nums text-[#2563EB]">{`\u20AC${Math.max(0, cartTotals.total - (couponData?.discount_amount || 0)).toFixed(2)}`}</div>
+                <Zap className="absolute top-3 right-3 h-4 w-4 text-[#2563EB]/60" />
               </div>
               <div className="grid grid-cols-2 gap-2 p-1 rounded-2xl bg-gray-50 border border-gray-200">
-                <button type="button" onClick={() => setPaymentMethod('cash')} data-testid="payment-cash-btn" className={`relative h-11 rounded-xl flex items-center justify-center gap-2 font-semibold text-sm transition-all ${paymentMethod === 'cash' ? 'bg-[#00a79d] text-white shadow-md shadow-[#00a79d]/30' : 'text-gray-500 hover:text-gray-900'}`}>
+                <button type="button" onClick={() => setPaymentMethod('cash')} data-testid="payment-cash-btn" className={`relative h-11 rounded-xl flex items-center justify-center gap-2 font-semibold text-sm transition-all ${paymentMethod === 'cash' ? 'bg-[#2563EB] text-white shadow-md shadow-[#2563EB]/30' : 'text-gray-500 hover:text-gray-900'}`}>
                   <Banknote className="h-4 w-4" /> Cash
                 </button>
-                <button type="button" onClick={() => setPaymentMethod('bank')} data-testid="payment-bank-btn" className={`relative h-11 rounded-xl flex items-center justify-center gap-2 font-semibold text-sm transition-all ${paymentMethod === 'bank' ? 'bg-[#00a79d] text-white shadow-md shadow-[#00a79d]/30' : 'text-gray-500 hover:text-gray-900'}`}>
+                <button type="button" onClick={() => setPaymentMethod('bank')} data-testid="payment-bank-btn" className={`relative h-11 rounded-xl flex items-center justify-center gap-2 font-semibold text-sm transition-all ${paymentMethod === 'bank' ? 'bg-[#2563EB] text-white shadow-md shadow-[#2563EB]/30' : 'text-gray-500 hover:text-gray-900'}`}>
                   <CreditCard className="h-4 w-4" /> Bank
                 </button>
               </div>
               {paymentMethod === 'cash' && (
                 <div className="space-y-4">
                   <div className="relative">
-                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[#00a79d] font-bold text-lg pointer-events-none">{'\u20AC'}</span>
-                    <input ref={cashInputRef} type="text" value={cashAmount} onChange={(e) => setCashAmount(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter' && parseFloat(cashAmount) >= (cartTotals.total - (couponData?.discount_amount || 0))) { e.preventDefault(); handlePayment(); } }} placeholder={'Shkruaj shum\u00EBn e paguar...'} autoFocus data-testid="cash-amount-input" className="w-full h-14 pl-10 pr-4 rounded-2xl bg-white border border-gray-200 text-xl font-bold text-gray-900 tabular-nums placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#00a79d]/40 focus:border-[#00a79d]/40 transition" />
+                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[#2563EB] font-bold text-lg pointer-events-none">{'\u20AC'}</span>
+                    <input ref={cashInputRef} type="text" value={cashAmount} onChange={(e) => setCashAmount(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter' && parseFloat(cashAmount) >= (cartTotals.total - (couponData?.discount_amount || 0))) { e.preventDefault(); handlePayment(); } }} placeholder={'Shkruaj shum\u00EBn e paguar...'} autoFocus data-testid="cash-amount-input" className="w-full h-14 pl-10 pr-4 rounded-2xl bg-white border border-gray-200 text-xl font-bold text-gray-900 tabular-nums placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#2563EB]/40 focus:border-[#2563EB]/40 transition" />
                   </div>
                   <div className="grid grid-cols-3 gap-2">
                     <div className="rounded-xl bg-gray-50 border border-gray-200 p-3">
@@ -2152,7 +2152,7 @@ const addToCart = useCallback((product, mode = null) => {
                     </div>
                     <div className="rounded-xl bg-gray-50 border border-gray-200 p-3">
                       <div className="text-[9px] uppercase tracking-widest text-gray-500 font-semibold">Paguar</div>
-                      <div className="text-base font-bold text-[#00a79d] tabular-nums mt-0.5">{`\u20AC${(parseFloat(cashAmount) || 0).toFixed(2)}`}</div>
+                      <div className="text-base font-bold text-[#2563EB] tabular-nums mt-0.5">{`\u20AC${(parseFloat(cashAmount) || 0).toFixed(2)}`}</div>
                     </div>
                     <div className={`rounded-xl border p-3 transition ${changeAmount > 0 ? 'bg-emerald-50 border-emerald-300 shadow-lg shadow-emerald-500/30' : 'bg-gray-50 border-gray-200'}`}>
                       <div className="text-[9px] uppercase tracking-widest text-gray-500 font-semibold">Kusuri</div>
@@ -2170,19 +2170,19 @@ const addToCart = useCallback((product, mode = null) => {
                 </div>
               )}
               {paymentMethod === 'bank' && (
-                <div className="rounded-2xl bg-[#00a79d]/8 border border-[#00a79d]/20 p-6 text-center">
-                  <CreditCard className="h-8 w-8 mx-auto text-[#00a79d] mb-2" />
-                  <p className="text-xs uppercase tracking-widest text-[#00a79d] font-semibold mb-1">{'Pagesa me Kart\u00EB / Bank'}</p>
+                <div className="rounded-2xl bg-[#2563EB]/8 border border-[#2563EB]/20 p-6 text-center">
+                  <CreditCard className="h-8 w-8 mx-auto text-[#2563EB] mb-2" />
+                  <p className="text-xs uppercase tracking-widest text-[#2563EB] font-semibold mb-1">{'Pagesa me Kart\u00EB / Bank'}</p>
                   <p className="text-3xl font-extrabold text-gray-900 tabular-nums">{`\u20AC${cartTotals.total.toFixed(2)}`}</p>
                 </div>
               )}
               <div className="space-y-2">
-                <button type="button" onClick={() => setPrintReceipt(!printReceipt)} data-testid="print-receipt-checkbox" className={`w-full flex items-center gap-3 p-3 rounded-2xl border transition ${printReceipt ? 'bg-[#00a79d]/10 border-[#00a79d]/30' : 'bg-gray-50 border-gray-200 hover:bg-white'}`}>
-                  <div className={`relative h-5 w-9 rounded-full transition ${printReceipt ? 'bg-[#00a79d]' : 'bg-gray-300'}`}>
+                <button type="button" onClick={() => setPrintReceipt(!printReceipt)} data-testid="print-receipt-checkbox" className={`w-full flex items-center gap-3 p-3 rounded-2xl border transition ${printReceipt ? 'bg-[#2563EB]/10 border-[#2563EB]/30' : 'bg-gray-50 border-gray-200 hover:bg-white'}`}>
+                  <div className={`relative h-5 w-9 rounded-full transition ${printReceipt ? 'bg-[#2563EB]' : 'bg-gray-300'}`}>
                     <div className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-all ${printReceipt ? 'left-4' : 'left-0.5'}`}></div>
                   </div>
-                  <span className={`text-sm font-medium flex-1 text-left ${printReceipt ? 'text-[#00a79d]' : 'text-gray-600'}`}>{'Shtyp kupon p\u00EBr klientin'}</span>
-                  <Printer className={`h-4 w-4 ${printReceipt ? 'text-[#00a79d]' : 'text-gray-400'}`} />
+                  <span className={`text-sm font-medium flex-1 text-left ${printReceipt ? 'text-[#2563EB]' : 'text-gray-600'}`}>{'Shtyp kupon p\u00EBr klientin'}</span>
+                  <Printer className={`h-4 w-4 ${printReceipt ? 'text-[#2563EB]' : 'text-gray-400'}`} />
                 </button>
                 <button type="button" onClick={() => { const next = !isDebt; setIsDebt(next); if (!next) setDebtorName(''); }} data-testid="debt-checkbox" className={`w-full flex items-center gap-3 p-3 rounded-2xl border transition ${isDebt ? 'bg-amber-50 border-amber-300' : 'bg-gray-50 border-gray-200 hover:bg-white'}`}>
                   <div className={`relative h-5 w-9 rounded-full transition ${isDebt ? 'bg-amber-500' : 'bg-gray-300'}`}>
@@ -2214,7 +2214,7 @@ const addToCart = useCallback((product, mode = null) => {
                 {printReceipt && !isDebt && (
                   <div className="rounded-2xl bg-gray-50 border border-gray-200 p-3">
                     <label className="text-[10px] font-bold text-gray-600 uppercase tracking-wider">Emri i Klientit (opsional)</label>
-                    <input type="text" value={customerName} onChange={(e) => setCustomerName(e.target.value)} placeholder="Shkruaj emrin e klientit..." data-testid="receipt-customer-name-input" className="mt-1.5 w-full h-9 px-3 rounded-xl bg-white border border-gray-200 text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#00a79d]/40 transition" />
+                    <input type="text" value={customerName} onChange={(e) => setCustomerName(e.target.value)} placeholder="Shkruaj emrin e klientit..." data-testid="receipt-customer-name-input" className="mt-1.5 w-full h-9 px-3 rounded-xl bg-white border border-gray-200 text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#2563EB]/40 transition" />
                   </div>
                 )}
                 {printReceipt && !isDebt && (
@@ -2226,7 +2226,7 @@ const addToCart = useCallback((product, mode = null) => {
                   </button>
                 )}
               </div>
-              <button type="button" onClick={handlePayment} disabled={isDebt && !debtorName.trim()} data-testid="confirm-payment-btn" className={`group relative w-full h-14 rounded-2xl font-bold text-base text-white shadow-2xl transition-all overflow-hidden disabled:opacity-50 disabled:cursor-not-allowed hover:scale-[1.01] active:scale-[0.99] ${isDebt ? 'bg-amber-500 shadow-amber-500/40 hover:shadow-amber-500/60' : 'bg-[#00a79d] shadow-[#00a79d]/40 hover:shadow-[#00a79d]/60'}`}>
+              <button type="button" onClick={handlePayment} disabled={isDebt && !debtorName.trim()} data-testid="confirm-payment-btn" className={`group relative w-full h-14 rounded-2xl font-bold text-base text-white shadow-2xl transition-all overflow-hidden disabled:opacity-50 disabled:cursor-not-allowed hover:scale-[1.01] active:scale-[0.99] ${isDebt ? 'bg-amber-500 shadow-amber-500/40 hover:shadow-amber-500/60' : 'bg-[#2563EB] shadow-[#2563EB]/40 hover:shadow-[#2563EB]/60'}`}>
                 
                 <span className="relative flex items-center justify-center gap-2">
                   
@@ -2284,7 +2284,7 @@ const addToCart = useCallback((product, mode = null) => {
                         <p className="text-sm text-gray-500">Barkod: {product.barcode || '-'}</p>
                       </div>
                       <div className="text-right">
-                        <p className="font-bold text-[#00a79d]">€{(product.sale_price || 0).toFixed(2)}</p>
+                        <p className="font-bold text-[#2563EB]">€{(product.sale_price || 0).toFixed(2)}</p>
                         <p className={`text-xs ${product.current_stock > 0 ? 'text-green-600' : 'text-red-500 font-semibold'}`}>
                           {product.current_stock > 0 ? `Stok: ${product.current_stock}` : 'Pa stok!'}
                         </p>
@@ -2334,7 +2334,7 @@ const addToCart = useCallback((product, mode = null) => {
             <Button variant="outline" onClick={() => { setCustomerName(''); setCustomerNote(''); }}>
               Pastro
             </Button>
-            <Button onClick={() => setShowCustomer(false)} className="bg-[#00a79d] hover:bg-[#008f86]">
+            <Button onClick={() => setShowCustomer(false)} className="bg-[#2563EB] hover:bg-[#1D4ED8]">
               Ruaj
             </Button>
           </DialogFooter>
@@ -2359,7 +2359,7 @@ const addToCart = useCallback((product, mode = null) => {
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-500">Bilanci i Pritshëm:</span>
-                <span className="font-semibold text-[#00a79d]">€{cashDrawer?.expected_balance?.toFixed(2) || '0.00'}</span>
+                <span className="font-semibold text-[#2563EB]">€{cashDrawer?.expected_balance?.toFixed(2) || '0.00'}</span>
               </div>
             </div>
             <div className="p-4 bg-gray-50 rounded-lg">
@@ -2406,7 +2406,7 @@ const addToCart = useCallback((product, mode = null) => {
                     </div>
                     <div className="flex items-center gap-3">
                       <div className="text-right">
-                        <p className="font-bold text-[#00a79d]">€{sale.grand_total?.toFixed(2)}</p>
+                        <p className="font-bold text-[#2563EB]">€{sale.grand_total?.toFixed(2)}</p>
                         <p className="text-xs text-gray-400 capitalize">{sale.payment_method}</p>
                       </div>
                       <Button
@@ -2438,7 +2438,7 @@ const addToCart = useCallback((product, mode = null) => {
               <span>Kupon Shitje</span>
               <Button
                 onClick={executeThermalPrint}
-                className="bg-[#00a79d] hover:bg-[#008f86]"
+                className="bg-[#2563EB] hover:bg-[#1D4ED8]"
                 size="sm"
               >
                 <Printer className="h-4 w-4 mr-2" />
@@ -2480,7 +2480,7 @@ const addToCart = useCallback((product, mode = null) => {
                     }}
                     className={`px-2 py-0.5 text-xs rounded border transition-colors ${
                       template.is_default 
-                        ? 'bg-[#00a79d]/10 border-[#00a79d] text-[#00a79d] hover:bg-[#00a79d]/20' 
+                        ? 'bg-[#2563EB]/10 border-[#2563EB] text-[#2563EB] hover:bg-[#2563EB]/20' 
                         : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
                     }`}
                   >
@@ -2983,7 +2983,7 @@ const addToCart = useCallback((product, mode = null) => {
               </Button>
             )}
             <Button 
-              className="flex-1 bg-[#00a79d] hover:bg-[#008f86]" 
+              className="flex-1 bg-[#2563EB] hover:bg-[#1D4ED8]" 
               onClick={() => executeThermalPrint(true)}
             >
               <Printer className="h-4 w-4 mr-2" />
@@ -3001,7 +3001,7 @@ const addToCart = useCallback((product, mode = null) => {
               <span>Fatura A4 - {currentSaleForPrint?.receipt_number || 'Preview'}</span>
               <Button
                 onClick={executePrint}
-                className="bg-[#00a79d] hover:bg-[#008f86]"
+                className="bg-[#2563EB] hover:bg-[#1D4ED8]"
               >
                 <Printer className="h-4 w-4 mr-2" />
                 Printo
@@ -3076,7 +3076,7 @@ const addToCart = useCallback((product, mode = null) => {
             </Button>
             <Button 
               onClick={proceedToPrintA4}
-              className="bg-[#00a79d] hover:bg-[#008f86]"
+              className="bg-[#2563EB] hover:bg-[#1D4ED8]"
             >
               <FileDown className="h-4 w-4 mr-2" />
               Vazhdo me Faturën
@@ -3240,14 +3240,14 @@ const addToCart = useCallback((product, mode = null) => {
               >
                 {/* Professional A4 Warranty Document */}
                 <div style={{ height: '100%', display: 'flex', flexDirection: 'column', color: '#1f2937' }}>
-                  <div style={ { height: '6px', background: '#00a79d', borderRadius: '4px', marginBottom: '16px' } }></div>
+                  <div style={ { height: '6px', background: '#2563EB', borderRadius: '4px', marginBottom: '16px' } }></div>
                   
                   {/* Header with Logo Area */}
                   <div style={{ 
                     display: 'flex', 
                     justifyContent: 'space-between', 
                     alignItems: 'flex-start',
-                    borderBottom: '3px solid #00a79d',
+                    borderBottom: '3px solid #2563EB',
                     paddingBottom: '15px',
                     marginBottom: '20px'
                   }}>
@@ -3263,7 +3263,7 @@ const addToCart = useCallback((product, mode = null) => {
                         <div style={{ 
                           width: '50px', 
                           height: '50px', 
-                          background: '#00a79d',
+                          background: '#2563EB',
                           borderRadius: '8px',
                           display: 'flex',
                           alignItems: 'center',
@@ -3291,7 +3291,7 @@ const addToCart = useCallback((product, mode = null) => {
                       <div style={{ 
                         fontSize: '28px', 
                         fontWeight: '800', 
-                        color: '#00a79d',
+                        color: '#2563EB',
                         letterSpacing: '1px'
                       }}>
                         GARANCIONI
@@ -3325,12 +3325,12 @@ const addToCart = useCallback((product, mode = null) => {
                       <div style={{ 
                         fontSize: '11px', 
                         fontWeight: '600', 
-                        color: '#00a79d',
+                        color: '#2563EB',
                         textTransform: 'uppercase',
                         letterSpacing: '0.5px',
                         marginBottom: '12px',
                         paddingBottom: '8px',
-                        borderBottom: '2px solid #00a79d'
+                        borderBottom: '2px solid #2563EB'
                       }}>
                         Të Dhënat e Klientit
                       </div>
@@ -3354,7 +3354,7 @@ const addToCart = useCallback((product, mode = null) => {
 
                     {/* Warranty Period Box */}
                     <div style={{ 
-                      border: '2px solid #00a79d', 
+                      border: '2px solid #2563EB', 
                       borderRadius: '8px', 
                       padding: '15px',
                       background: '#eaf7f5'
@@ -3362,12 +3362,12 @@ const addToCart = useCallback((product, mode = null) => {
                       <div style={{ 
                         fontSize: '11px', 
                         fontWeight: '600', 
-                        color: '#00a79d',
+                        color: '#2563EB',
                         textTransform: 'uppercase',
                         letterSpacing: '0.5px',
                         marginBottom: '12px',
                         paddingBottom: '8px',
-                        borderBottom: '2px solid #00a79d'
+                        borderBottom: '2px solid #2563EB'
                       }}>
                         Periudha e Garancisë
                       </div>
@@ -3375,7 +3375,7 @@ const addToCart = useCallback((product, mode = null) => {
                         <div style={{ 
                           fontSize: '32px', 
                           fontWeight: '800', 
-                          color: '#00a79d'
+                          color: '#2563EB'
                         }}>
                           {warrantyData.warrantyPeriod} MUAJ
                         </div>
@@ -3412,12 +3412,12 @@ const addToCart = useCallback((product, mode = null) => {
                     <div style={{ 
                       fontSize: '11px', 
                       fontWeight: '600', 
-                      color: '#00a79d',
+                      color: '#2563EB',
                       textTransform: 'uppercase',
                       letterSpacing: '0.5px',
                       marginBottom: '12px',
                       paddingBottom: '8px',
-                      borderBottom: '2px solid #00a79d'
+                      borderBottom: '2px solid #2563EB'
                     }}>
                       Të Dhënat e Produktit
                     </div>
@@ -3860,7 +3860,7 @@ const addToCart = useCallback((product, mode = null) => {
                 onError={(e) => e.target.style.display = 'none'}
               />
             ) : (
-              <div className="bg-[#00a79d] p-1.5 rounded-lg">
+              <div className="bg-[#2563EB] p-1.5 rounded-lg">
                 <svg className="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <rect x="5" y="2" width="14" height="20" rx="2" ry="2"/>
                   <line x1="12" y1="18" x2="12" y2="18"/>
@@ -3868,7 +3868,7 @@ const addToCart = useCallback((product, mode = null) => {
               </div>
             )}
             {/* Company Name */}
-            <span className="text-xl font-bold text-[#00a79d]">
+            <span className="text-xl font-bold text-[#2563EB]">
               {companySettings?.company_name || 'DataPOS'}
             </span>
             <span className="text-gray-400 mx-2">|</span>

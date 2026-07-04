@@ -86,7 +86,7 @@ export const POSActionButtons = ({
       {/* Konsumatori - Customer info */}
       <Button
         variant="outline"
-        className={`flex-1 lg:h-14 flex items-center justify-center gap-2 ${customerName ? 'border-[#00a79d] text-[#00a79d]' : ''}`}
+        className={`flex-1 lg:h-14 flex items-center justify-center gap-2 ${customerName ? 'border-[#2563EB] text-[#2563EB]' : ''}`}
         onClick={onShowCustomer}
         data-testid="pos-customer-btn"
       >
@@ -155,7 +155,7 @@ export const POSActionButtons = ({
       {/* Pa TVSH - Toggle VAT (vetëm admin/manager) */}
       {canToggleVat && (
         <Button
-          className={`flex-1 lg:h-14 flex items-center justify-center gap-2 ${applyNoVat ? 'bg-orange-500 hover:bg-orange-600' : 'bg-[#00a79d] hover:bg-[#008f86]'}`}
+          className={`flex-1 lg:h-14 flex items-center justify-center gap-2 ${applyNoVat ? 'bg-orange-500 hover:bg-orange-600' : 'bg-[#2563EB] hover:bg-[#1D4ED8]'}`}
           onClick={onToggleVat}
           data-testid="pos-no-vat-btn"
         >

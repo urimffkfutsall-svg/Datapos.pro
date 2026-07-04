@@ -35,7 +35,7 @@ export const POSHeader = ({
           }}
           onFocus={() => search.trim() && setShowSearchResults(true)}
           onBlur={() => setTimeout(() => setShowSearchResults(false), 200)}
-          className="pl-10 h-12 border-[#00a79d] focus:ring-[#00a79d]"
+          className="pl-10 h-12 border-[#2563EB] focus:ring-[#2563EB]"
           data-testid="pos-search-input"
         />
         
@@ -59,7 +59,7 @@ export const POSHeader = ({
                     <p className="text-sm text-gray-500">Barkod: {product.barcode || '-'}</p>
                   </div>
                   <div className="text-right">
-                    <p className="font-bold text-[#00a79d]">€{(product.sale_price || 0).toFixed(2)}</p>
+                    <p className="font-bold text-[#2563EB]">€{(product.sale_price || 0).toFixed(2)}</p>
                     <p className={`text-xs ${product.current_stock > 0 ? 'text-green-600' : 'text-red-500 font-semibold'}`}>
                       {product.current_stock > 0 ? `Stok: ${product.current_stock}` : 'Pa stok!'}
                     </p>
@@ -80,8 +80,8 @@ export const POSHeader = ({
       
       {/* Customer name badge */}
       {customerName && (
-        <div className="flex items-center gap-2 px-3 py-1 bg-[#00a79d]/10 rounded-lg">
-          <User className="h-4 w-4 text-[#00a79d]" />
+        <div className="flex items-center gap-2 px-3 py-1 bg-[#2563EB]/10 rounded-lg">
+          <User className="h-4 w-4 text-[#2563EB]" />
           <span className="text-sm font-medium">{customerName}</span>
         </div>
       )}

@@ -64,7 +64,7 @@ const SuperAdmin = () => {
     phone: '',
     address: '',
     logo_url: '',
-    primary_color: '#00a79d',
+    primary_color: '#2563EB',
     secondary_color: '#f3f4f6',
     stripe_payment_link: '',
     admin_username: '',
@@ -123,7 +123,7 @@ const SuperAdmin = () => {
       phone: '',
       address: '',
       logo_url: '',
-      primary_color: '#00a79d',
+      primary_color: '#2563EB',
       secondary_color: '#f3f4f6',
       stripe_payment_link: '',
       admin_username: '',
@@ -143,7 +143,7 @@ const SuperAdmin = () => {
       phone: tenant.phone || '',
       address: tenant.address || '',
       logo_url: tenant.logo_url || '',
-      primary_color: tenant.primary_color || '#00a79d',
+      primary_color: tenant.primary_color || '#2563EB',
       secondary_color: tenant.secondary_color || '#f3f4f6',
       stripe_payment_link: tenant.stripe_payment_link || '',
       admin_username: '',
@@ -358,7 +358,7 @@ const SuperAdmin = () => {
           <p className="text-gray-500">Shto, edito dhe menaxho firmat që përdorin sistemin</p>
         </div>
         <Button 
-          className="bg-[#00a79d] hover:bg-[#008f86]"
+          className="bg-[#2563EB] hover:bg-[#1D4ED8]"
           onClick={openCreateDialog}
           data-testid="add-tenant-btn"
         >
@@ -567,7 +567,7 @@ const SuperAdmin = () => {
       <Dialog open={showDialog} onOpenChange={setShowDialog}>
         <DialogContent className="sm:max-w-4xl max-h-[92vh] overflow-y-auto p-0 rounded-3xl border-0 shadow-2xl">
           {/* Hero header */}
-          <div className="bg-gradient-to-br from-[#00a79d] via-[#009891] to-[#007a73] p-7 text-white relative overflow-hidden">
+          <div className="bg-gradient-to-br from-[#2563EB] via-[#009891] to-[#007a73] p-7 text-white relative overflow-hidden">
             <div className="absolute -right-12 -top-12 w-48 h-48 bg-white/10 rounded-full blur-3xl pointer-events-none" />
             <div className="absolute right-20 top-16 w-32 h-32 bg-white/5 rounded-full blur-2xl pointer-events-none" />
             <div className="relative flex items-center gap-4">
@@ -591,8 +591,8 @@ const SuperAdmin = () => {
             {/* Section 1: Informacioni i Firmës */}
             <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
               <div className="flex items-center gap-2.5 mb-5">
-                <div className="w-9 h-9 rounded-xl bg-[#00a79d]/10 flex items-center justify-center">
-                  <Building2 className="h-4 w-4 text-[#00a79d]" />
+                <div className="w-9 h-9 rounded-xl bg-[#2563EB]/10 flex items-center justify-center">
+                  <Building2 className="h-4 w-4 text-[#2563EB]" />
                 </div>
                 <div>
                   <h3 className="font-semibold text-gray-900">Informacioni i Firmës</h3>
@@ -603,7 +603,7 @@ const SuperAdmin = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <Label className="text-xs font-medium text-gray-700 mb-1.5 block">
-                    Identifikuesi (subdomain) <span className="text-[#00a79d]">*</span>
+                    Identifikuesi (subdomain) <span className="text-[#2563EB]">*</span>
                   </Label>
                   <div className="relative">
                     <Globe className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
@@ -612,7 +612,7 @@ const SuperAdmin = () => {
                       onChange={(e) => setFormData({...formData, name: e.target.value.toLowerCase().replace(/[^a-z0-9]/g, '')})}
                       placeholder="p.sh. mobilshopurimi"
                       disabled={editingTenant}
-                      className="pl-9 rounded-xl bg-gray-50 border-gray-200 focus-visible:ring-2 focus-visible:ring-[#00a79d]/30 focus-visible:border-[#00a79d] disabled:bg-gray-100"
+                      className="pl-9 rounded-xl bg-gray-50 border-gray-200 focus-visible:ring-2 focus-visible:ring-[#2563EB]/30 focus-visible:border-[#2563EB] disabled:bg-gray-100"
                     />
                   </div>
                   <p className="text-xs text-gray-500 mt-1.5 flex items-center gap-1">
@@ -623,7 +623,7 @@ const SuperAdmin = () => {
 
                 <div>
                   <Label className="text-xs font-medium text-gray-700 mb-1.5 block">
-                    Emri i Kompanisë <span className="text-[#00a79d]">*</span>
+                    Emri i Kompanisë <span className="text-[#2563EB]">*</span>
                   </Label>
                   <div className="relative">
                     <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
@@ -631,14 +631,14 @@ const SuperAdmin = () => {
                       value={formData.company_name}
                       onChange={(e) => setFormData({...formData, company_name: e.target.value})}
                       placeholder="p.sh. Mobilshopurimi SH.P.K"
-                      className="pl-9 rounded-xl bg-gray-50 border-gray-200 focus-visible:ring-2 focus-visible:ring-[#00a79d]/30 focus-visible:border-[#00a79d]"
+                      className="pl-9 rounded-xl bg-gray-50 border-gray-200 focus-visible:ring-2 focus-visible:ring-[#2563EB]/30 focus-visible:border-[#2563EB]"
                     />
                   </div>
                 </div>
 
                 <div>
                   <Label className="text-xs font-medium text-gray-700 mb-1.5 block">
-                    Email <span className="text-[#00a79d]">*</span>
+                    Email <span className="text-[#2563EB]">*</span>
                   </Label>
                   <div className="relative">
                     <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
@@ -647,7 +647,7 @@ const SuperAdmin = () => {
                       value={formData.email}
                       onChange={(e) => setFormData({...formData, email: e.target.value})}
                       placeholder="info@kompania.com"
-                      className="pl-9 rounded-xl bg-gray-50 border-gray-200 focus-visible:ring-2 focus-visible:ring-[#00a79d]/30 focus-visible:border-[#00a79d]"
+                      className="pl-9 rounded-xl bg-gray-50 border-gray-200 focus-visible:ring-2 focus-visible:ring-[#2563EB]/30 focus-visible:border-[#2563EB]"
                     />
                   </div>
                 </div>
@@ -660,7 +660,7 @@ const SuperAdmin = () => {
                       value={formData.phone}
                       onChange={(e) => setFormData({...formData, phone: e.target.value})}
                       placeholder="+383 44 123 456"
-                      className="pl-9 rounded-xl bg-gray-50 border-gray-200 focus-visible:ring-2 focus-visible:ring-[#00a79d]/30 focus-visible:border-[#00a79d]"
+                      className="pl-9 rounded-xl bg-gray-50 border-gray-200 focus-visible:ring-2 focus-visible:ring-[#2563EB]/30 focus-visible:border-[#2563EB]"
                     />
                   </div>
                 </div>
@@ -674,7 +674,7 @@ const SuperAdmin = () => {
                       onChange={(e) => setFormData({...formData, address: e.target.value})}
                       placeholder="Rruga, Qyteti, Shteti"
                       rows={2}
-                      className="pl-9 rounded-xl bg-gray-50 border-gray-200 focus-visible:ring-2 focus-visible:ring-[#00a79d]/30 focus-visible:border-[#00a79d] resize-none"
+                      className="pl-9 rounded-xl bg-gray-50 border-gray-200 focus-visible:ring-2 focus-visible:ring-[#2563EB]/30 focus-visible:border-[#2563EB] resize-none"
                     />
                   </div>
                 </div>
@@ -703,7 +703,7 @@ const SuperAdmin = () => {
                         value={formData.logo_url}
                         onChange={(e) => setFormData({...formData, logo_url: e.target.value})}
                         placeholder="https://example.com/logo.png"
-                        className="pl-9 rounded-xl bg-gray-50 border-gray-200 focus-visible:ring-2 focus-visible:ring-[#00a79d]/30 focus-visible:border-[#00a79d]"
+                        className="pl-9 rounded-xl bg-gray-50 border-gray-200 focus-visible:ring-2 focus-visible:ring-[#2563EB]/30 focus-visible:border-[#2563EB]"
                       />
                     </div>
                     <div className="w-14 h-14 rounded-xl border-2 border-dashed border-gray-200 bg-gray-50 flex items-center justify-center overflow-hidden shrink-0">
@@ -759,7 +759,7 @@ const SuperAdmin = () => {
                       value={formData.stripe_payment_link}
                       onChange={(e) => setFormData({...formData, stripe_payment_link: e.target.value})}
                       placeholder="https://buy.stripe.com/..."
-                      className="pl-9 rounded-xl bg-gray-50 border-gray-200 focus-visible:ring-2 focus-visible:ring-[#00a79d]/30 focus-visible:border-[#00a79d]"
+                      className="pl-9 rounded-xl bg-gray-50 border-gray-200 focus-visible:ring-2 focus-visible:ring-[#2563EB]/30 focus-visible:border-[#2563EB]"
                     />
                   </div>
                 </div>
@@ -783,7 +783,7 @@ const SuperAdmin = () => {
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div>
                       <Label className="text-xs font-medium text-gray-700 mb-1.5 block">
-                        Emri i Plotë <span className="text-[#00a79d]">*</span>
+                        Emri i Plotë <span className="text-[#2563EB]">*</span>
                       </Label>
                       <div className="relative">
                         <UserCircle className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
@@ -791,13 +791,13 @@ const SuperAdmin = () => {
                           value={formData.admin_full_name}
                           onChange={(e) => setFormData({...formData, admin_full_name: e.target.value})}
                           placeholder="Emri Mbiemri"
-                          className="pl-9 rounded-xl bg-gray-50 border-gray-200 focus-visible:ring-2 focus-visible:ring-[#00a79d]/30 focus-visible:border-[#00a79d]"
+                          className="pl-9 rounded-xl bg-gray-50 border-gray-200 focus-visible:ring-2 focus-visible:ring-[#2563EB]/30 focus-visible:border-[#2563EB]"
                         />
                       </div>
                     </div>
                     <div>
                       <Label className="text-xs font-medium text-gray-700 mb-1.5 block">
-                        Username <span className="text-[#00a79d]">*</span>
+                        Username <span className="text-[#2563EB]">*</span>
                       </Label>
                       <div className="relative">
                         <Users className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
@@ -805,13 +805,13 @@ const SuperAdmin = () => {
                           value={formData.admin_username}
                           onChange={(e) => setFormData({...formData, admin_username: e.target.value})}
                           placeholder="admin_firma"
-                          className="pl-9 rounded-xl bg-gray-50 border-gray-200 focus-visible:ring-2 focus-visible:ring-[#00a79d]/30 focus-visible:border-[#00a79d]"
+                          className="pl-9 rounded-xl bg-gray-50 border-gray-200 focus-visible:ring-2 focus-visible:ring-[#2563EB]/30 focus-visible:border-[#2563EB]"
                         />
                       </div>
                     </div>
                     <div>
                       <Label className="text-xs font-medium text-gray-700 mb-1.5 block">
-                        Fjalëkalimi <span className="text-[#00a79d]">*</span>
+                        Fjalëkalimi <span className="text-[#2563EB]">*</span>
                       </Label>
                       <div className="relative">
                         <Key className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
@@ -820,7 +820,7 @@ const SuperAdmin = () => {
                           value={formData.admin_password}
                           onChange={(e) => setFormData({...formData, admin_password: e.target.value})}
                           placeholder="••••••••"
-                          className="pl-9 rounded-xl bg-gray-50 border-gray-200 focus-visible:ring-2 focus-visible:ring-[#00a79d]/30 focus-visible:border-[#00a79d]"
+                          className="pl-9 rounded-xl bg-gray-50 border-gray-200 focus-visible:ring-2 focus-visible:ring-[#2563EB]/30 focus-visible:border-[#2563EB]"
                         />
                       </div>
                     </div>
@@ -852,7 +852,7 @@ const SuperAdmin = () => {
                           type="button"
                           key={plan.months}
                           onClick={() => setFormData({...formData, subscription_months: plan.months})}
-                          className={`relative text-left p-4 rounded-2xl border-2 transition-all ${selected ? 'border-[#00a79d] bg-[#00a79d]/5 shadow-md shadow-[#00a79d]/20' : 'border-gray-200 bg-white hover:border-[#00a79d]/40 hover:bg-gray-50'}`}
+                          className={`relative text-left p-4 rounded-2xl border-2 transition-all ${selected ? 'border-[#2563EB] bg-[#2563EB]/5 shadow-md shadow-[#2563EB]/20' : 'border-gray-200 bg-white hover:border-[#2563EB]/40 hover:bg-gray-50'}`}
                         >
                           {plan.badge && (
                             <span className="absolute -top-2 left-3 text-[10px] font-bold bg-gradient-to-r from-amber-500 to-orange-500 text-white px-2 py-0.5 rounded-full shadow">
@@ -860,7 +860,7 @@ const SuperAdmin = () => {
                             </span>
                           )}
                           {selected && (
-                            <CheckCircle className="absolute top-2 right-2 h-4 w-4 text-[#00a79d]" />
+                            <CheckCircle className="absolute top-2 right-2 h-4 w-4 text-[#2563EB]" />
                           )}
                           <p className="text-xs font-medium text-gray-500">{plan.label}</p>
                           <p className="text-2xl font-bold text-gray-900 mt-1">{plan.price}€</p>
@@ -877,7 +877,7 @@ const SuperAdmin = () => {
           {/* Footer */}
           <div className="bg-white border-t border-gray-100 px-6 py-4 flex items-center justify-between gap-3">
             <p className="text-xs text-gray-400 flex items-center gap-1.5">
-              <Sparkles className="h-3 w-3 text-[#00a79d]" />
+              <Sparkles className="h-3 w-3 text-[#2563EB]" />
               <span>Fuqizuar nga DataPOS AI</span>
             </p>
             <div className="flex gap-2">
@@ -886,7 +886,7 @@ const SuperAdmin = () => {
               </Button>
               <Button
                 onClick={handleSubmit}
-                className="bg-gradient-to-r from-[#00a79d] to-[#008f86] hover:from-[#008f86] hover:to-[#007a73] text-white rounded-xl shadow-lg shadow-[#00a79d]/30 transition-all"
+                className="bg-gradient-to-r from-[#2563EB] to-[#1D4ED8] hover:from-[#1D4ED8] hover:to-[#007a73] text-white rounded-xl shadow-lg shadow-[#2563EB]/30 transition-all"
                 disabled={loading || !formData.name || !formData.company_name || !formData.email || (!editingTenant && (!formData.admin_username || !formData.admin_password || !formData.admin_full_name))}
               >
                 {loading ? (
@@ -985,7 +985,7 @@ const SuperAdmin = () => {
             <Button variant="outline" onClick={() => setShowUserDialog(false)}>Anulo</Button>
             <Button 
               onClick={handleCreateUser} 
-              className="bg-[#00a79d] hover:bg-[#008f86]"
+              className="bg-[#2563EB] hover:bg-[#1D4ED8]"
               disabled={loading || !userFormData.username || !userFormData.password || !userFormData.full_name}
             >
               {loading ? 'Duke krijuar...' : 'Krijo Përdoruesin'}
@@ -1059,7 +1059,7 @@ const SuperAdmin = () => {
                 setShowUsersListDialog(false);
                 openUserDialog(selectedTenant);
               }}
-              className="bg-[#00a79d] hover:bg-[#008f86]"
+              className="bg-[#2563EB] hover:bg-[#1D4ED8]"
             >
               <UserPlus className="h-4 w-4 mr-2" />
               Shto Përdorues të Ri
@@ -1181,7 +1181,7 @@ const SuperAdmin = () => {
             <Button variant="outline" onClick={() => setShowSubscriptionDialog(false)}>Anulo</Button>
             <Button 
               onClick={handleSubscriptionUpdate}
-              className={subscriptionData.action === 'suspend' ? 'bg-red-500 hover:bg-red-600' : 'bg-[#00a79d] hover:bg-[#008f86]'}
+              className={subscriptionData.action === 'suspend' ? 'bg-red-500 hover:bg-red-600' : 'bg-[#2563EB] hover:bg-[#1D4ED8]'}
               disabled={loading}
             >
               {loading ? 'Duke përditësuar...' : 
