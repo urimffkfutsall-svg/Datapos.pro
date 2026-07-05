@@ -372,7 +372,7 @@ const Dashboard = () => {
       </div>
 
       {/* KPI Strip - Modern compact stats */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+        <div className="grid grid-cols-[repeat(auto-fit,minmax(160px,1fr))] gap-3">
           <div className="bg-white rounded-2xl border border-gray-200/60 p-4 hover:shadow-md hover:-translate-y-0.5 transition-all" data-testid="kpi-sales">
             <div className="flex items-center gap-2 text-gray-500 text-[11px] font-medium mb-2 uppercase tracking-wide">
               <DollarSign className="h-3.5 w-3.5 text-blue-500" strokeWidth={2.5} />
@@ -450,16 +450,16 @@ const Dashboard = () => {
                 <AreaChart data={salesChartData}>
                   <defs>
                     <linearGradient id="salesGradient" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#2563EB" stopOpacity={0.35}/>
-                      <stop offset="95%" stopColor="#2563EB" stopOpacity={0}/>
+                      <stop offset="5%" stopColor="#2563EB" stopOpacity={0.4} />
+                      <stop offset="95%" stopColor="#2563EB" stopOpacity={0} />
                     </linearGradient>
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" stroke="#E2E8F0" vertical={false} />
                   <XAxis dataKey="name" stroke="#94A3B8" fontSize={11} tickLine={false} axisLine={false} />
                   <YAxis stroke="#94A3B8" fontSize={11} tickLine={false} axisLine={false} />
-                  <Tooltip contentStyle= backgroundColor: 'white', border: '1px solid #E2E8F0', borderRadius: '12px', boxShadow: '0 4px 12px rgba(0,0,0,0.08)'  />
-                  <Area type="monotone" dataKey="sales" stroke="#2563EB" strokeWidth={2.5} fill="url(#salesGradient)" activeDot= r: 5, fill: '#2563EB', stroke: '#fff', strokeWidth: 2  />
-                </AreaChart>
+                  <Tooltip contentStyle={({ backgroundColor: 'white', border: '1px solid #E2E8F0', borderRadius: '12px', boxShadow: '0 4px 12px rgba(0,0,0,0.08)', fontSize: '12px' })} />
+                  <Area type="monotone" dataKey="sales" stroke="#2563EB" strokeWidth={2.5} fill="url(#salesGradient)" activeDot={({ r: 5, fill: '#2563EB', stroke: '#fff', strokeWidth: 2 })} />
+C                  </AreaChart>
               </ResponsiveContainer>
             </div>
           </CardContent>
