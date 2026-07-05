@@ -36,7 +36,7 @@ import {
   Briefcase,
   Sparkles
 } from 'lucide-react';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, AreaChart, Area } from 'recharts';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 
@@ -371,84 +371,73 @@ const Dashboard = () => {
         )}
       </div>
 
-      {/* KPI Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="border border-gray-200/60 rounded-3xl shadow-sm bg-white/80 backdrop-blur-md hover-lift" data-testid="kpi-sales">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-500">Shitjet Sot</p>
-                <p className="text-2xl font-bold text-gray-900 mt-1">
-                  {formatCurrency(stats?.total_sales_today)}
-                </p>
-                <div className="flex items-center gap-1 mt-2">
-                  <TrendingUp className="h-4 w-4 text-green-500" />
-                  <span className="text-sm text-green-500">+12.5%</span>
-                </div>
-              </div>
-              <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-[#2563EB]/15 to-[#2563EB]/5 flex items-center justify-center">
-                <DollarSign className="h-6 w-6 text-[#2563EB]" />
-              </div>
+      {/* KPI Strip - Modern compact stats */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+          <div className="bg-white rounded-2xl border border-gray-200/60 p-4 hover:shadow-md hover:-translate-y-0.5 transition-all" data-testid="kpi-sales">
+            <div className="flex items-center gap-2 text-gray-500 text-[11px] font-medium mb-2 uppercase tracking-wide">
+              <DollarSign className="h-3.5 w-3.5 text-blue-500" strokeWidth={2.5} />
+              <span>Shitjet Sot</span>
             </div>
-          </CardContent>
-        </Card>
-
-        <Card className="border border-gray-200/60 rounded-3xl shadow-sm bg-white/80 backdrop-blur-md hover-lift" data-testid="kpi-transactions">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-500">Transaksionet</p>
-                <p className="text-2xl font-bold text-gray-900 mt-1">
-                  {stats?.total_transactions_today || 0}
-                </p>
-                <div className="flex items-center gap-1 mt-2">
-                  <TrendingUp className="h-4 w-4 text-green-500" />
-                  <span className="text-sm text-green-500">+8.2%</span>
-                </div>
-              </div>
-              <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-[#2563EB]/15 to-[#2563EB]/5 flex items-center justify-center">
-                <ShoppingCart className="h-6 w-6 text-[#2563EB]" />
-              </div>
+            <p className="text-2xl font-bold text-gray-900 leading-none">{formatCurrency(stats?.total_sales_today)}</p>
+            <div className="flex items-center gap-1 mt-2">
+              <TrendingUp className="h-3 w-3 text-emerald-500" />
+              <p className="text-[11px] text-emerald-600 font-semibold">+12.5% nga java kaluar</p>
             </div>
-          </CardContent>
-        </Card>
+          </div>
 
-        <Card className="border border-gray-200/60 rounded-3xl shadow-sm bg-white/80 backdrop-blur-md hover-lift" data-testid="kpi-products">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-500">Produktet</p>
-                <p className="text-2xl font-bold text-gray-900 mt-1">
-                  {stats?.total_products || 0}
-                </p>
-                <p className="text-sm text-gray-400 mt-2">Në total</p>
-              </div>
-              <div className="h-12 w-12 rounded-2xl bg-green-100 flex items-center justify-center">
-                <Package className="h-6 w-6 text-green-600" />
-              </div>
+          <div className="bg-white rounded-2xl border border-gray-200/60 p-4 hover:shadow-md hover:-translate-y-0.5 transition-all" data-testid="kpi-transactions">
+            <div className="flex items-center gap-2 text-gray-500 text-[11px] font-medium mb-2 uppercase tracking-wide">
+              <ShoppingCart className="h-3.5 w-3.5 text-emerald-500" strokeWidth={2.5} />
+              <span>Transaksione</span>
             </div>
-          </CardContent>
-        </Card>
-
-        <Card className="border border-gray-200/60 rounded-3xl shadow-sm bg-white/80 backdrop-blur-md hover-lift" data-testid="kpi-lowstock">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-500">Stok i Ulët</p>
-                <p className="text-2xl font-bold text-gray-900 mt-1">
-                  {stats?.low_stock_products || 0}
-                </p>
-                <p className="text-sm text-orange-500 mt-2">Kërkon vëmendje</p>
-              </div>
-              <div className="h-12 w-12 rounded-2xl bg-orange-100 flex items-center justify-center">
-                <AlertTriangle className="h-6 w-6 text-orange-500" />
-              </div>
+            <p className="text-2xl font-bold text-gray-900 leading-none">{stats?.total_transactions_today || 0}</p>
+            <div className="flex items-center gap-1 mt-2">
+              <TrendingUp className="h-3 w-3 text-emerald-500" />
+              <p className="text-[11px] text-emerald-600 font-semibold">+8.2% nga java kaluar</p>
             </div>
-          </CardContent>
-        </Card>
-      </div>
+          </div>
 
-      {/* Charts Row */}
+          <div className="bg-white rounded-2xl border border-gray-200/60 p-4 hover:shadow-md hover:-translate-y-0.5 transition-all" data-testid="kpi-products">
+            <div className="flex items-center gap-2 text-gray-500 text-[11px] font-medium mb-2 uppercase tracking-wide">
+              <Package className="h-3.5 w-3.5 text-amber-500" strokeWidth={2.5} />
+              <span>Produktet</span>
+            </div>
+            <p className="text-2xl font-bold text-gray-900 leading-none">{stats?.total_products || 0}</p>
+            <p className="text-[11px] text-gray-400 font-medium mt-2">Ne total</p>
+          </div>
+
+          <div className="bg-white rounded-2xl border border-gray-200/60 p-4 hover:shadow-md hover:-translate-y-0.5 transition-all" data-testid="kpi-lowstock">
+            <div className="flex items-center gap-2 text-gray-500 text-[11px] font-medium mb-2 uppercase tracking-wide">
+              <AlertTriangle className="h-3.5 w-3.5 text-rose-500" strokeWidth={2.5} />
+              <span>Stok i Ulet</span>
+            </div>
+            <p className="text-2xl font-bold text-gray-900 leading-none">{stats?.low_stock_products || 0}</p>
+            <p className="text-[11px] text-rose-500 font-semibold mt-2">Kerkon vemendje</p>
+          </div>
+
+          <div className="bg-white rounded-2xl border border-gray-200/60 p-4 hover:shadow-md hover:-translate-y-0.5 transition-all" data-testid="kpi-customers">
+            <div className="flex items-center gap-2 text-gray-500 text-[11px] font-medium mb-2 uppercase tracking-wide">
+              <Users className="h-3.5 w-3.5 text-purple-500" strokeWidth={2.5} />
+              <span>Klientet</span>
+            </div>
+            <p className="text-2xl font-bold text-gray-900 leading-none">{stats?.total_customers || 0}</p>
+            <p className="text-[11px] text-purple-600 font-semibold mt-2">Aktive</p>
+          </div>
+
+          <div className="bg-white rounded-2xl border border-gray-200/60 p-4 hover:shadow-md hover:-translate-y-0.5 transition-all" data-testid="kpi-profit">
+            <div className="flex items-center gap-2 text-gray-500 text-[11px] font-medium mb-2 uppercase tracking-wide">
+              <TrendingUp className="h-3.5 w-3.5 text-teal-500" strokeWidth={2.5} />
+              <span>Fitimi Sot</span>
+            </div>
+            <p className="text-2xl font-bold text-gray-900 leading-none">{formatCurrency(stats?.total_profit_today)}</p>
+            <div className="flex items-center gap-1 mt-2">
+              <TrendingUp className="h-3 w-3 text-emerald-500" />
+              <p className="text-[11px] text-emerald-600 font-semibold">+5.4% nga dje</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Charts Row */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Sales Chart */}
         <Card className="border border-gray-200/60 rounded-3xl shadow-sm bg-white/80 backdrop-blur-md">
@@ -458,26 +447,19 @@ const Dashboard = () => {
           <CardContent>
             <div className="h-72">
               <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={salesChartData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#E2E8F0" />
-                  <XAxis dataKey="name" stroke="#64748B" fontSize={12} />
-                  <YAxis stroke="#64748B" fontSize={12} />
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: 'white',
-                      border: '1px solid #E2E8F0',
-                      borderRadius: '8px',
-                    }}
-                  />
-                  <Line
-                    type="monotone"
-                    dataKey="sales"
-                    stroke="#2563EB"
-                    strokeWidth={3}
-                    dot={{ fill: '#2563EB', strokeWidth: 2 }}
-                    activeDot={{ r: 6, fill: '#2563EB' }}
-                  />
-                </LineChart>
+                <AreaChart data={salesChartData}>
+                  <defs>
+                    <linearGradient id="salesGradient" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#2563EB" stopOpacity={0.35}/>
+                      <stop offset="95%" stopColor="#2563EB" stopOpacity={0}/>
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#E2E8F0" vertical={false} />
+                  <XAxis dataKey="name" stroke="#94A3B8" fontSize={11} tickLine={false} axisLine={false} />
+                  <YAxis stroke="#94A3B8" fontSize={11} tickLine={false} axisLine={false} />
+                  <Tooltip contentStyle= backgroundColor: 'white', border: '1px solid #E2E8F0', borderRadius: '12px', boxShadow: '0 4px 12px rgba(0,0,0,0.08)'  />
+                  <Area type="monotone" dataKey="sales" stroke="#2563EB" strokeWidth={2.5} fill="url(#salesGradient)" activeDot= r: 5, fill: '#2563EB', stroke: '#fff', strokeWidth: 2  />
+                </AreaChart>
               </ResponsiveContainer>
             </div>
           </CardContent>
