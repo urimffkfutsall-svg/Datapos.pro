@@ -7,6 +7,7 @@ import {
   Search, Bell, Sparkles, Sun, Moon, Smartphone,
 } from 'lucide-react';
 import { Avatar, AvatarFallback } from './ui/avatar';
+import AIAssistant from './AIAssistant';
 
 const MainLayout = () => {
   const { user, logout } = useAuth();
@@ -186,6 +187,7 @@ const MainLayout = () => {
           <Outlet />
         </div>
       </main>
+    <AIAssistant />
     </div>
   );
 };
