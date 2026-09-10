@@ -1,0 +1,166 @@
+{
+  "brand_identity": {
+    "name": "t3next",
+    "primary_color": "#E53935",
+    "secondary_color": "#00B9D7",
+    "background_color": "#FFFFFF",
+    "surface_color": "#F8FAFC",
+    "text_color": "#0F172A",
+    "font_headings": "Manrope",
+    "font_body": "Inter",
+    "radius": "0.5rem",
+    "language": "sq"
+  },
+  "typography": {
+    "headings": {
+      "family": "Manrope, sans-serif",
+      "weights": {
+        "h1": "800",
+        "h2": "700",
+        "h3": "600"
+      },
+      "sizes": {
+        "h1": "text-4xl md:text-5xl tracking-tight",
+        "h2": "text-3xl tracking-tight",
+        "h3": "text-2xl tracking-tight"
+      }
+    },
+    "body": {
+      "family": "Inter, sans-serif",
+      "weights": {
+        "normal": "400",
+        "medium": "500",
+        "bold": "600"
+      },
+      "sizes": {
+        "base": "text-base leading-relaxed",
+        "sm": "text-sm leading-relaxed",
+        "xs": "text-xs leading-normal"
+      }
+    }
+  },
+  "colors": {
+    "primary": {
+      "DEFAULT": "#E53935",
+      "foreground": "#FFFFFF",
+      "hover": "#D32F2F",
+      "active": "#C62828"
+    },
+    "secondary": {
+      "DEFAULT": "#00B9D7",
+      "foreground": "#FFFFFF",
+      "light": "#E0F7FA",
+      "hover": "#00ACC1"
+    },
+    "neutral": {
+      "50": "#F8FAFC",
+      "100": "#F1F5F9",
+      "200": "#E2E8F0",
+      "300": "#CBD5E1",
+      "400": "#94A3B8",
+      "500": "#64748B",
+      "600": "#475569",
+      "700": "#334155",
+      "800": "#1E293B",
+      "900": "#0F172A"
+    },
+    "semantic": {
+      "success": "#10B981",
+      "warning": "#F59E0B",
+      "error": "#EF4444",
+      "info": "#3B82F6"
+    }
+  },
+  "layout_strategies": {
+    "dashboard": {
+      "type": "bento_grid_dense",
+      "grid_cols": "grid-cols-1 md:grid-cols-4 lg:grid-cols-12",
+      "gap": "gap-4",
+      "container_padding": "p-4 md:p-6"
+    },
+    "tables": {
+      "style": "dense",
+      "header_bg": "bg-muted/50",
+      "row_hover": "hover:bg-[#E0F7FA]/50",
+      "border": "border-b border-border"
+    },
+    "forms": {
+      "layout": "grid grid-cols-1 md:grid-cols-2 gap-6",
+      "input_style": "bg-white border-input focus:ring-2 focus:ring-[#E53935]/20"
+    }
+  },
+  "components": {
+    "buttons": {
+      "primary": "bg-[#E53935] hover:bg-[#D32F2F] text-white shadow-sm rounded-lg font-medium transition-all active:scale-95",
+      "secondary": "bg-white border border-input hover:bg-accent hover:text-accent-foreground text-foreground shadow-sm rounded-lg font-medium",
+      "ghost": "hover:bg-accent hover:text-accent-foreground text-muted-foreground font-medium",
+      "destructive": "bg-destructive text-destructive-foreground hover:bg-destructive/90 shadow-sm rounded-lg"
+    },
+    "cards": {
+      "base": "bg-white rounded-xl border border-border shadow-sm",
+      "header": "p-6 border-b border-border/50",
+      "content": "p-6",
+      "footer": "p-6 bg-muted/20 border-t border-border/50"
+    },
+    "inputs": {
+      "base": "flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#E53935] focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+    }
+  },
+  "visual_enhancers": {
+    "shadows": {
+      "sm": "0 1px 2px 0 rgb(0 0 0 / 0.05)",
+      "md": "0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)",
+      "lg": "0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)"
+    },
+    "borders": {
+      "default": "1px solid #E2E8F0",
+      "active": "1px solid #E53935"
+    },
+    "glassmorphism": "bg-white/80 backdrop-blur-md border border-white/20 shadow-lg"
+  },
+  "icons": {
+    "library": "lucide-react",
+    "style": "stroke-width-2",
+    "size": {
+      "sm": "h-4 w-4",
+      "md": "h-5 w-5",
+      "lg": "h-6 w-6"
+    }
+  },
+  "page_specific_instructions": {
+    "dashboard": {
+      "layout": "Sidebar navigation + Top Header + Main Content Area",
+      "widgets": [
+        "Sales Overview (Line Chart)",
+        "Stock Alerts (List with Red/Yellow indicators)",
+        "Top Selling Products (Bar Chart)",
+        "Recent Transactions (Table)"
+      ],
+      "kpi_cards": "Simple cards with Icon + Value + Label + Trend Indicator"
+    },
+    "products": {
+      "layout": "Full-width Table with Filters on top",
+      "actions": "Add Product (Primary Red Button), Import/Export (Secondary)",
+      "table_columns": "Image, Name, SKU, Category, Price, Stock, Status, Actions"
+    },
+    "stock": {
+      "layout": "Split view: Stock Levels (Table) + Movement History (List)",
+      "indicators": "Low Stock (<10) = Red Text/Badge, Medium (<50) = Orange, Good = Green"
+    },
+    "reports": {
+      "layout": "Filter Bar (Date Range, Branch) + Summary Cards + Charts + Detailed Table",
+      "export": "Prominent 'Export PDF/Excel' buttons"
+    }
+  },
+  "universal_guidelines": [
+    "LANGUAGE: All UI text must be in ALBANIAN (sq).",
+    "THEME: Light Mode is default. Do not use dark gradients.",
+    "PRIMARY COLOR: Use Red (#E53935) for primary actions (Save, Add, Confirm).",
+    "ACCENT: Use Teal (#00B9D7) for table row hovers and secondary highlights.",
+    "SPACING: Use generous padding (p-6, p-8) inside cards, but keep tables dense for data visibility.",
+    "TESTING: Add data-testid to all interactive elements.",
+    "COMPONENTS: Use Shadcn UI components for all interactive elements (Select, Dialog, Dropdown).",
+    "FORMS: Use react-hook-form + zod for validation.",
+    "NOTIFICATIONS: Use 'sonner' for toast notifications."
+  ]
+}
