@@ -81,7 +81,7 @@
     "copyright": "Copyright (c) DataPOS",
     "asar": true,
     "directories": {
-      "output": "dist",
+      "output": "release",
       "buildResources": "public"
     },
     "files": [
