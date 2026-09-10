@@ -76,10 +76,41 @@ async def login(request: LoginRequest, http_request: Request):
             {"_id": 0}
         )
     else:
-        # Domain kryesor / pa subdomain -> lookup global (backwards compat)
-        user = await db.users.find_one({"username": request.username}, {"_id": 0})
+        # ------------------------------------------------------------------
+        # DOMAIN KRYESOR (datapos.pro / www / app) - pa subdomain firme.
+        # Ketu lejohet TE KYCET VETEM super-administratori.
+        # Perdoruesit e firmave duhet te perdorin subdomain-in e firmes se tyre,
+        # p.sh. nlagje.datapos.pro
+        # ------------------------------------------------------------------
+        user = await db.users.find_one(
+            {"role": "super_admin", "username": request.username}, {"_id": 0}
+        )
         if not user:
-            user = await db.users.find_one({"pin": request.username}, {"_id": 0})
+            # Kontrollo nese ekziston si perdorues firme, per nje mesazh te qarte
+            tenant_user = await db.users.find_one(
+                {"$or": [{"username": request.username}, {"pin": request.username}]},
+                {"_id": 0},
+            )
+            if tenant_user and tenant_user.get("tenant_id"):
+                tenant = await db.tenants.find_one(
+                    {"id": tenant_user["tenant_id"]}, {"_id": 0}
+                )
+                sub = (tenant or {}).get("name")
+                if sub:
+                    raise HTTPException(
+                        status_code=403,
+                        detail=(
+                            "Kycja nuk lejohet ne kete adrese. "
+                            f"Perdorni adresen e firmes suaj: {sub}.datapos.pro"
+                        ),
+                    )
+            raise HTTPException(
+                status_code=403,
+                detail=(
+                    "Ne kete adrese mund te kycet vetem super-administratori. "
+                    "Perdorni adresen e firmes suaj (p.sh. firma.datapos.pro)."
+                ),
+            )
     
     if not user:
         raise HTTPException(status_code=401, detail="Kredencialet e gabuara")
@@ -92,6 +123,16 @@ async def login(request: LoginRequest, http_request: Request):
         if user.get("tenant_id") != effective_tenant_id:
             raise HTTPException(status_code=401, detail="Kredencialet e gabuara")
     
+    # Ne domain-in kryesor (pa subdomain firme) lejohet vetem super_admin.
+    if not effective_tenant_id and user.get("role") != "super_admin":
+        raise HTTPException(
+            status_code=403,
+            detail=(
+                "Ne kete adrese mund te kycet vetem super-administratori. "
+                "Perdorni adresen e firmes suaj (p.sh. firma.datapos.pro)."
+            ),
+        )
+
     if not user.get("is_active", True):
         raise HTTPException(status_code=401, detail="Llogaria është e çaktivizuar")
     

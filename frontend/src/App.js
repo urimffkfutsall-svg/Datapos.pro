@@ -80,7 +80,7 @@ const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || 'https://www.datapos.pr
 const API = `${BACKEND_URL}/api`;
 
 // Get subdomain from current URL (only for production tenant hosts)
-const getSubdomain = () => {
+export const getSubdomain = () => {
   const hostname = window.location.hostname;
   if (!/^[a-z0-9-]+\.datapos\.pro$/i.test(hostname)) return null;
   const parts = hostname.split('.');
@@ -210,6 +210,29 @@ const AuthProvider = ({ children }) => {
       }
       const response = await api.post('/auth/login', { username, password, tenant_id });
       const { access_token, user: userData } = response.data;
+
+      // ---- IZOLIMI I FIRMAVE SIPAS DOMAIN-IT ----
+      // datapos.pro (pa subdomain)  -> lejohet VETEM super-administratori
+      // firma.datapos.pro           -> lejohen vetem perdoruesit e ASAJ firme
+      const currentSubdomain = getSubdomain();
+      const isSuperAdmin = userData?.role === 'super_admin';
+
+      if (!currentSubdomain && !isSuperAdmin) {
+        const msg =
+          'N\u00eb k\u00ebt\u00eb adres\u00eb mund t\u00eb ky\u00e7et vet\u00ebm super-administratori. P\u00ebrdorni adres\u00ebn e firm\u00ebs suaj (p.sh. firma.datapos.pro).';
+        toast.error(msg);
+        return { success: false, error: msg, status: 403 };
+      }
+
+      if (currentSubdomain && !isSuperAdmin) {
+        const activeTenantId = tenant_id || null;
+        if (activeTenantId && userData?.tenant_id && userData.tenant_id !== activeTenantId) {
+          const msg = 'Kjo llogari nuk i p\u00ebrket firm\u00ebs s\u00eb k\u00ebsaj adrese.';
+          toast.error(msg);
+          return { success: false, error: msg, status: 403 };
+        }
+      }
+
       localStorage.setItem('t3next_token', access_token);
       localStorage.setItem('t3next_user', JSON.stringify(userData));
       sessionStorage.setItem('ipos_session_active', 'true');

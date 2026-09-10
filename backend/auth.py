@@ -1,5 +1,6 @@
 """Authentication and authorization utilities"""
-from fastapi import Depends, HTTPException
+import re
+from fastapi import Depends, HTTPException, Request
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from datetime import datetime, timezone, timedelta
 from typing import List
@@ -46,19 +47,79 @@ def create_token(user_id: str, username: str, role: str, tenant_id: str = None) 
     return jwt.encode(payload, JWT_SECRET, algorithm=JWT_ALGORITHM)
 
 
-async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)) -> dict:
-    """Get the current authenticated user from JWT token"""
+# Subdomain i nje firme reale, p.sh. "nlagje.datapos.pro" -> "nlagje"
+_TENANT_HOST_RE = re.compile(r'^([a-z0-9-]+)\.datapos\.pro$', re.IGNORECASE)
+
+
+def extract_subdomain(host: str):
+    """Nxjerr subdomain-in e firmes nga Host header. None = domain kryesor."""
+    if not host:
+        return None
+    host = host.split(':')[0].strip().lower()
+    match = _TENANT_HOST_RE.match(host)
+    if not match:
+        return None
+    sub = match.group(1)
+    if sub in ('www', 'app'):
+        return None
+    return sub
+
+
+async def _host_tenant_id(request: Request):
+    """Tenant-i i kerkuar nga domain-i i kerkeses (None per domain-in kryesor)."""
+    if request is None:
+        return None
+    host = request.headers.get('x-forwarded-host') or request.headers.get('host')
+    sub = extract_subdomain(host)
+    if not sub:
+        return None
+    tenant = await db.tenants.find_one(
+        {"name": {"$regex": f"^{re.escape(sub)}$", "$options": "i"}}, {"_id": 0}
+    )
+    if not tenant:
+        raise HTTPException(status_code=404, detail="Firma nuk u gjet për këtë domain")
+    return tenant.get("id")
+
+
+async def get_current_user(
+    request: Request,
+    credentials: HTTPAuthorizationCredentials = Depends(security),
+) -> dict:
+    """Get the current authenticated user from JWT token.
+
+    Zbaton izolimin e firmave: nje token i leshuar per firmen A nuk mund te
+    perdoret ne subdomain-in e firmes B, dhe ne domain-in kryesor pranohet
+    vetem super-administratori.
+    """
     token = credentials.credentials
     try:
         payload = jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM])
         user = await db.users.find_one({"id": payload["sub"]}, {"_id": 0, "password_hash": 0})
         if not user:
             raise HTTPException(status_code=401, detail="Përdoruesi nuk u gjet")
-        return user
     except jwt.ExpiredSignatureError:
         raise HTTPException(status_code=401, detail="Token-i ka skaduar")
     except jwt.InvalidTokenError:
         raise HTTPException(status_code=401, detail="Token i pavlefshëm")
+
+    is_super = user.get("role") == "super_admin"
+    host_tenant = await _host_tenant_id(request)
+
+    if not is_super:
+        if host_tenant is None:
+            # Domain kryesor -> vetem super_admin
+            raise HTTPException(
+                status_code=403,
+                detail="Përdorni adresën e firmës suaj (p.sh. firma.datapos.pro)",
+            )
+        if user.get("tenant_id") != host_tenant:
+            # Token i nje firme tjeter -> ndalohet ne kete subdomain
+            raise HTTPException(
+                status_code=403,
+                detail="Nuk keni qasje në këtë firmë",
+            )
+
+    return user
 
 
 def require_role(allowed_roles: List[UserRole]):
