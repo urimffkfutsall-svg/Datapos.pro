@@ -1,0 +1,399 @@
+﻿  const posContent = (
+    <div 
+      className={`${isCashierFullscreen ? 'h-[calc(100vh-5rem)]' : 'h-[calc(100vh-8rem)]'} flex flex-col lg:flex-row ${responsiveClasses.container}`} 
+      style={{ 
+        fontSize: `calc(1rem * ${scale})`,
+        '--dynamic-scale': scale 
+      }}
+      data-testid="pos-page"
+    >
+      {/* Left Side - Product Search & Cart */}
+      <div className="flex-1 flex flex-col">
+        {/* Header with search */}
+        <div className="flex items-center gap-responsive mb-2 lg:mb-4">
+          <div className="flex items-center gap-2 text-responsive-sm text-gray-500">
+            <User className="h-4 w-4" />
+            <span className="hidden sm:inline">{user?.full_name}</span>
+          </div>
+          
+          {/* Clock - Small in header */}
+          <div className="hidden md:flex items-center gap-2 text-responsive-sm text-gray-500 border-l pl-3">
+            <span className="font-medium text-[#00a79d]">
+              {currentTime.toLocaleTimeString('sq-AL', { hour: '2-digit', minute: '2-digit' })}
+            </span>
+            <span className="text-xs hidden lg:inline">
+              {currentTime.toLocaleDateString('sq-AL', { day: '2-digit', month: '2-digit' })}
+            </span>
+          </div>
+          
+          <div className="flex-1 relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <Input
+              ref={searchRef}
+              type="text"
+              placeholder="KÃ«rko produkt ose skano barkod..."
+              value={search}
+              onChange={(e) => {
+                setSearch(e.target.value);
+                setShowSearchResults(e.target.value.trim().length > 0);
+              }}
+              onFocus={() => search.trim() && setShowSearchResults(true)}
+              onBlur={() => setTimeout(() => setShowSearchResults(false), 200)}
+              className={`pl-10 ${responsiveClasses.input} border-[#00a79d] focus:ring-[#00a79d]`}
+              data-testid="pos-search-input"
+            />
+            
+            {/* Live Search Results Dropdown */}
+            {showSearchResults && mainSearchResults.length > 0 && (
+              <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-50 max-h-64 overflow-auto">
+                {mainSearchResults.map((product) => (
+                  <div
+                    key={product.id}
+                    className={`p-3 cursor-pointer border-b border-gray-100 last:border-b-0 ${
+                      product.current_stock > 0 ? 'hover:bg-[#E0F7FA]' : 'bg-gray-50 opacity-70'
+                    }`}
+                    onMouseDown={(e) => {
+                      e.preventDefault();
+                      addToCart(product);
+                    }}
+                  >
+                    <div className="flex justify-between items-center">
+                      <div>
+                        <p className="font-medium text-gray-900">{product.name || 'Pa emÃ«r'}</p>
+                        <p className="text-sm text-gray-500">Barkod: {product.barcode || '-'}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="font-bold text-[#00a79d]">â‚¬{(product.sale_price || 0).toFixed(2)}</p>
+                        <p className={`text-xs ${product.current_stock > 0 ? 'text-green-600' : 'text-red-500 font-semibold'}`}>
+                          {product.current_stock > 0 ? `Stok: ${product.current_stock}` : 'Pa stok!'}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+            
+            {/* No results message */}
+            {showSearchResults && search.trim() && mainSearchResults.length === 0 && (
+              <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-50 p-4 text-center text-gray-500">
+                Nuk u gjet asnjÃ« produkt pÃ«r &quot;{search}&quot;
+              </div>
+            )}
+          </div>
+          {customerName && (
+            <div className="flex items-center gap-2 px-3 py-1 bg-[#00a79d]/10 rounded-lg">
+              <User className="h-4 w-4 text-[#00a79d]" />
+              <span className="text-sm font-medium">{customerName}</span>
+            </div>
+          )}
+        </div>
+
+        {/* Cart Table */}
+        <Card className="flex-1 border-0 shadow-sm overflow-hidden">
+          <div className="bg-[#00a79d]/10 px-4 py-2 border-b border-[#00a79d]/20">
+            <div className="grid grid-cols-12 gap-2 text-xs font-semibold text-gray-600">
+              <div className="col-span-1">Nr</div>
+              <div className="col-span-3">EmÃ«rtimi</div>
+              <div className="col-span-1 text-center">Sasia</div>
+              <div className="col-span-2 text-right">Ã‡mimi</div>
+              <div className="col-span-1 text-center">Zbritja %</div>
+              <div className="col-span-1 text-center">Tvsh %</div>
+              <div className="col-span-2 text-right">Ã‡mimi me tvsh</div>
+              <div className="col-span-1 text-right">Total</div>
+            </div>
+          </div>
+          <div className="overflow-auto flex-1" style={{ maxHeight: 'calc(100vh - 24rem)' }}>
+            <Table>
+              <TableBody>
+                {cart.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={12} className="text-center py-12 text-gray-400">
+                      <Package className="h-12 w-12 mx-auto mb-2 opacity-50" />
+                      Shtoni produkte nÃ« shportÃ«
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  cart.map((item, index) => {
+                    const { subtotal, total } = calculateItemTotal(item);
+                    const canEdit = user?.role === 'admin' || user?.role === 'manager';
+                    return (
+                      <TableRow 
+                        key={item.product_id} 
+                        className={`table-row-hover cursor-pointer ${selectedItemIndex === index ? 'bg-[#00a79d]/10' : ''}`}
+                        onClick={() => setSelectedItemIndex(index)}
+                      >
+                        <TableCell className="w-12">{index + 1}</TableCell>
+                        <TableCell>
+                          {canEdit ? (
+                            <Select
+                              value={item.product_id}
+                              onValueChange={(value) => {
+                                const product = products.find(p => p.id === value);
+                                if (product) {
+                                  setCart(prev => prev.map((it, i) => 
+                                    i === index ? {
+                                      ...it,
+                                      product_id: product.id,
+                                      product_name: product.name,
+                                      unit_price: product.sale_price || 0,
+                                      vat_percent: applyNoVat ? 0 : (product.vat_rate || 0),
+                                      max_stock: product.current_stock
+                                    } : it
+                                  ));
+                                }
+                              }}
+                            >
+                              <SelectTrigger className="border-[#00a79d]">
+                                <SelectValue>{item.product_name || 'Zgjidh'}</SelectValue>
+                              </SelectTrigger>
+                              <SelectContent>
+                                {products.filter(p => p.current_stock > 0).map(p => (
+                                  <SelectItem key={p.id} value={p.id}>
+                                    {p.name || p.barcode || p.id}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          ) : (
+                            <span className="font-medium">{item.product_name || 'Produkt'}</span>
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center justify-center gap-1">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-7 w-7"
+                              onClick={(e) => { e.stopPropagation(); updateQuantity(item.product_id, -1); }}
+                            >
+                              <Minus className="h-3 w-3" />
+                            </Button>
+                            <span className="w-8 text-center font-medium">{item.quantity}</span>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-7 w-7"
+                              onClick={(e) => { e.stopPropagation(); updateQuantity(item.product_id, 1); }}
+                            >
+                              <Plus className="h-3 w-3" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-right">â‚¬{item.unit_price.toFixed(2)}</TableCell>
+                        <TableCell>
+                          {canEdit ? (
+                            <Input
+                              type="number"
+                              min="0"
+                              max="100"
+                              value={item.discount_percent}
+                              onChange={(e) => updateDiscount(item.product_id, e.target.value)}
+                              onClick={(e) => e.stopPropagation()}
+                              className="w-16 h-8 text-center"
+                            />
+                          ) : (
+                            <span className="text-center">{item.discount_percent}%</span>
+                          )}
+                        </TableCell>
+                        <TableCell className="text-center">{item.vat_percent}</TableCell>
+                        <TableCell className="text-right">â‚¬{(item.unit_price * (1 + item.vat_percent / 100)).toFixed(2)}</TableCell>
+                        <TableCell className="text-right font-semibold">â‚¬{total.toFixed(2)}</TableCell>
+                        <TableCell>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-7 w-7 text-red-500 hover:text-red-700"
+                            onClick={(e) => { e.stopPropagation(); removeFromCart(item.product_id); }}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })
+                )}
+              </TableBody>
+            </Table>
+          </div>
+
+          {/* Cart Totals */}
+          <div className="border-t border-[#00a79d] bg-gray-50 p-4">
+            <div className="flex justify-between items-center">
+              <div className="space-y-1 text-sm">
+                <div className="flex gap-8">
+                  <span className="text-gray-500">Subtotal: <span className="font-medium text-gray-900">â‚¬{cartTotals.subtotal.toFixed(2)}</span></span>
+                  <span className="text-gray-500">Zbritja: <span className="font-medium text-red-500">-â‚¬{cartTotals.discount.toFixed(2)}</span></span>
+                  <span className="text-gray-500">TVSH: <span className="font-medium text-gray-900">â‚¬{cartTotals.vat.toFixed(2)}</span></span>
+                </div>
+              </div>
+              <div className="text-3xl font-bold text-gray-900">
+                â‚¬{cartTotals.total.toFixed(2)}
+              </div>
+            </div>
+          </div>
+        </Card>
+      </div>
+
+      {/* Right Side - Action Buttons */}
+      <div className="w-full lg:w-48 flex flex-row lg:flex-col gap-2">
+        {/* Dokumentin - View recent documents/sales - F6 */}
+        <Button
+          variant="outline"
+          className="flex-1 lg:h-14 flex items-center justify-center gap-2"
+          onClick={() => setShowDocuments(true)}
+          data-testid="pos-documents-btn"
+        >
+          <FileText className="h-5 w-5" />
+          <span className="hidden lg:inline">Dokumentin</span>
+          <span className="text-xs bg-gray-200 px-1.5 py-0.5 rounded ml-1">F6</span>
+        </Button>
+
+        {/* KÃ«rko artikullin - Search and add product - F12 */}
+        <Button
+          variant="outline"
+          className="flex-1 lg:h-14 flex items-center justify-center gap-2"
+          onClick={() => setShowProductSearch(true)}
+          data-testid="pos-add-product-btn"
+        >
+          <Package className="h-5 w-5" />
+          <span className="hidden lg:inline">KÃ«rko artikullin</span>
+          <span className="text-xs bg-gray-200 px-1.5 py-0.5 rounded ml-1">F12</span>
+        </Button>
+
+        {/* Shtyp Noten - Print note/receipt */}
+        <Button
+          variant="outline"
+          className="flex-1 lg:h-14 flex items-center justify-center gap-2"
+          onClick={handlePrintNote}
+          data-testid="pos-print-note-btn"
+        >
+          <Receipt className="h-5 w-5" />
+          <span className="hidden lg:inline">Shtyp Noten</span>
+        </Button>
+
+        {/* Garancioni - Warranty document - F7 (only if enabled in settings) */}
+        {companySettings?.show_warranty_in_pos !== false && (
+          <>
+            <Button
+              variant="outline"
+              className="flex-1 lg:h-14 flex items-center justify-center gap-2 border-emerald-500 text-emerald-600 hover:bg-emerald-50"
+              onClick={() => setShowWarranty(true)}
+              data-testid="pos-warranty-btn"
+            >
+              <Shield className="h-5 w-5" />
+              <span className="hidden lg:inline">Garancioni</span>
+              <span className="text-xs bg-emerald-100 px-1.5 py-0.5 rounded ml-1">F7</span>
+            </Button>
+
+            {/* Lista e Garancioneve */}
+            <Button
+              variant="outline"
+              className="flex-1 lg:h-14 flex items-center justify-center gap-2 border-emerald-400 text-emerald-500 hover:bg-emerald-50"
+              onClick={() => {
+                loadWarranties();
+                setShowWarrantyList(true);
+              }}
+              data-testid="pos-warranty-list-btn"
+            >
+              <List className="h-5 w-5" />
+              <span className="hidden lg:inline">Garancione</span>
+            </Button>
+          </>
+        )}
+
+        {/* Fshij artikullin - Delete selected item - Delete */}
+        <Button
+          variant="outline"
+          className="flex-1 lg:h-14 flex items-center justify-center gap-2"
+          onClick={deleteSelectedItem}
+          data-testid="pos-delete-btn"
+        >
+          <Trash2 className="h-5 w-5" />
+          <span className="hidden lg:inline">Fshij artikullin</span>
+          <span className="text-xs bg-gray-200 px-1.5 py-0.5 rounded ml-1">Del</span>
+        </Button>
+
+        {/* Konsumatori - Customer info */}
+        <Button
+          variant="outline"
+          className={`flex-1 lg:h-14 flex items-center justify-center gap-2 ${customerName ? 'border-[#00a79d] text-[#00a79d]' : ''}`}
+          onClick={() => setShowCustomer(true)}
+          data-testid="pos-customer-btn"
+        >
+          <User className="h-5 w-5" />
+          <span className="hidden lg:inline">Konsumatori</span>
+        </Button>
+
+        {/* Parametrat - Settings/params */}
+        <Button
+          variant="outline"
+          className="flex-1 lg:h-14 flex items-center justify-center gap-2"
+          onClick={() => setShowParams(true)}
+          data-testid="pos-params-btn"
+        >
+          <Settings className="h-5 w-5" />
+          <span className="hidden lg:inline">Parametrat</span>
+        </Button>
+
+        {/* Printo A4 - Print A4 Invoice - F4 */}
+        <Button
+          variant="outline"
+          className="flex-1 lg:h-14 flex items-center justify-center gap-2 border-blue-500 text-blue-600 hover:bg-blue-50"
+          onClick={() => handlePrintA4()}
+          disabled={cart.length === 0}
+          data-testid="pos-print-a4-btn"
+        >
+          <FileDown className="h-5 w-5" />
+          <span className="hidden lg:inline">Printo A4</span>
+          <span className="text-xs bg-blue-100 px-1.5 py-0.5 rounded ml-1">F4</span>
+        </Button>
+
+        {/* Shtyp - Print and finish (payment) - F2 */}
+        <Button
+          className="flex-1 lg:h-16 flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white font-semibold shadow-lg"
+          onClick={() => cart.length > 0 && setShowPayment(true)}
+          disabled={cart.length === 0}
+          data-testid="pos-print-btn"
+        >
+          <Printer className="h-5 w-5" />
+          <span className="hidden lg:inline">Shtyp</span>
+          <span className="text-xs bg-white/20 px-2 py-0.5 rounded ml-1">F2</span>
+        </Button>
+
+        {/* Provo Art / Mbyll ArkÃ«n - Close drawer */}
+        <Button
+          variant="outline"
+          className="flex-1 lg:h-14 flex items-center justify-center gap-2"
+          onClick={handleCloseDrawer}
+          data-testid="pos-close-drawer-btn"
+        >
+          <XCircle className="h-5 w-5" />
+          <span className="hidden lg:inline">Mbyll ArkÃ«n</span>
+        </Button>
+
+        {/* Pastro - Clear cart */}
+        <Button
+          variant="outline"
+          className="flex-1 lg:h-14 flex items-center justify-center gap-2 text-red-500 hover:bg-red-50"
+          onClick={clearCart}
+          data-testid="pos-clear-btn"
+        >
+          <Trash2 className="h-5 w-5" />
+          <span className="hidden lg:inline">Pastro</span>
+        </Button>
+
+        {/* Pa TVSH - Toggle VAT (vetÃ«m admin/manager) */}
+        {(user?.role === 'admin' || user?.role === 'manager') && (
+          <Button
+            className={`flex-1 lg:h-14 flex items-center justify-center gap-2 ${applyNoVat ? 'bg-orange-500 hover:bg-orange-600' : 'bg-[#00a79d] hover:bg-[#008f86]'}`}
+            onClick={handleNoVat}
+            data-testid="pos-no-vat-btn"
+          >
+            <Percent className="h-5 w-5" />
+            <span className="hidden lg:inline">{applyNoVat ? 'Me TVSH' : 'Pa TVSH'}</span>
+          </Button>
+        )}
+      </div>
+
+      {/* Payment Dialog */}
