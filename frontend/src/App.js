@@ -304,7 +304,7 @@ const AppRoutes = () => {
 
   return (
     <Routes>
-      <Route path="/" element={isAuthenticated ? <Navigate to={user?.role === 'cashier' ? '/pos' : user?.role === 'super_admin' ? '/app/super-admin' : '/dashboard'} /> : <Landing />} />
+      <Route path="/" element={isAuthenticated ? <Navigate to={user?.role === 'cashier' ? '/pos' : user?.role === 'super_admin' ? '/app/super-admin' : '/dashboard'} /> : getSubdomain() ? <Navigate to="/login" replace /> : <Landing />} />
       <Route path="/register" element={isAuthenticated ? <Navigate to={user?.role === 'cashier' ? '/pos' : user?.role === 'super_admin' ? '/app/super-admin' : '/dashboard'} /> : <Register />} />
       <Route path="/gate" element={isAuthenticated ? <Navigate to="/login" /> : <GateLogin />} />
       <Route path="/login" element={
