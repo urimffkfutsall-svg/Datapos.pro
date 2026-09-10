@@ -4,6 +4,7 @@ import axios from 'axios';
 import { Toaster, toast } from 'sonner';
 
 // Pages
+import Landing from './pages/Landing';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import GateLogin from './pages/GateLogin';
@@ -280,7 +281,7 @@ const AppRoutes = () => {
 
   return (
     <Routes>
-      <Route path="/" element={isAuthenticated ? <Navigate to={user?.role === 'cashier' ? '/pos' : user?.role === 'super_admin' ? '/app/super-admin' : '/dashboard'} /> : <Navigate to="/login" />} />
+      <Route path="/" element={isAuthenticated ? <Navigate to={user?.role === 'cashier' ? '/pos' : user?.role === 'super_admin' ? '/app/super-admin' : '/dashboard'} /> : <Landing />} />
       <Route path="/register" element={isAuthenticated ? <Navigate to={user?.role === 'cashier' ? '/pos' : user?.role === 'super_admin' ? '/app/super-admin' : '/dashboard'} /> : <Register />} />
       <Route path="/gate" element={isAuthenticated ? <Navigate to="/login" /> : <GateLogin />} />
       <Route path="/login" element={
