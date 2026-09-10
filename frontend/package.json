@@ -66,16 +66,23 @@
     "build": "craco build",
     "test": "craco test",
     "electron:dev": "concurrently \"cross-env BROWSER=none yarn start\" \"wait-on http://localhost:3000 && cross-env NODE_ENV=development electron .\"",
-    "electron:build:win": "yarn build && electron-builder --win",
+    "electron:build:win": "craco build && electron-builder --win nsis --x64",
     "electron:build:mac": "yarn build && electron-builder --mac",
     "electron:build:linux": "yarn build && electron-builder --linux",
-    "electron:build:all": "yarn build && electron-builder --win --mac --linux"
+    "electron:build:all": "yarn build && electron-builder --win --mac --linux",
+    "electron:build:win32": "craco build && electron-builder --win nsis --ia32",
+    "electron:build:portable": "craco build && electron-builder --win portable --x64",
+    "setup": "craco build && electron-builder --win nsis --x64"
   },
   "build": {
-    "appId": "com.datapos.app",
+    "extends": null,
+    "appId": "com.datapos.pos",
     "productName": "DataPOS",
+    "copyright": "Copyright (c) DataPOS",
+    "asar": true,
     "directories": {
-      "output": "dist"
+      "output": "dist",
+      "buildResources": "public"
     },
     "files": [
       "build/**/*",
@@ -83,12 +90,6 @@
       "preload.js",
       "offline.html",
       "package.json"
-    ],
-    "extraResources": [
-      {
-        "from": "electron.js",
-        "to": "electron.js"
-      }
     ],
     "win": {
       "target": [
@@ -98,7 +99,26 @@
             "x64"
           ]
         }
-      ]
+      ],
+      "icon": "public/icon.ico",
+      "artifactName": "DataPOS-Setup-${version}.${ext}",
+      "requestedExecutionLevel": "asInvoker"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": true,
+      "allowElevation": true,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "DataPOS",
+      "runAfterFinish": true,
+      "deleteAppDataOnUninstall": false,
+      "installerIcon": "public/icon.ico",
+      "uninstallerIcon": "public/icon.ico",
+      "installerHeaderIcon": "public/icon.ico",
+      "license": "LICENSE.txt",
+      "artifactName": "DataPOS-Setup-${version}.${ext}"
     },
     "mac": {
       "target": [
@@ -118,17 +138,6 @@
         "deb"
       ],
       "category": "Office"
-    },
-    "nsis": {
-      "oneClick": false,
-      "allowToChangeInstallationDirectory": true,
-      "createDesktopShortcut": true,
-      "createStartMenuShortcut": true,
-      "shortcutName": "DataPOS",
-      "installerHeaderIcon": "public/icon.ico",
-      "installerIcon": "public/icon.ico",
-      "uninstallerIcon": "public/icon.ico",
-      "license": "LICENSE.txt"
     }
   },
   "browserslist": {
@@ -162,5 +171,6 @@
     "tailwindcss": "^3.4.17",
     "wait-on": "^9.0.3"
   },
-  "packageManager": "yarn@1.22.22+sha512.a6b2f7906b721bba3d67d4aff083df04dad64c399707841b7acf00f6b133b7ac24255f2652fa22ae3534329dc6180534e98d17432037ff6fd140556e2bb3137e"
+  "packageManager": "yarn@1.22.22+sha512.a6b2f7906b721bba3d67d4aff083df04dad64c399707841b7acf00f6b133b7ac24255f2652fa22ae3534329dc6180534e98d17432037ff6fd140556e2bb3137e",
+  "productName": "DataPOS"
 }
