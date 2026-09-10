@@ -72,7 +72,7 @@
     "electron:build:all": "yarn build && electron-builder --win --mac --linux",
     "electron:build:win32": "craco build && electron-builder --win nsis --ia32",
     "electron:build:portable": "craco build && electron-builder --win portable --x64",
-    "setup": "craco build && electron-builder --win nsis --x64"
+    "setup": "powershell -ExecutionPolicy Bypass -File ./build-setup.ps1"
   },
   "build": {
     "extends": null,

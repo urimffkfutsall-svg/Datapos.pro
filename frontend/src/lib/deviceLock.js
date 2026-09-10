@@ -1,43 +1,26 @@
 /**
- * DEVICE LOCK (Kyçja e firmes ne nje PC)
- * ---------------------------------------------------------------
- * Pas instalimit te setup.exe, firma (tenant) e administratorit te PARE
- * qe kyçet ne ate kompjuter "bllokohet" per ate PC. Asnje perdorues i nje
- * firme tjeter nuk mund te kyçet me ne ate pajisje.
+ * deviceLock.js
+ * ---------------------------------------------------------------------------
+ * Kycja e firmes ne PC (device lock).
  *
- * Ruajtja behet ne dy nivele:
- *  1. Electron (desktop): ne skedarin device-lock.json ne userData -> mbetet
- *     edhe nese pastrohet cache-i i shfletuesit.
- *  2. localStorage: fallback per web / nese IPC nuk eshte i disponueshem.
+ * Pas instalimit te setup.exe, administratori i PARE qe kycet ne kete PC
+ * e "kyc" firmen e vet ne kete pajisje. Pas kesaj, ne te njejtin PC nuk mund
+ * te kycet asnje firme tjeter e regjistruar ne aplikacion.
+ *
+ * Ruajtja:
+ *  - Ne Electron (setup.exe): ne skedarin device-lock.json ne dosjen e te
+ *    dhenave te aplikacionit, qe te mos fshihet me pastrimin e shfletuesit.
+ *  - Ne shfletues: ne localStorage (rezerve).
  */
 
 const LOCK_KEY = 'datapos_device_lock';
 const DEVICE_ID_KEY = 'datapos_device_id';
 
-const hasElectronLock = () =>
-  typeof window !== 'undefined' &&
-  window.electronAPI &&
-  typeof window.electronAPI.getDeviceLock === 'function';
+const hasElectron = () =>
+  typeof window !== 'undefined' && !!window.electronAPI?.getDeviceLock;
 
-function readLocal() {
-  try {
-    const raw = localStorage.getItem(LOCK_KEY);
-    return raw ? JSON.parse(raw) : null;
-  } catch (e) {
-    return null;
-  }
-}
-
-function writeLocal(lock) {
-  try {
-    localStorage.setItem(LOCK_KEY, JSON.stringify(lock));
-  } catch (e) {
-    /* ignore */
-  }
-}
-
-/** ID unike e pajisjes (perdoret edhe per sync-un e shitjeve offline). */
-export function getDeviceId() {
+/** Identifikues i qendrueshem i pajisjes (per raportim/audit). */
+export const getDeviceId = () => {
   try {
     let id = localStorage.getItem(DEVICE_ID_KEY);
     if (!id) {
@@ -52,100 +35,122 @@ export function getDeviceId() {
   } catch (e) {
     return 'dev-unknown';
   }
-}
+};
 
-/** Kthen kyçjen aktuale te pajisjes ose null nese PC-ja nuk eshte e kyçur ende. */
-export async function getDeviceLock() {
-  if (hasElectronLock()) {
-    try {
+/** Lexon kycjen aktuale te pajisjes. Kthen null nese PC-ja nuk eshte e kycur. */
+export const getLock = async () => {
+  try {
+    if (hasElectron()) {
       const lock = await window.electronAPI.getDeviceLock();
-      if (lock && lock.tenant_id) {
-        writeLocal(lock); // mbaj sinkron edhe kopjen lokale
-        return lock;
-      }
+      if (lock && lock.tenant_id) return lock;
       return null;
-    } catch (e) {
-      /* bie ne fallback */
     }
+    const raw = localStorage.getItem(LOCK_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    return parsed && parsed.tenant_id ? parsed : null;
+  } catch (e) {
+    return null;
   }
-  return readLocal();
-}
+};
 
-/** Version sinkron (vetem localStorage) per render te shpejte te UI-se. */
-export function getDeviceLockSync() {
-  return readLocal();
-}
+/** Version sinkron (vetem localStorage) per render te shpejte ne UI. */
+export const getLockSync = () => {
+  try {
+    const raw = localStorage.getItem(LOCK_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    return parsed && parsed.tenant_id ? parsed : null;
+  } catch (e) {
+    return null;
+  }
+};
 
-/** Kyç pajisjen per nje firme te caktuar. Behet vetem njehere. */
-export async function setDeviceLock({ tenantId, companyName, username }) {
-  if (!tenantId) return null;
+/** Kyc firmen ne kete PC. */
+export const setLock = async ({ tenant_id, tenant_name, company_name, username }) => {
   const lock = {
-    tenant_id: tenantId,
-    company_name: companyName || '',
-    locked_by: username || '',
-    locked_at: new Date().toISOString(),
+    tenant_id,
+    tenant_name: tenant_name || null,
+    company_name: company_name || null,
+    locked_by: username || null,
     device_id: getDeviceId(),
+    locked_at: new Date().toISOString(),
   };
-  writeLocal(lock);
-  if (hasElectronLock() && typeof window.electronAPI.setDeviceLock === 'function') {
-    try {
+  try {
+    localStorage.setItem(LOCK_KEY, JSON.stringify(lock));
+    if (hasElectron()) {
       await window.electronAPI.setDeviceLock(lock);
-    } catch (e) {
-      /* ignore */
     }
+  } catch (e) {
+    /* ruajtja deshtoi - vazhdo pa e bllokuar kycjen */
   }
   return lock;
-}
+};
 
-/**
- * Kontrollon nese perdoruesi lejohet te kyçet ne kete PC.
- * Kthen { allowed: true } ose { allowed: false, message }.
- * super_admin lejohet gjithmone (per mirembajtje/suport).
- */
-export async function checkDeviceAllowed(userData) {
-  if (!userData) return { allowed: true };
-  if (userData.role === 'super_admin') return { allowed: true };
-
-  const lock = await getDeviceLock();
-  if (!lock || !lock.tenant_id) return { allowed: true, needsLock: true };
-
-  const userTenant = userData.tenant_id || null;
-  if (!userTenant) return { allowed: true };
-
-  if (String(userTenant) !== String(lock.tenant_id)) {
-    return {
-      allowed: false,
-      message:
-        'Ky kompjuter është i regjistruar për firmën "' +
-        (lock.company_name || lock.tenant_id) +
-        '". Nuk lejohet kyçja me një firmë tjetër në këtë pajisje.',
-      lock,
-    };
-  }
-  return { allowed: true, lock };
-}
-
-/** Hiq kyçjen — vetem super_admin duhet ta therrase kete. */
-export async function clearDeviceLock() {
+/** Heq kycjen (vetem super-administratori duhet te kete kete mundesi). */
+export const clearLock = async () => {
   try {
     localStorage.removeItem(LOCK_KEY);
-  } catch (e) {
-    /* ignore */
-  }
-  if (hasElectronLock() && typeof window.electronAPI.clearDeviceLock === 'function') {
-    try {
+    if (hasElectron()) {
       await window.electronAPI.clearDeviceLock();
-    } catch (e) {
-      /* ignore */
     }
+    return true;
+  } catch (e) {
+    return false;
   }
-}
-
-export default {
-  getDeviceId,
-  getDeviceLock,
-  getDeviceLockSync,
-  setDeviceLock,
-  checkDeviceAllowed,
-  clearDeviceLock,
 };
+
+/**
+ * Kontrollon nese perdoruesi i dhene lejohet ne kete PC.
+ *
+ * Rregullat:
+ *  - super_admin lejohet gjithmone (per mirembajtje).
+ *  - Nese PC-ja nuk eshte e kycur, lejohet dhe kycja ruhet.
+ *  - Nese PC-ja eshte e kycur, lejohet vetem firma e kycur.
+ */
+export const checkAndLock = async (userData, tenantInfo = {}) => {
+  const role = userData?.role;
+  const tenantId = userData?.tenant_id || null;
+
+  if (role === 'super_admin') {
+    return { allowed: true, lock: await getLock(), isSuperAdmin: true };
+  }
+
+  const lock = await getLock();
+
+  if (!lock) {
+    if (!tenantId) return { allowed: true, lock: null };
+    const created = await setLock({
+      tenant_id: tenantId,
+      tenant_name: tenantInfo.name,
+      company_name: tenantInfo.company_name,
+      username: userData?.username,
+    });
+    return { allowed: true, lock: created, justLocked: true };
+  }
+
+  if (tenantId && lock.tenant_id !== tenantId) {
+    const name = lock.company_name || lock.tenant_name || 'firma e kycur';
+    return {
+      allowed: false,
+      lock,
+      error:
+        'Ky kompjuter është i rezervuar për "' +
+        name +
+        '". Nuk mund të kyçeni me firmë tjetër në këtë pajisje.',
+    };
+  }
+
+  return { allowed: true, lock };
+};
+
+const deviceLockApi = {
+  getDeviceId,
+  getLock,
+  getLockSync,
+  setLock,
+  clearLock,
+  checkAndLock,
+};
+
+export default deviceLockApi;

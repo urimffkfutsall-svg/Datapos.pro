@@ -1,84 +1,85 @@
 import React, { useEffect, useState } from 'react';
-import { Wifi, WifiOff, RefreshCw, CloudUpload, Check } from 'lucide-react';
+import { WifiOff, RefreshCw, CheckCircle2 } from 'lucide-react';
 import offline, { OFFLINE_EVENT } from '../lib/offline';
 
 /**
- * Treguesi i statusit online/offline dhe i sinkronizimit.
- * Shfaqet fiks poshte-djathtas ne te gjitha faqet.
+ * OfflineIndicator
+ * ---------------------------------------------------------------------------
+ * Shirit i vogel qe shfaqet vetem kur:
+ *  - nuk ka internet, ose
+ *  - kemi veprime ne pritje per sinkronizim.
+ *
+ * Perdoruesi vazhdon punen normalisht; sinkronizimi behet vetvetiu.
  */
-const OfflineIndicator = () => {
-  const [state, setState] = useState(offline.getSyncState());
-  const [busy, setBusy] = useState(false);
+const OfflineIndicator = ({ api }) => {
+  const [state, setState] = useState({
+    offline: !navigator.onLine,
+    queued: offline.queueCount(),
+    syncing: false,
+    justSynced: false,
+  });
 
   useEffect(() => {
-    const update = () => setState(offline.getSyncState());
-    const unsub = offline.subscribe(update);
-    window.addEventListener(OFFLINE_EVENT, update);
-    window.addEventListener('online', update);
-    window.addEventListener('offline', update);
-    const t = setInterval(update, 5000);
-    return () => {
-      unsub();
-      window.removeEventListener(OFFLINE_EVENT, update);
-      window.removeEventListener('online', update);
-      window.removeEventListener('offline', update);
-      clearInterval(t);
+    const handler = (event) => {
+      const detail = event.detail || {};
+      setState((prev) => ({
+        offline: detail.offline ?? prev.offline,
+        queued: detail.queued ?? prev.queued,
+        syncing: detail.syncing ?? false,
+        justSynced: (detail.sent || 0) > 0,
+      }));
+      if ((detail.sent || 0) > 0) {
+        setTimeout(
+          () => setState((prev) => ({ ...prev, justSynced: false })),
+          4000
+        );
+      }
     };
+    window.addEventListener(OFFLINE_EVENT, handler);
+    return () => window.removeEventListener(OFFLINE_EVENT, handler);
   }, []);
 
-  const handleSync = async () => {
-    setBusy(true);
-    await offline.syncNow();
-    setBusy(false);
-    setState(offline.getSyncState());
-  };
+  const { offline: isOff, queued, syncing, justSynced } = state;
 
-  const { online, pending, syncing } = state;
+  if (!isOff && !queued && !syncing && !justSynced) return null;
 
-  // Kur jemi online dhe s'ka asgje ne pritje -> tregues i vogel diskret
-  if (online && pending === 0) {
+  const base =
+    'fixed bottom-4 left-4 z-[9999] flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium shadow-lg';
+
+  if (isOff) {
     return (
-      <div className="fixed bottom-3 right-3 z-[9998] flex items-center gap-1.5 px-2.5 py-1.5 rounded-full bg-white/90 backdrop-blur border border-[#0E4B49]/15 shadow-sm text-[11px] font-semibold text-[#0E4B49]">
-        <Check className="h-3.5 w-3.5" />
-        <span>{'T\u00eb gjitha t\u00eb sinkronizuara'}</span>
+      <div
+        data-testid="offline-indicator"
+        className={base + ' bg-amber-500 text-white'}
+      >
+        <WifiOff size={16} />
+        <span>
+          Pa internet &mdash; puna vazhdon
+          {queued > 0 ? ` (${queued} n\u00eb pritje)` : ''}
+        </span>
+      </div>
+    );
+  }
+
+  if (syncing || queued > 0) {
+    return (
+      <div
+        data-testid="offline-indicator"
+        className={base + ' bg-teal-700 text-white'}
+      >
+        <RefreshCw size={16} className="animate-spin" />
+        <span>Sinkronizimi{queued > 0 ? ` (${queued})` : ''}…</span>
       </div>
     );
   }
 
   return (
     <div
-      className={`fixed bottom-3 right-3 z-[9998] flex items-center gap-2 px-3 py-2 rounded-xl shadow-lg border text-xs font-semibold ${
-        online
-          ? 'bg-amber-50 border-amber-300 text-amber-800'
-          : 'bg-red-50 border-red-300 text-red-700'
-      }`}
       data-testid="offline-indicator"
+      className={base + ' bg-emerald-600 text-white'}
     >
-      {online ? <Wifi className="h-4 w-4" /> : <WifiOff className="h-4 w-4" />}
-      <div className="leading-tight">
-        <div>{online ? 'Online' : 'Pa internet — modaliteti offline'}</div>
-        {pending > 0 && (
-          <div className="font-normal opacity-80">
-            {pending} {'veprime presin sinkronizim'}
-          </div>
-        )}
-      </div>
-      {online && pending > 0 && (
-        <button
-          type="button"
-          onClick={handleSync}
-          disabled={busy || syncing}
-          className="ml-1 flex items-center gap-1 px-2 py-1 rounded-lg bg-[#0E4B49] text-white disabled:opacity-60"
-          title="Sinkronizo tani"
-        >
-          {busy || syncing ? (
-            <RefreshCw className="h-3.5 w-3.5 animate-spin" />
-          ) : (
-            <CloudUpload className="h-3.5 w-3.5" />
-          )}
-          <span>Sinkronizo</span>
-        </button>
-      )}
+      <CheckCircle2 size={16} />
+      <span>Të dhënat u sinkronizuan</span>
     </div>
   );
 };

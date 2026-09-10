@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth, useTenant } from '../App';
+import { useState as useLockState, useEffect as useLockEffect } from 'react';
 import { Button } from '../components/ui/button';
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle,
@@ -45,7 +46,26 @@ const Login = () => {
   const [vkTarget, setVkTarget] = useState('pin');
   const [vkShift, setVkShift] = useState(false);
 
-  const { login } = useAuth();
+  const { login, deviceLock } = useAuth();
+
+  // Firma e kycur ne kete PC (device lock)
+  const [lockedCompany, setLockedCompany] = useLockState(null);
+  useLockEffect(() => {
+    let active = true;
+    (async () => {
+      try {
+        const lock = await deviceLock?.getLock?.();
+        if (active && lock) {
+          setLockedCompany(lock.company_name || lock.tenant_name || null);
+        }
+      } catch (e) {
+        /* ignore */
+      }
+    })();
+    return () => {
+      active = false;
+    };
+  }, [deviceLock]);
   const navigate = useNavigate();
   const tenantContext = useTenant();
   const tenant = tenantContext?.tenant;
@@ -311,6 +331,12 @@ const Login = () => {
                   <h2 className="text-2xl lg:text-3xl font-bold mb-1">Administrator</h2>
                   <p className="text-emerald-100 text-sm mb-5">Vendos kredencialet per te vazhduar</p>
 
+                  {lockedCompany && (
+                    <div className="mb-4 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-900">
+                      <span className="font-semibold">Ky kompjuter \u00ebsht\u00eb i rezervuar:</span>{' '}
+                      {lockedCompany}
+                    </div>
+                  )}
                   <form onSubmit={handleAdminLogin} className="space-y-4">
                     <div>
                       <label className="block text-emerald-100 text-xs font-medium mb-1.5">Username</label>

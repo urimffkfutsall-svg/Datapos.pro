@@ -3,6 +3,11 @@ import { HashRouter, Routes, Route, Navigate, useLocation } from 'react-router-d
 import axios from 'axios';
 import { Toaster, toast } from 'sonner';
 
+// Offline + kycja e firmes ne PC
+import offline from './lib/offline';
+import deviceLock from './lib/deviceLock';
+import OfflineIndicator from './components/OfflineIndicator';
+
 // Pages
 import Landing from './pages/Landing';
 import Login from './pages/Login';
@@ -129,6 +134,9 @@ api.interceptors.response.use(
   }
 );
 
+// Interceptorat offline: GET nga cache, shkrimet ne radhe kur nuk ka internet
+offline.attachInterceptors(api);
+
 // Tenant Provider
 const TenantProvider = ({ children }) => {
   const [tenant, setTenant] = useState(null);
@@ -233,6 +241,18 @@ const AuthProvider = ({ children }) => {
         }
       }
 
+      // ---- KYCJA E FIRMES NE KETE PC (device lock) ----
+      // Administratori i pare qe kycet ne kete PC e rezervon firmen e vet;
+      // pas kesaj nuk mund te kycet firme tjeter ne te njejtin kompjuter.
+      const lockResult = await deviceLock.checkAndLock(userData, {
+        name: tenantCtx?.tenant?.name,
+        company_name: tenantCtx?.tenant?.company_name,
+      });
+      if (!lockResult.allowed) {
+        toast.error(lockResult.error);
+        return { success: false, error: lockResult.error, status: 403 };
+      }
+
       localStorage.setItem('t3next_token', access_token);
       localStorage.setItem('t3next_user', JSON.stringify(userData));
       sessionStorage.setItem('ipos_session_active', 'true');
@@ -262,7 +282,13 @@ const AuthProvider = ({ children }) => {
     updatePageTitle(user);
   }, [user]);
 
-  const value = { user, login, logout, loading, isAuthenticated: !!user };
+  // Sinkronizimi automatik kur kthehet lidhja e internetit
+  useEffect(() => {
+    const stop = offline.startAutoSync(api);
+    return stop;
+  }, []);
+
+  const value = { user, login, logout, loading, isAuthenticated: !!user, deviceLock };
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
@@ -393,6 +419,7 @@ function App() {
       <TenantProvider>
         <AuthProvider>
           {/* toast njoftimet u caktivizuan */}
+          <OfflineIndicator api={api} />
           <AppRoutes />
         </AuthProvider>
       </TenantProvider>

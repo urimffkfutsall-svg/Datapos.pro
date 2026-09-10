@@ -1,20 +1,35 @@
+/**
+ * DataPOS - preload
+ * ---------------------------------------------------------------------------
+ * Ekspozon vetem funksionet e nevojshme te Electron-it ne dritaren e faqes,
+ * me contextIsolation te aktivizuar (pa qasje te drejtperdrejte ne Node).
+ */
 const { contextBridge, ipcRenderer } = require('electron');
 
-// Expose protected methods that allow the renderer process to use
-// the ipcRenderer without exposing the entire object
 contextBridge.exposeInMainWorld('electronAPI', {
-  // Silent printing
+  // ---- Printimi ----
   silentPrint: (options) => ipcRenderer.invoke('silent-print', options),
-  
-  // Get available printers
   getPrinters: () => ipcRenderer.invoke('get-printers'),
-  
-  // Print to PDF
   printToPDF: (options) => ipcRenderer.invoke('print-to-pdf', options),
-  
-  // Check if running in Electron
+
+  // ---- Kycja e firmes ne kete PC ----
+  getDeviceLock: () => ipcRenderer.invoke('device-lock:get'),
+  setDeviceLock: (lock) => ipcRenderer.invoke('device-lock:set', lock),
+  clearDeviceLock: () => ipcRenderer.invoke('device-lock:clear'),
+
+  // ---- Ruajtja offline ----
+  offlineRead: () => ipcRenderer.invoke('offline:read'),
+  offlineWrite: (data) => ipcRenderer.invoke('offline:write', data),
+
+  // ---- Rrjeti ----
+  checkNetwork: () => ipcRenderer.invoke('net:check'),
+  onNetworkStatus: (callback) => {
+    const handler = (event, status) => callback(status);
+    ipcRenderer.on('net:status', handler);
+    return () => ipcRenderer.removeListener('net:status', handler);
+  },
+
+  // ---- Informacion ----
   isElectron: true,
-  
-  // Platform info
   platform: process.platform,
 });
