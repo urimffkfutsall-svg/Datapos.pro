@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="sq">
+<head>
+<meta charset="utf-8" />
+<title>DataPOS &mdash; Konfigurimi fillestar</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --primary: #0E4B49;
+    --primary-deep: #0A3634;
+    --primary-600: #0F5A57;
+    --accent: #3BB0AA;
+    --ink: #13211F;
+    --ink-soft: #51615E;
+    --ink-faint: #7C8A87;
+    --line: #DBE4E1;
+    --surface: #FFFFFF;
+    --ground: #F5F8F6;
+    --err: #B3261E;
+    --warn: #8A5B00;
+  }
+
+  html, body { height: 100%; }
+
+  body {
+    font-family: "Segoe UI", -apple-system, system-ui, sans-serif;
+    background: var(--ground);
+    color: var(--ink);
+    display: flex;
+    flex-direction: column;
+    -webkit-font-smoothing: antialiased;
+    user-select: none;
+  }
+
+  /* ---------------- Kreu ---------------- */
+  .masthead {
+    background: var(--primary-deep);
+    padding: 26px 40px;
+    display: flex;
+    align-items: center;
+    gap: 13px;
+  }
+
+  .mark {
+    width: 34px; height: 34px;
+    border-radius: 8px;
+    background: var(--primary-600);
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .wordmark {
+    font-size: 16.5px;
+    font-weight: 600;
+    letter-spacing: -0.2px;
+    color: #EAF3F1;
+  }
+
+  .wordmark span { color: var(--accent); }
+
+  .masthead .env {
+    margin-left: auto;
+    font-size: 11px;
+    letter-spacing: 1.1px;
+    text-transform: uppercase;
+    color: #7FA7A2;
+    border: 1px solid #1F5551;
+    border-radius: 4px;
+    padding: 5px 10px;
+  }
+
+  /* ---------------- Trupi ---------------- */
+  main {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 34px 40px;
+  }
+
+  .panel {
+    width: 100%;
+    max-width: 430px;
+  }
+
+  .step {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 1.3px;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 11px;
+  }
+
+  h1 {
+    font-size: 24px;
+    font-weight: 600;
+    letter-spacing: -0.4px;
+    margin-bottom: 9px;
+  }
+
+  .lede {
+    font-size: 13.5px;
+    line-height: 1.6;
+    color: var(--ink-soft);
+    margin-bottom: 26px;
+  }
+
+  label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: .2px;
+    color: var(--ink);
+    margin-bottom: 8px;
+  }
+
+  .field {
+    display: flex;
+    align-items: stretch;
+    border: 1.5px solid var(--line);
+    border-radius: 8px;
+    background: var(--surface);
+    transition: border-color .15s, box-shadow .15s;
+    overflow: hidden;
+  }
+
+  .field:focus-within {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(14, 75, 73, .10);
+  }
+
+  .field.invalid {
+    border-color: var(--err);
+    box-shadow: 0 0 0 3px rgba(179, 38, 30, .09);
+  }
+
+  input {
+    flex: 1;
+    min-width: 0;
+    padding: 13px 14px;
+    font-family: inherit;
+    font-size: 15px;
+    color: var(--ink);
+    border: none;
+    outline: none;
+    background: transparent;
+    user-select: text;
+  }
+
+  input::placeholder { color: #A9B5B2; }
+
+  .domain {
+    display: flex;
+    align-items: center;
+    padding: 0 15px;
+    background: #F0F4F3;
+    border-left: 1px solid var(--line);
+    font-size: 14px;
+    color: var(--ink-faint);
+    white-space: nowrap;
+  }
+
+  .helper {
+    margin-top: 9px;
+    font-size: 12px;
+    line-height: 1.55;
+    color: var(--ink-faint);
+  }
+
+  /* ---------------- Butoni ---------------- */
+  .actions { margin-top: 24px; }
+
+  button {
+    width: 100%;
+    padding: 13px;
+    font-family: inherit;
+    font-size: 13.5px;
+    font-weight: 600;
+    letter-spacing: .6px;
+    text-transform: uppercase;
+    color: #FFFFFF;
+    background: var(--primary);
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 9px;
+    transition: background .15s;
+  }
+
+  button:hover:not(:disabled) { background: var(--primary-600); }
+  button:disabled { background: #9BB2AF; cursor: default; }
+
+  .spinner {
+    width: 14px; height: 14px;
+    border: 2px solid rgba(255,255,255,.35);
+    border-top-color: #FFFFFF;
+    border-radius: 50%;
+    animation: spin .7s linear infinite;
+    display: none;
+  }
+
+  button.busy .spinner { display: block; }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ---------------- Mesazhet ---------------- */
+  .notice {
+    display: none;
+    margin-top: 16px;
+    padding: 12px 14px;
+    border-radius: 7px;
+    font-size: 12.5px;
+    line-height: 1.55;
+    border-left: 3px solid;
+  }
+
+  .notice.show { display: block; }
+  .notice.err  { background: #FCF1F0; border-color: var(--err); color: #7F1B15; }
+  .notice.warn { background: #FDF6E7; border-color: #C68A00; color: var(--warn); }
+  .notice.ok   { background: #EEF6F3; border-color: var(--accent); color: #0B4A44; }
+
+  /* ---------------- Fundi ---------------- */
+  footer {
+    border-top: 1px solid var(--line);
+    background: var(--surface);
+    padding: 15px 40px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 11.5px;
+    color: var(--ink-faint);
+  }
+
+  footer .sep { color: #C6D2CF; margin: 0 9px; }
+</style>
+</head>
+<body>
+
+  <header class="masthead">
+    <div class="mark">
+      <svg width="19" height="19" viewBox="0 0 24 24" fill="none"
+           stroke="#EAF3F1" stroke-width="1.9"
+           stroke-linecap="round" stroke-linejoin="round">
+        <path d="M3 9.5 5 4h14l2 5.5" />
+        <path d="M4 9.5h16V20a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V9.5Z" />
+        <path d="M9.5 21v-5.5h5V21" />
+      </svg>
+    </div>
+    <div class="wordmark">Data<span>POS</span></div>
+    <div class="env">Konfigurim fillestar</div>
+  </header>
+
+  <main>
+    <div class="panel">
+      <div class="step">Hapi 1 nga 1</div>
+      <h1>Lidhni kete pajisje me firmen</h1>
+      <p class="lede">
+        Shkruani adresen e firmes suaj. Ky kompjuter do te punoje vetem me kete
+        firme dhe nuk do te lejoje kyÃ§je nga firma te tjera.
+      </p>
+
+      <label for="sub">Adresa e firmes</label>
+      <div class="field" id="field">
+        <input id="sub" placeholder="mobilshopurimi" autocomplete="off"
+               spellcheck="false" maxlength="40" />
+        <div class="domain">.datapos.pro</div>
+      </div>
+      <p class="helper">
+        Shkruani vetem emrin e firmes, pa <b>https://</b> dhe pa <b>.datapos.pro</b>
+      </p>
+
+      <div class="actions">
+        <button id="go">
+          <span class="spinner"></span>
+          <span id="btnText">Vazhdo</span>
+        </button>
+      </div>
+
+      <div class="notice" id="notice"></div>
+    </div>
+  </main>
+
+  <footer>
+    <div>Konfigurimi ruhet lokalisht ne kete pajisje</div>
+    <div>
+      <span>www.datapos.pro</span>
+      <span class="sep">|</span>
+      <span>&copy; 2026 DataPOS</span>
+    </div>
+  </footer>
+
+<script>
+  var input = document.getElementById('sub');
+  var field = document.getElementById('field');
+  var btn = document.getElementById('go');
+  var btnText = document.getElementById('btnText');
+  var notice = document.getElementById('notice');
+  var confirmMode = false;
+
+  input.focus();
+
+  function setNotice(kind, text) {
+    notice.className = 'notice show ' + kind;
+    notice.innerHTML = text;
+  }
+
+  function clearNotice() {
+    notice.className = 'notice';
+    field.classList.remove('invalid');
+  }
+
+  function setBusy(busy, text) {
+    btn.disabled = busy;
+    if (busy) { btn.classList.add('busy'); } else { btn.classList.remove('busy'); }
+    btnText.textContent = text;
+  }
+
+  input.addEventListener('input', function () {
+    clearNotice();
+    if (confirmMode) {
+      confirmMode = false;
+      btnText.textContent = 'Vazhdo';
+    }
+  });
+
+  function start() {
+    var raw = input.value.trim();
+
+    if (!raw) {
+      field.classList.add('invalid');
+      setNotice('err', 'Shkruani adresen e firmes per te vazhduar.');
+      input.focus();
+      return;
+    }
+
+    if (confirmMode) { save(raw); return; }
+
+    clearNotice();
+    setBusy(true, 'Duke kontrolluar');
+
+    window.firmAPI.check(raw).then(function (res) {
+      if (!res || !res.ok) {
+        field.classList.add('invalid');
+        setNotice('err', (res && res.error) || 'Adresa nuk eshte e vlefshme.');
+        setBusy(false, 'Vazhdo');
+        return;
+      }
+
+      if (!res.reachable) {
+        confirmMode = true;
+        setNotice('warn',
+          'Adresa <b>' + res.subdomain + '.datapos.pro</b> nuk u arrit. ' +
+          'Nese jeni pa internet, aplikacioni do te punoje offline dhe do te ' +
+          'sinkronizohet me vone. Shtypni perseri per ta ruajtur.');
+        setBusy(false, 'Ruaj gjithsesi');
+        return;
+      }
+
+      setNotice('ok', 'Firma <b>' + res.subdomain + '</b> u verifikua.');
+      save(raw);
+    }).catch(function (e) {
+      setNotice('err', 'Gabim gjate kontrollit: ' + e);
+      setBusy(false, 'Vazhdo');
+    });
+  }
+
+  function save(raw) {
+    setBusy(true, 'Duke hapur');
+    window.firmAPI.save(raw).then(function (res) {
+      if (!res || !res.ok) {
+        setNotice('err', (res && res.error) || 'Ruajtja deshtoi.');
+        setBusy(false, 'Vazhdo');
+      }
+    }).catch(function (e) {
+      setNotice('err', 'Gabim: ' + e);
+      setBusy(false, 'Vazhdo');
+    });
+  }
+
+  btn.addEventListener('click', start);
+  input.addEventListener('keydown', function (e) {
+    if (e.key === 'Enter') start();
+  });
+</script>
+</body>
+</html>

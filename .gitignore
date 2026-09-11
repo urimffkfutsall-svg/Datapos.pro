@@ -1,29 +1,38 @@
-# dependencies
+# varesite
 node_modules/
-frontend/node_modules/
-# builds
-build/
-dist/
+**/node_modules/
+
+# ndertimi i frontend-it
 frontend/build/
 frontend/dist/
-frontend/dist_electron/
+frontend/release/
+frontend/release-*/
+build/
+dist/
+
+# instaluesit dhe paketat
+*.exe
+*.asar
+*.msi
+*.nupkg
+*.blockmap
+*.zip
+*.7z
+
+# kopjet rezerve
+*.bak
+
 # python
-**/__pycache__/
+__pycache__/
 *.pyc
-backend/venv/
-backend/.venv/
 venv/
 .venv/
-# env / sekrete (vendosen ne Render/Vercel, jo ne git)
+
+# mjedisi
 .env
-backend/.env
-frontend/.env
-*.env.local
-# backup-et tona
-*.bak*
-*.backup
-# misc
+.env.local
+
+# te tjera
 .DS_Store
+Thumbs.db
 *.log
-.vscode/
-.idea/

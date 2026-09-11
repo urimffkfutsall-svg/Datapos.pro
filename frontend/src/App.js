@@ -81,7 +81,7 @@ if (typeof window !== 'undefined') {
   }
 }
 // Backend URL
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || 'https://www.datapos.pro';
+const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || (typeof window !== 'undefined' && window.location && window.location.origin && window.location.origin.indexOf('http') === 0 ? window.location.origin : (typeof window !== 'undefined' && window.__DATAPOS_API__ ? window.__DATAPOS_API__ : 'https://www.datapos.pro'));
 const API = `${BACKEND_URL}/api`;
 
 // Get subdomain from current URL (only for production tenant hosts)

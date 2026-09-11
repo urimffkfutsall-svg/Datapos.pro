@@ -1,302 +1,443 @@
-/**
- * DataPOS - Electron main process
- * ---------------------------------------------------------------------------
- * Karakteristikat:
- *  - Puna offline: nese serveri nuk arrihet, hapet kopja lokale (build/).
- *  - Kycja e firmes ne PC: ruhet ne device-lock.json ne dosjen e app-it.
- *  - Ruajtja offline: offline-store.json (rezerve per te dhena te medha).
- *  - Njoftimi i rrjetit: dergon net:status ne UI kur lidhja bie/kthehet.
- *  - Vetem nje instance e aplikacionit njeheresh.
- */
-const {
-  app,
-  BrowserWindow,
-  Menu,
-  ipcMain,
-  shell,
-  session,
-  net,
-} = require('electron');
-const path = require('path');
-const fs = require('fs');
+const { app, BrowserWindow, ipcMain, net, Menu, shell } = require('electron')
+const path = require('path')
+const fs = require('fs')
 
-let mainWindow;
-let lastOnline = null;
-let netTimer = null;
+// ---------------------------------------------------------------------------
+// Konfigurimi
+// ---------------------------------------------------------------------------
+const APEX = 'datapos.pro'
 
-const PRODUCTION_URL = 'https://www.datapos.pro';
-const isDev = process.env.NODE_ENV === 'development';
+let mainWindow = null
+let setupWindow = null
+let netWatch = null
+let lastOnline = true
 
-/* ------------------------------------------------------------------ */
-/* Ruajtja lokale e skedareve                                          */
-/* ------------------------------------------------------------------ */
+// ---------------------------------------------------------------------------
+// Ruajtja lokale (AppData\Roaming\DataPOS)
+// ---------------------------------------------------------------------------
+function storePath(name) {
+  return path.join(app.getPath('userData'), name)
+}
 
-const dataFile = (name) => path.join(app.getPath('userData'), name);
-
-const readJson = (name, fallback = null) => {
+function readJson(name, fallback) {
   try {
-    const file = dataFile(name);
-    if (!fs.existsSync(file)) return fallback;
-    return JSON.parse(fs.readFileSync(file, 'utf-8'));
+    const p = storePath(name)
+    if (!fs.existsSync(p)) return fallback
+    return JSON.parse(fs.readFileSync(p, 'utf8'))
   } catch (e) {
-    return fallback;
+    return fallback
   }
-};
+}
 
-const writeJson = (name, data) => {
+function writeJson(name, data) {
   try {
-    fs.writeFileSync(dataFile(name), JSON.stringify(data, null, 2), 'utf-8');
-    return true;
+    fs.mkdirSync(app.getPath('userData'), { recursive: true })
+    fs.writeFileSync(storePath(name), JSON.stringify(data, null, 2), 'utf8')
+    return true
   } catch (e) {
-    return false;
+    return false
   }
-};
+}
 
-/* ------------------------------------------------------------------ */
-/* Kontrolli i lidhjes                                                 */
-/* ------------------------------------------------------------------ */
-
-const checkServerReachable = (timeoutMs = 4000) =>
-  new Promise((resolve) => {
-    let done = false;
-    const finish = (value) => {
-      if (!done) {
-        done = true;
-        resolve(value);
+// ---------------------------------------------------------------------------
+// Adresa e firmes per kete kompjuter
+// ---------------------------------------------------------------------------
+// Gjurma e instalimit aktual. Ndryshon sa here qe aplikacioni
+// cinstalohet dhe instalohet perseri, edhe ne te njejtin kompjuter.
+function installStamp() {
+  try {
+    const candidates = [
+      path.join(process.resourcesPath || '', 'app.asar'),
+      process.execPath,
+    ]
+    for (let i = 0; i < candidates.length; i++) {
+      const p = candidates[i]
+      if (p && fs.existsSync(p)) {
+        const st = fs.statSync(p)
+        return String(Math.floor(st.mtimeMs)) + '-' + String(st.size)
       }
-    };
+    }
+  } catch (e) {}
+  return 'dev'
+}
+
+function getFirm() {
+  const cfg = readJson('firm.json', null)
+  if (!cfg || !cfg.subdomain) return null
+
+  // Nese aplikacioni eshte instaluar perseri, kerkohet konfigurim i ri.
+  const stamp = installStamp()
+  if (stamp !== 'dev' && cfg.install_stamp !== stamp) {
+    writeJson('firm.json', {})
+    writeJson('device-lock.json', {})
+    return null
+  }
+
+  return cfg
+}
+
+function normalizeSubdomain(input) {
+  let s = String(input || '').trim().toLowerCase()
+  s = s.replace(/^https?:\/\//, '')
+  s = s.replace(/\/.*$/, '')
+  s = s.replace(/\.datapos\.pro$/, '')
+  s = s.replace(/[^a-z0-9-]/g, '')
+  return s
+}
+
+function firmUrl(subdomain) {
+  return 'https://' + subdomain + '.' + APEX
+}
+
+// ---------------------------------------------------------------------------
+// Kontrolli i rrjetit
+// ---------------------------------------------------------------------------
+function checkReachable(url) {
+  return new Promise((resolve) => {
+    let done = false
+    const finish = (ok) => {
+      if (!done) {
+        done = true
+        resolve(ok)
+      }
+    }
     try {
-      const request = net.request({ method: 'HEAD', url: PRODUCTION_URL });
-      request.on('response', () => finish(true));
-      request.on('error', () => finish(false));
-      request.end();
-      setTimeout(() => finish(false), timeoutMs);
+      const request = net.request({ method: 'HEAD', url: url })
+      request.on('response', () => finish(true))
+      request.on('error', () => finish(false))
+      request.end()
+      setTimeout(() => finish(false), 5000)
     } catch (e) {
-      finish(false);
+      finish(false)
     }
-  });
+  })
+}
 
-const notifyNetwork = (online) => {
+function notifyNetwork(online) {
+  lastOnline = online
   if (mainWindow && !mainWindow.isDestroyed()) {
-    mainWindow.webContents.send('net:status', { online });
+    mainWindow.webContents.send('net:status', { online: online })
   }
-};
+}
 
-const startNetworkWatch = () => {
-  if (netTimer) clearInterval(netTimer);
-  netTimer = setInterval(async () => {
-    const online = await checkServerReachable();
-    if (online !== lastOnline) {
-      lastOnline = online;
-      notifyNetwork(online);
-    }
-  }, 15000);
-};
+function startNetworkWatch(url) {
+  if (netWatch) clearInterval(netWatch)
+  netWatch = setInterval(async () => {
+    const ok = await checkReachable(url)
+    if (ok !== lastOnline) notifyNetwork(ok)
+  }, 15000)
+}
 
-/* ------------------------------------------------------------------ */
-/* Dritarja kryesore                                                   */
-/* ------------------------------------------------------------------ */
+// ---------------------------------------------------------------------------
+// Dritarja e konfigurimit te firmes (hera e pare pas instalimit)
+// ---------------------------------------------------------------------------
+function createSetupWindow() {
+  setupWindow = new BrowserWindow({
+    width: 560,
+    height: 640,
+    resizable: false,
+    center: true,
+    title: 'DataPOS - Konfigurimi',
+    autoHideMenuBar: true,
+    icon: path.join(__dirname, 'public', 'icon.ico'),
+    webPreferences: {
+      preload: path.join(__dirname, 'firm-preload.js'),
+      contextIsolation: true,
+      nodeIntegration: false,
+    },
+  })
 
-const loadLocalBuild = () => {
-  const localIndex = path.join(__dirname, 'build', 'index.html');
-  if (fs.existsSync(localIndex)) {
-    mainWindow.loadFile(localIndex, { hash: '/login' });
-  } else {
-    mainWindow.loadFile(path.join(__dirname, 'offline.html'));
-  }
-};
+  setupWindow.loadFile(path.join(__dirname, 'firm-setup.html'))
 
-async function createWindow() {
+  setupWindow.on('closed', () => {
+    setupWindow = null
+    if (!mainWindow) app.quit()
+  })
+}
+
+// ---------------------------------------------------------------------------
+// Dritarja kryesore
+// ---------------------------------------------------------------------------
+async function createMainWindow(firm) {
+  const url = firmUrl(firm.subdomain)
+
   mainWindow = new BrowserWindow({
     width: 1400,
     height: 900,
-    minWidth: 1024,
-    minHeight: 768,
-    title: 'DataPOS',
-    icon: path.join(__dirname, 'public/icon.ico'),
-    webPreferences: {
-      nodeIntegration: false,
-      contextIsolation: true,
-      preload: path.join(__dirname, 'preload.js'),
-      webSecurity: true,
-      allowRunningInsecureContent: false,
-    },
+    show: false,
+    title: 'DataPOS - ' + firm.subdomain,
     autoHideMenuBar: true,
-  });
+    icon: path.join(__dirname, 'public', 'icon.ico'),
+    webPreferences: {
+      preload: path.join(__dirname, 'preload.js'),
+      contextIsolation: true,
+      nodeIntegration: false,
+    },
+  })
 
-  Menu.setApplicationMenu(null);
-  session.defaultSession.clearCache();
+  mainWindow.maximize()
+  mainWindow.show()
 
-  if (isDev) {
-    mainWindow.loadURL('http://localhost:3000/#/login');
-    mainWindow.webContents.openDevTools();
+  const online = await checkReachable(url)
+
+  if (online) {
+    mainWindow.loadURL(url)
   } else {
-    // Offline-first: kontrollo serverin, perndryshe hap kopjen lokale
-    const online = await checkServerReachable();
-    lastOnline = online;
-    if (online) {
-      mainWindow.loadURL(PRODUCTION_URL + '/#/login');
-    } else {
-      loadLocalBuild();
-    }
+    mainWindow.loadFile(path.join(__dirname, 'build', 'index.html'), {
+      hash: '/login',
+    })
+    notifyNetwork(false)
   }
 
-  mainWindow.webContents.setWindowOpenHandler(({ url }) => {
-    if (url.startsWith('http') && !url.includes('datapos.pro')) {
-      shell.openExternal(url);
-      return { action: 'deny' };
+  mainWindow.webContents.on('did-fail-load', (e, code, desc, failedUrl) => {
+    if (failedUrl && failedUrl.indexOf('http') === 0) {
+      mainWindow.loadFile(path.join(__dirname, 'build', 'index.html'), {
+        hash: '/login',
+      })
+      notifyNetwork(false)
     }
-    return { action: 'allow' };
-  });
+  })
 
-  // Nese ngarkimi deshton (pa internet), kalo ne kopjen lokale
-  mainWindow.webContents.on('did-fail-load', (event, errorCode, desc, url, isMainFrame) => {
-    if (!isMainFrame) return;
-    console.log('Ngarkimi deshtoi:', errorCode, desc);
-    lastOnline = false;
-    notifyNetwork(false);
-    loadLocalBuild();
-  });
+  // Cdo kerkese drejt API-t e mban me vete firmen e ketij PC-je.
+  mainWindow.webContents.on('dom-ready', () => {
+    const sub = JSON.stringify(firm.subdomain)
+    mainWindow.webContents
+      .executeJavaScript(
+        'window.__DATAPOS_FIRM__ = ' +
+          sub +
+          '; window.__DATAPOS_API__ = "https://" + ' +
+          sub +
+          ' + ".' +
+          APEX +
+          '";',
+      )
+      .catch(() => {})
+  })
 
-  mainWindow.webContents.on('did-finish-load', () => {
-    notifyNetwork(lastOnline !== false);
-  });
+  mainWindow.webContents.setWindowOpenHandler((details) => {
+    shell.openExternal(details.url)
+    return { action: 'deny' }
+  })
 
   mainWindow.on('closed', () => {
-    mainWindow = null;
-  });
+    mainWindow = null
+  })
 
-  mainWindow.maximize();
-  startNetworkWatch();
+  try {
+    const ses = mainWindow.webContents.session
+    ses.webRequest.onBeforeSendHeaders((details, callback) => {
+      const h = details.requestHeaders || {}
+      h['X-Tenant-Subdomain'] = firm.subdomain
+      callback({ requestHeaders: h })
+    })
+  } catch (e) {}
+
+  startNetworkWatch(url)
+  buildMenu(firm)
 }
 
-/* ------------------------------------------------------------------ */
-/* IPC: kycja e firmes ne PC                                           */
-/* ------------------------------------------------------------------ */
+// ---------------------------------------------------------------------------
+// Menuja
+// ---------------------------------------------------------------------------
+function buildMenu(firm) {
+  const template = [
+    {
+      label: 'DataPOS',
+      submenu: [
+        { label: 'Firma: ' + (firm ? firm.subdomain : '-'), enabled: false },
+        { type: 'separator' },
+        {
+          label: 'Rifresko',
+          accelerator: 'F5',
+          click: () => mainWindow && mainWindow.reload(),
+        },
+        {
+          label: 'Ekran i plote',
+          accelerator: 'F11',
+          click: () =>
+            mainWindow && mainWindow.setFullScreen(!mainWindow.isFullScreen()),
+        },
+        {
+          label: 'Mjetet e zhvilluesit',
+          accelerator: 'F12',
+          click: () => mainWindow && mainWindow.webContents.toggleDevTools(),
+        },
+        { type: 'separator' },
+        {
+          label: 'Ndrysho firmen e ketij PC-je...',
+          click: () => {
+            writeJson('firm.json', {})
+            writeJson('device-lock.json', {})
+            app.relaunch()
+            app.exit(0)
+          },
+        },
+        { type: 'separator' },
+        { label: 'Dil', role: 'quit' },
+      ],
+    },
+  ]
+  Menu.setApplicationMenu(Menu.buildFromTemplate(template))
+}
 
-ipcMain.handle('device-lock:get', () => readJson('device-lock.json', null));
+// ---------------------------------------------------------------------------
+// IPC - konfigurimi i firmes
+// ---------------------------------------------------------------------------
+ipcMain.handle('firm:get', () => getFirm())
 
-ipcMain.handle('device-lock:set', (event, lock) => {
-  const existing = readJson('device-lock.json', null);
-  // Nese PC-ja eshte kycur me pare, mos e mbishkruaj me firme tjeter
-  if (existing && existing.tenant_id && lock?.tenant_id !== existing.tenant_id) {
-    return { success: false, lock: existing, error: 'PC-ja eshte kycur per firme tjeter' };
+// Lexim sinkron nga preload-i, perpara se te niset React-i
+ipcMain.on('firm:get-sync', (e) => {
+  const f = getFirm()
+  e.returnValue = f && f.subdomain ? f.subdomain : null
+})
+
+ipcMain.handle('firm:check', async (e, raw) => {
+  const sub = normalizeSubdomain(raw)
+  if (!sub) return { ok: false, error: 'Shkruani adresen e firmes.' }
+  const url = firmUrl(sub)
+  const reachable = await checkReachable(url)
+  return { ok: true, subdomain: sub, url: url, reachable: reachable }
+})
+
+ipcMain.handle('firm:save', async (e, raw) => {
+  const sub = normalizeSubdomain(raw)
+  if (!sub) return { ok: false, error: 'Adresa nuk eshte e vlefshme.' }
+
+  writeJson('firm.json', {
+    subdomain: sub,
+    saved_at: new Date().toISOString(),
+    install_stamp: installStamp(),
+  })
+
+  if (setupWindow && !setupWindow.isDestroyed()) {
+    const w = setupWindow
+    setupWindow = null
+    w.close()
   }
-  const ok = writeJson('device-lock.json', lock);
-  return { success: ok, lock };
-});
+
+  await createMainWindow({ subdomain: sub })
+  return { ok: true, subdomain: sub }
+})
+
+// ---------------------------------------------------------------------------
+// IPC - kycja e firmes ne kete PC (device lock)
+// ---------------------------------------------------------------------------
+ipcMain.handle('device-lock:get', () => readJson('device-lock.json', null))
+
+ipcMain.handle('device-lock:set', (e, lock) => {
+  const current = readJson('device-lock.json', null)
+  if (current && current.tenant_id && lock && lock.tenant_id) {
+    if (current.tenant_id !== lock.tenant_id) {
+      return { ok: false, locked: current }
+    }
+  }
+  writeJson('device-lock.json', lock || {})
+  return { ok: true, locked: lock }
+})
 
 ipcMain.handle('device-lock:clear', () => {
-  try {
-    const file = dataFile('device-lock.json');
-    if (fs.existsSync(file)) fs.unlinkSync(file);
-    return { success: true };
-  } catch (e) {
-    return { success: false, error: e.message };
-  }
-});
+  writeJson('device-lock.json', {})
+  return { ok: true }
+})
 
-/* ------------------------------------------------------------------ */
-/* IPC: ruajtja offline dhe rrjeti                                     */
-/* ------------------------------------------------------------------ */
+// ---------------------------------------------------------------------------
+// IPC - ruajtja offline dhe rrjeti
+// ---------------------------------------------------------------------------
+ipcMain.handle('offline:read', () => readJson('offline-store.json', {}))
 
-ipcMain.handle('offline:read', () => readJson('offline-store.json', {}));
-ipcMain.handle('offline:write', (event, data) => ({
-  success: writeJson('offline-store.json', data || {}),
-}));
+ipcMain.handle('offline:write', (e, data) => {
+  writeJson('offline-store.json', data || {})
+  return { ok: true }
+})
+
 ipcMain.handle('net:check', async () => {
-  const online = await checkServerReachable();
-  lastOnline = online;
-  return { online };
-});
+  const firm = getFirm()
+  const url = firm ? firmUrl(firm.subdomain) : 'https://www.' + APEX
+  const online = await checkReachable(url)
+  lastOnline = online
+  return { online: online }
+})
 
-/* ------------------------------------------------------------------ */
-/* IPC: printimi                                                       */
-/* ------------------------------------------------------------------ */
-
-ipcMain.handle('silent-print', async (event, options = {}) => {
+// ---------------------------------------------------------------------------
+// IPC - printimi
+// ---------------------------------------------------------------------------
+ipcMain.handle('get-printers', async (event) => {
   try {
-    const win = BrowserWindow.getFocusedWindow() || mainWindow;
-    if (!win) return { success: false, error: 'Nuk u gjet dritarja' };
-
-    const printers = await win.webContents.getPrintersAsync();
-    let targetPrinter = printers.find((p) => p.isDefault);
-    if (options.printerName) {
-      const specific = printers.find((p) => p.name === options.printerName);
-      if (specific) targetPrinter = specific;
+    const wc = event.sender
+    if (typeof wc.getPrintersAsync === 'function') {
+      return await wc.getPrintersAsync()
     }
-    if (!targetPrinter) return { success: false, error: 'Nuk ka printer' };
-
-    await win.webContents.print({
-      silent: true,
-      printBackground: true,
-      deviceName: targetPrinter.name,
-      margins: { marginType: 'none' },
-      pageSize: options.pageSize || 'A4',
-      ...options.printOptions,
-    });
-    return { success: true, printer: targetPrinter.name };
-  } catch (error) {
-    return { success: false, error: error.message };
+    return wc.getPrinters ? wc.getPrinters() : []
+  } catch (e) {
+    return []
   }
-});
+})
 
-ipcMain.handle('get-printers', async () => {
+ipcMain.handle('silent-print', async (event, options) => {
+  const opts = options || {}
+  return new Promise((resolve) => {
+    try {
+      event.sender.print(
+        {
+          silent: true,
+          printBackground: true,
+          deviceName: opts.printerName || '',
+          margins: { marginType: 'none' },
+        },
+        (success, reason) => resolve({ success: success, reason: reason }),
+      )
+    } catch (err) {
+      resolve({ success: false, reason: String(err) })
+    }
+  })
+})
+
+ipcMain.handle('print-to-pdf', async (event, options) => {
   try {
-    const win = BrowserWindow.getFocusedWindow() || mainWindow;
-    if (!win) return [];
-    const printers = await win.webContents.getPrintersAsync();
-    return printers.map((p) => ({
-      name: p.name,
-      displayName: p.displayName,
-      isDefault: p.isDefault,
-      status: p.status,
-    }));
-  } catch (error) {
-    return [];
+    const data = await event.sender.printToPDF(
+      Object.assign({ printBackground: true }, options || {}),
+    )
+    return { success: true, data: data.toString('base64') }
+  } catch (err) {
+    return { success: false, error: String(err) }
   }
-});
+})
 
-ipcMain.handle('print-to-pdf', async (event, options = {}) => {
-  try {
-    const win = BrowserWindow.getFocusedWindow() || mainWindow;
-    if (!win) return { success: false, error: 'Nuk u gjet dritarja' };
-    const pdfData = await win.webContents.printToPDF({
-      printBackground: true,
-      margins: { top: 0, bottom: 0, left: 0, right: 0 },
-      pageSize: options.pageSize || 'A4',
-    });
-    return { success: true, data: pdfData.toString('base64') };
-  } catch (error) {
-    return { success: false, error: error.message };
-  }
-});
+// ---------------------------------------------------------------------------
+// Nisja
+// ---------------------------------------------------------------------------
+const gotLock = app.requestSingleInstanceLock()
 
-/* ------------------------------------------------------------------ */
-/* Cikli i aplikacionit                                                */
-/* ------------------------------------------------------------------ */
-
-// Vetem nje instance - shmang bllokimin e skedareve dhe dritare te dyfishta
-const gotTheLock = app.requestSingleInstanceLock();
-if (!gotTheLock) {
-  app.quit();
+if (!gotLock) {
+  app.quit()
 } else {
   app.on('second-instance', () => {
-    if (mainWindow) {
-      if (mainWindow.isMinimized()) mainWindow.restore();
-      mainWindow.focus();
+    const w = mainWindow || setupWindow
+    if (w && !w.isDestroyed()) {
+      if (w.isMinimized()) w.restore()
+      w.focus()
     }
-  });
+  })
 
   app.whenReady().then(() => {
-    createWindow();
-    app.on('activate', () => {
-      if (BrowserWindow.getAllWindows().length === 0) createWindow();
-    });
-  });
-}
+    const firm = getFirm()
+    if (firm && firm.subdomain) {
+      createMainWindow(firm)
+    } else {
+      createSetupWindow()
+    }
 
-app.on('window-all-closed', () => {
-  if (netTimer) clearInterval(netTimer);
-  if (process.platform !== 'darwin') app.quit();
-});
+    app.on('activate', () => {
+      if (BrowserWindow.getAllWindows().length === 0) {
+        const f = getFirm()
+        if (f && f.subdomain) createMainWindow(f)
+        else createSetupWindow()
+      }
+    })
+  })
+
+  app.on('window-all-closed', () => {
+    if (netWatch) clearInterval(netWatch)
+    if (process.platform !== 'darwin') app.quit()
+  })
+}

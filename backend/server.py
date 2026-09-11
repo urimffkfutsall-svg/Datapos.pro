@@ -198,3 +198,38 @@ async def health():
 async def health_check():
     """Health check endpoint"""
     return {"status": "healthy"}
+
+
+# ---- DATAPOS: LIDHJA ME SUBDOMAIN-IN ----------------------------------
+# Aplikacioni desktop dhe frontend-i e dergojne firmen me koken
+# X-Tenant-Subdomain. Kjo e rishkruan Host-in, keshtu qe i gjithe
+# kodi ekzistues qe e nxjerr firmen nga adresa vazhdon te punoje
+# edhe kur backend-i ndodhet ne nje host tjeter nga *.datapos.pro
+import re as _dp_re
+
+_DP_SUB_RE = _dp_re.compile(r"^[a-z0-9-]{1,63}$")
+_DP_APEX = "datapos.pro"
+_DP_SKIP = {"www", "app", "api"}
+
+
+@app.middleware("http")
+async def _datapos_tenant_subdomain(request, call_next):
+    try:
+        raw = request.headers.get("x-tenant-subdomain") or ""
+        sub = raw.strip().lower()
+        if sub and sub not in _DP_SKIP and _DP_SUB_RE.match(sub):
+            new_host = (sub + "." + _DP_APEX).encode("latin-1")
+            headers = [
+                (k, v)
+                for (k, v) in request.scope.get("headers", [])
+                if k.lower() not in (b"host", b"x-forwarded-host")
+            ]
+            headers.append((b"host", new_host))
+            headers.append((b"x-forwarded-host", new_host))
+            request.scope["headers"] = headers
+    except Exception:
+        pass
+    return await call_next(request)
+
+
+# ---- FUND: LIDHJA ME SUBDOMAIN-IN -------------------------------------

@@ -2,19 +2,15 @@
 ===========================================================================
  DataPOS - Ndertimi i setup.exe (PowerShell)
 ---------------------------------------------------------------------------
- Zgjidh problemin:
-   "remove ...\resources\app.asar: The process cannot access the file
-    because it is being used by another process"
-
- Si e zgjidh:
-  1. Mbyll te gjitha procesat qe mbajne app.asar te hapur.
-  2. Mbyll dritaret e Explorer-it te hapura ne dosjet e daljes.
-  3. Ndertimi shkon ne dosje TE RE me stamp kohor - edhe nese dosja e vjeter
-     mbetet e bllokuar nga Defender-i, ndertimi vazhdon pa gabim.
-  4. Fshin dosjet e vjetra vetem nese jane te lira.
-
  Perdorimi:
    powershell -ExecutionPolicy Bypass -File .\build-setup.ps1
+
+ RREGULLIM I RENDESISHEM:
+   PowerShell-i e ndan argumentin "-c.directories.output=X" dhe
+   electron-builder-i mendon se ".directories.output=X" eshte skedar
+   konfigurimi -> gabimi ENOENT.
+   Prandaj tani komanda ekzekutohet PERMES cmd.exe, i cili i dergon
+   argumentet ashtu si duhet.
 ===========================================================================
 #>
 
@@ -26,95 +22,86 @@ Write-Host "=== DataPOS - ndertimi i instaluesit ===" -ForegroundColor Cyan
 Write-Host ""
 
 # --------------------------------------------------------------------------
-# 1. Mbyllja e proceseve qe bllokojne skedaret
+# 0. Lirimi i skedareve te bllokuar (pa rinisje)
 # --------------------------------------------------------------------------
-Write-Host "[1/6] Mbyllja e proceseve..." -ForegroundColor Yellow
-$procs = @("DataPOS", "electron", "app-builder", "nsis", "makensis", "7z")
-foreach ($p in $procs) {
-    Get-Process -Name $p -ErrorAction SilentlyContinue | ForEach-Object {
-        Write-Host "      mbyllet: $($_.ProcessName) (PID $($_.Id))"
-        Stop-Process -Id $_.Id -Force -ErrorAction SilentlyContinue
-    }
-}
-Start-Sleep -Seconds 2
-
-# --------------------------------------------------------------------------
-# 2. Mbyllja e dritareve te Explorer-it ne dosjet e daljes
-# --------------------------------------------------------------------------
-Write-Host "[2/6] Kontrolli i dritareve te Explorer-it..." -ForegroundColor Yellow
-try {
-    $shell = New-Object -ComObject Shell.Application
-    $shell.Windows() | Where-Object {
-        $_.LocationURL -match "dist|release|win-unpacked"
-    } | ForEach-Object {
-        Write-Host "      mbyllet dritarja: $($_.LocationName)"
-        $_.Quit()
-    }
-} catch {
-    Write-Host "      (nuk u kontrollua - vazhdojme)"
+if (Test-Path "$PSScriptRoot\unlock-build.ps1") {
+    Write-Host "[0/4] Lirimi i skedareve te bllokuar..." -ForegroundColor Yellow
+    & powershell -ExecutionPolicy Bypass -File "$PSScriptRoot\unlock-build.ps1"
 }
 
 # --------------------------------------------------------------------------
-# 3. Dosja e daljes - gjithmone e re, pa konflikt
+# 1. Varesite
 # --------------------------------------------------------------------------
-$stamp  = Get-Date -Format "yyyyMMdd-HHmm"
-$outDir = "release-$stamp"
-Write-Host "[3/6] Dosja e daljes: $outDir" -ForegroundColor Yellow
-
-# Fshi dosjet e vjetra nese jane te lira (nese jo, thjeshte vazhdo)
-foreach ($old in @("dist", "release")) {
-    if (Test-Path $old) {
-        try {
-            Remove-Item $old -Recurse -Force -ErrorAction Stop
-            Write-Host "      u fshi dosja e vjeter: $old"
-        } catch {
-            Write-Host "      dosja '$old' e bllokuar - anashkalohet" -ForegroundColor DarkYellow
-        }
-    }
-}
-
-# --------------------------------------------------------------------------
-# 4. Varesite
-# --------------------------------------------------------------------------
-Write-Host "[4/6] Instalimi i varesive..." -ForegroundColor Yellow
+Write-Host ""
+Write-Host "[1/4] Kontrolli i varesive..." -ForegroundColor Yellow
 if (-not (Test-Path "node_modules")) {
-    yarn install
+    cmd /c "yarn install"
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "GABIM: yarn install deshtoi." -ForegroundColor Red
+        exit 1
+    }
 } else {
     Write-Host "      node_modules ekziston - anashkalohet"
 }
 
 # --------------------------------------------------------------------------
-# 5. Ndertimi i React-it
+# 2. Ndertimi i React-it
 # --------------------------------------------------------------------------
-Write-Host "[5/6] Ndertimi i aplikacionit React..." -ForegroundColor Yellow
-yarn build
-if ($LASTEXITCODE -ne 0) {
-    Write-Host "GABIM: ndertimi i React-it deshtoi." -ForegroundColor Red
+Write-Host ""
+Write-Host "[2/4] Ndertimi i aplikacionit React..." -ForegroundColor Yellow
+if (Test-Path "build\index.html") {
+    Remove-Item "build" -Recurse -Force -ErrorAction SilentlyContinue
+}
+cmd /c "yarn build"
+if (-not (Test-Path "build\index.html")) {
+    Write-Host "GABIM: dosja 'build' nuk u krijua." -ForegroundColor Red
     exit 1
 }
+Write-Host "      build/index.html u krijua" -ForegroundColor Green
 
 # --------------------------------------------------------------------------
-# 6. Ndertimi i instaluesit NSIS
+# 3. Ndertimi i instaluesit NSIS
 # --------------------------------------------------------------------------
-Write-Host "[6/6] Ndertimi i setup.exe..." -ForegroundColor Yellow
-npx electron-builder --win nsis --x64 -c.directories.output=$outDir
+Write-Host ""
+Write-Host "[3/4] Ndertimi i setup.exe..." -ForegroundColor Yellow
 
-if ($LASTEXITCODE -ne 0) {
+# Prova 1: dosja standarde 'release' (e caktuar ne package.json)
+cmd /c "npx electron-builder --win nsis --x64"
+$buildOk = ($LASTEXITCODE -eq 0)
+$outDir  = "release"
+
+# Prova 2: nese 'release' ishte e bllokuar, perdor dosje me stamp kohor.
+# Argumenti kalon permes cmd.exe - keshtu shmanget gabimi ENOENT.
+if (-not $buildOk) {
+    $stamp  = Get-Date -Format "yyyyMMdd-HHmm"
+    $outDir = "release-$stamp"
+    Write-Host ""
+    Write-Host "      Prova e dyte ne dosjen: $outDir" -ForegroundColor DarkYellow
+    cmd /c "npx electron-builder --win nsis --x64 -c.directories.output=$outDir"
+    $buildOk = ($LASTEXITCODE -eq 0)
+}
+
+if (-not $buildOk) {
     Write-Host ""
     Write-Host "Ndertimi deshtoi. Provo keto hapa:" -ForegroundColor Red
-    Write-Host "  1. Rinis kompjuterin (liron skedaret e bllokuar)"
-    Write-Host "  2. Shto perjashtim ne Windows Defender per dosjen e projektit:"
+    Write-Host "  1. Hap PowerShell si Administrator dhe ekzekuto: .\unlock-build.ps1"
+    Write-Host "  2. Shto perjashtim ne Windows Defender:"
     Write-Host "     Add-MpPreference -ExclusionPath '$PSScriptRoot'" -ForegroundColor Gray
     Write-Host "  3. Ekzekuto perseri: .\build-setup.ps1"
     exit 1
 }
 
 # --------------------------------------------------------------------------
-# Rezultati
+# 4. Rezultati
 # --------------------------------------------------------------------------
 Write-Host ""
-$setup = Get-ChildItem -Path $outDir -Filter "*Setup*.exe" -ErrorAction SilentlyContinue |
-         Select-Object -First 1
+Write-Host "[4/4] Kontrolli i instaluesit..." -ForegroundColor Yellow
+
+$setup = Get-ChildItem -Path . -Filter "*Setup*.exe" -Recurse -ErrorAction SilentlyContinue |
+         Where-Object { $_.FullName -match "release" } |
+         Sort-Object LastWriteTime -Descending | Select-Object -First 1
+
+Write-Host ""
 if ($setup) {
     $mb = [math]::Round($setup.Length / 1MB, 1)
     Write-Host "=== GATI ===" -ForegroundColor Green
@@ -123,5 +110,7 @@ if ($setup) {
     Write-Host ""
     Write-Host "Kopjoje ne cdo PC dhe ekzekutoje per instalim."
 } else {
-    Write-Host "Ndertimi perfundoi, por setup.exe nuk u gjet ne '$outDir'." -ForegroundColor Yellow
+    Write-Host "Ndertimi perfundoi, por setup.exe nuk u gjet." -ForegroundColor Yellow
+    Write-Host "Kontrollo dosjen: $outDir" -ForegroundColor Yellow
 }
+Write-Host ""
