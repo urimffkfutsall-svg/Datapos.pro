@@ -9,9 +9,10 @@ import {
 import {
   Delete, CornerDownLeft, User, Lock, Eye, EyeOff,
   ArrowLeft, AlertTriangle, CreditCard, Phone,
-  ShoppingCart, Package, BarChart3, Users, Boxes, Ticket, Store,
+  ShoppingCart, Package, BarChart3, Users, Boxes, Store,
   Keyboard,
 } from 'lucide-react';
+import LoginSlideshow from '../components/LoginSlideshow';
 
 const SERVICES = [
   { icon: ShoppingCart, label: 'Arka POS' },
@@ -19,7 +20,6 @@ const SERVICES = [
   { icon: BarChart3,    label: 'Raporte' },
   { icon: Users,        label: 'Klientet' },
   { icon: Boxes,        label: 'Stoku' },
-  { icon: Ticket,       label: 'Kuponja' },
 ];
 
 const QWERTY_ROWS = [
@@ -197,18 +197,18 @@ const Login = () => {
             <div className="flex flex-col p-6 lg:pl-14 lg:pr-8 relative z-10">
               <div className="w-full max-w-[240px] mx-auto lg:mx-0 flex flex-col items-center flex-1 justify-center">
                 {/* Logo */}
-                <div className="w-24 h-24 bg-[#0E4B49] rounded-3xl shadow-lg flex items-center justify-center mb-4">
-                  {tenant?.logo_url ? (
-                    <img
-                      src={tenant.logo_url}
-                      alt={brandName}
-                      className="w-16 h-16 object-contain rounded-2xl"
-                      onError={(e) => { e.target.style.display = 'none'; }}
-                    />
-                  ) : (
+                {tenant?.logo_url ? (
+                  <img
+                    src={tenant.logo_url}
+                    alt={brandName}
+                    className="max-w-[150px] max-h-[104px] w-auto object-contain mb-4"
+                    onError={(e) => { e.target.style.display = 'none'; }}
+                  />
+                ) : (
+                  <div className="w-24 h-24 bg-[#0E4B49] rounded-3xl shadow-lg flex items-center justify-center mb-4">
                     <Store className="w-12 h-12 text-white" strokeWidth={1.5} />
-                  )}
-                </div>
+                  </div>
+                )}
 
                 <h1 className="text-2xl font-bold text-[#0E4B49] tracking-tight text-center leading-tight break-words w-full">
                   {brandName}
@@ -221,7 +221,7 @@ const Login = () => {
                     const Icon = s.icon;
                     return (
                       <div key={i} className="flex items-center gap-1.5 bg-gray-50 rounded-lg px-2 py-1.5 border border-gray-100">
-                        <div className="w-6 h-6 bg-emerald-50 rounded-md flex items-center justify-center flex-shrink-0">
+                        <div className="w-6 h-6 rounded-md flex items-center justify-center flex-shrink-0">
                           <Icon className="w-3.5 h-3.5 text-[#0E4B49]" />
                         </div>
                         <span className="text-[11px] text-gray-700 font-medium truncate">{s.label}</span>
@@ -426,6 +426,9 @@ const Login = () => {
             </div>
           </div>
         </div>
+
+        {/* Slideshow: cfare ben DataPOS */}
+        <LoginSlideshow />
       </div>
 
       {/* Virtual Keyboard Modal */}
