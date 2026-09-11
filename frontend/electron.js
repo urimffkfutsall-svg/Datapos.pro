@@ -42,38 +42,13 @@ function writeJson(name, data) {
 // ---------------------------------------------------------------------------
 // Adresa e firmes per kete kompjuter
 // ---------------------------------------------------------------------------
-// Gjurma e instalimit aktual. Ndryshon sa here qe aplikacioni
-// cinstalohet dhe instalohet perseri, edhe ne te njejtin kompjuter.
-function installStamp() {
-  try {
-    const candidates = [
-      path.join(process.resourcesPath || '', 'app.asar'),
-      process.execPath,
-    ]
-    for (let i = 0; i < candidates.length; i++) {
-      const p = candidates[i]
-      if (p && fs.existsSync(p)) {
-        const st = fs.statSync(p)
-        return String(Math.floor(st.mtimeMs)) + '-' + String(st.size)
-      }
-    }
-  } catch (e) {}
-  return 'dev'
-}
-
+// Konfigurimi i firmes ruhet pergjithmone ne kete kompjuter.
+// Kerkohet perseri VETEM pas cinstalimit dhe instalimit te ri:
+// ate pune e ben instaluesi (installer.nsh), i cili fshin firm.json.
 function getFirm() {
   const cfg = readJson('firm.json', null)
-  if (!cfg || !cfg.subdomain) return null
-
-  // Nese aplikacioni eshte instaluar perseri, kerkohet konfigurim i ri.
-  const stamp = installStamp()
-  if (stamp !== 'dev' && cfg.install_stamp !== stamp) {
-    writeJson('firm.json', {})
-    writeJson('device-lock.json', {})
-    return null
-  }
-
-  return cfg
+  if (cfg && cfg.subdomain) return cfg
+  return null
 }
 
 function normalizeSubdomain(input) {
@@ -306,7 +281,6 @@ ipcMain.handle('firm:save', async (e, raw) => {
   writeJson('firm.json', {
     subdomain: sub,
     saved_at: new Date().toISOString(),
-    install_stamp: installStamp(),
   })
 
   if (setupWindow && !setupWindow.isDestroyed()) {
