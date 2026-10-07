@@ -134,7 +134,7 @@ const Stock = () => {
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <Card className="border border-gray-200/60 rounded-3xl shadow-sm bg-white/80 backdrop-blur-md">
           <CardContent className="p-6">
-            <div className="flex items-center justify-between">
+            <div className="dp-toolbar flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-500">Total Produktet</p>
                 <p className="text-3xl font-bold mt-1">{products.length}</p>
@@ -148,7 +148,7 @@ const Stock = () => {
 
         <Card className="border border-gray-200/60 rounded-3xl shadow-sm bg-white/80 backdrop-blur-md">
           <CardContent className="p-6">
-            <div className="flex items-center justify-between">
+            <div className="dp-toolbar flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-500">Stok i Ulët</p>
                 <p className="text-3xl font-bold mt-1 text-orange-500">{lowStockProducts.length}</p>
@@ -162,7 +162,7 @@ const Stock = () => {
 
         <Card className="border border-gray-200/60 rounded-3xl shadow-sm bg-white/80 backdrop-blur-md">
           <CardContent className="p-6">
-            <div className="flex items-center justify-between">
+            <div className="dp-toolbar flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-500">Pa Stok</p>
                 <p className="text-3xl font-bold mt-1 text-red-500">{outOfStockProducts.length}</p>

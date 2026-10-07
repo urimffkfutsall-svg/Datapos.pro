@@ -234,7 +234,7 @@ const Debts = () => {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card className="border border-orange-200 bg-orange-50 rounded-3xl shadow-sm">
           <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
+            <div className="dp-toolbar flex items-center justify-between">
               <div>
                 <p className="text-sm text-orange-600">Total Borxhe</p>
                 <p className="text-2xl font-bold text-orange-700">€{summary?.total_debt?.toFixed(2) || '0.00'}</p>
@@ -246,7 +246,7 @@ const Debts = () => {
 
         <Card className="border border-green-200 bg-green-50 rounded-3xl shadow-sm">
           <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
+            <div className="dp-toolbar flex items-center justify-between">
               <div>
                 <p className="text-sm text-green-600">Paguar</p>
                 <p className="text-2xl font-bold text-green-700">€{summary?.total_paid?.toFixed(2) || '0.00'}</p>
@@ -258,7 +258,7 @@ const Debts = () => {
 
         <Card className="border border-red-200 bg-red-50 rounded-3xl shadow-sm">
           <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
+            <div className="dp-toolbar flex items-center justify-between">
               <div>
                 <p className="text-sm text-red-600">Pa Paguar</p>
                 <p className="text-2xl font-bold text-red-700">€{summary?.outstanding?.toFixed(2) || '0.00'}</p>
@@ -270,7 +270,7 @@ const Debts = () => {
 
         <Card className="border border-gray-200/60 rounded-3xl shadow-sm bg-white/80 backdrop-blur-md">
           <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
+            <div className="dp-toolbar flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-500">Numri i Borxheve</p>
                 <p className="text-2xl font-bold text-gray-700">

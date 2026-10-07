@@ -151,45 +151,24 @@ const POS = () => {
   }, []);
 
   // Auto-scaling based on screen resolution
-  const [scale, setScale] = useState(1);
-  const [fontSize, setFontSize] = useState('base');
   
   // Responsive screen size detection with auto-scaling
   useEffect(() => {
     const updateScreenSize = () => {
       const width = window.innerWidth;
-      const height = window.innerHeight;
       
-      // Calculate optimal scale based on resolution
-      // Base resolution: 1920x1080
-      const baseWidth = 1920;
-      const baseHeight = 1080;
-      
-      const scaleX = width / baseWidth;
-      const scaleY = height / baseHeight;
-      const optimalScale = Math.min(scaleX, scaleY, 1.2); // Cap at 1.2x
-      
-      // Set scale for CSS transform
-      setScale(Math.max(optimalScale, 0.7)); // Min 0.7x
-      
+      // Keep text readable; responsive.css reflows columns without shrinking.
       // Determine screen size category
-      if (width < 1280 || height < 700) {
+      if (width < 768) {
         setScreenSize('small');
-        setFontSize('sm');
-      } else if (width < 1536 || height < 800) {
+      } else if (width < 1280) {
         setScreenSize('medium');
-        setFontSize('base');
       } else if (width >= 1920) {
         setScreenSize('xlarge');
-        setFontSize('lg');
       } else {
         setScreenSize('large');
-        setFontSize('base');
       }
       
-      // Apply CSS custom properties for dynamic sizing
-      document.documentElement.style.setProperty('--pos-scale', optimalScale.toString());
-      document.documentElement.style.setProperty('--pos-font-scale', `${Math.max(optimalScale, 0.85)}rem`);
     };
     
     updateScreenSize();
@@ -1571,9 +1550,9 @@ const addToCart = useCallback((product, mode = null) => {
     // For cashier - fullscreen view with header
     if (isCashierFullscreen) {
       return (
-        <div className="min-h-screen bg-[#F8FAFC]">
+        <div className="dp-cashier-shell min-h-screen bg-[#F8FAFC]">
           {/* Cashier Header */}
-          <header className="bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between">
+          <header className="dp-cashier-header bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between">
             <div className="flex items-center gap-3">
               {/* Company Logo */}
               {companySettings?.logo_url ? (
@@ -1613,7 +1592,7 @@ const addToCart = useCallback((product, mode = null) => {
           </header>
 
           {/* Open Drawer Content */}
-          <div className="flex flex-col items-center justify-center h-[calc(100vh-5rem)]" data-testid="pos-open-drawer">
+          <div className="dp-open-drawer flex flex-col items-center justify-center" data-testid="pos-open-drawer">
             <div className="text-center space-y-6">
               <div className="h-24 w-24 mx-auto bg-[#0E4B49]/10 rounded-full flex items-center justify-center">
                 <Calculator className="h-12 w-12 text-[#0E4B49]" />
@@ -1731,17 +1710,13 @@ const addToCart = useCallback((product, mode = null) => {
   // Full screen POS layout for cashier
   const posContent = (
     <div
-      className={`${isCashierFullscreen ? 'h-[calc(100vh-5rem)]' : 'h-[calc(100vh-8rem)]'} flex flex-col lg:flex-row gap-3 ${responsiveClasses.container}`}
-      style={{
-        fontSize: `calc(1rem * ${scale})`,
-        '--dynamic-scale': scale
-      }}
+      className={`dp-pos-grid gap-3 ${responsiveClasses.container}`}
       data-testid="pos-page"
     >
       {/* Left Side - Product Search & Cart */}
-      <div className="flex-1 flex flex-col min-w-0">
+      <div className="dp-pos-work flex-1 flex flex-col min-w-0">
         {/* Header with search */}
-        <div className="flex items-center gap-3 mb-3 lg:mb-4">
+        <div className="dp-pos-search flex items-center gap-3 mb-3 lg:mb-4">
           <div className="hidden sm:flex items-center gap-2.5 px-3 py-2 rounded-2xl bg-white/70 backdrop-blur-md border border-gray-200/60 shadow-sm">
             <div className="h-8 w-8 rounded-xl bg-gradient-to-br from-[#0E4B49] to-[#0F5A57] flex items-center justify-center text-white text-sm font-semibold">
               {user?.full_name?.charAt(0) || 'U'}
@@ -1879,7 +1854,7 @@ const addToCart = useCallback((product, mode = null) => {
               )}
 
               {/* Rrjeti i produkteve */}
-              <div className="pt-3 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2 max-h-[34vh] overflow-auto pr-1">
+              <div className="dp-catalog-grid pt-3 grid gap-2 overflow-auto pr-1">
                 {catalogProducts.map((product) => {
                   const outOfStock = !(product.current_stock > 0);
                   return (
@@ -1915,21 +1890,10 @@ const addToCart = useCallback((product, mode = null) => {
         </div>
 
         {/* Cart Table */}
-        <Card className="flex-1 border border-gray-200/60 rounded-3xl shadow-sm overflow-hidden bg-white/80 backdrop-blur-md flex flex-col">
-          <div className="bg-gradient-to-r from-[#0E4B49]/15 to-[#3BB0AA]/10 px-4 py-3 border-b border-[#0E4B49]/15">
-            <div className="grid grid-cols-12 gap-2 text-[11px] font-bold text-gray-600 uppercase tracking-wide">
-              <div className="col-span-1">Nr</div>
-              <div className="col-span-3">{'Em\u00EBrtimi'}</div>
-              <div className="col-span-1 text-center">Sasia</div>
-              <div className="col-span-2 text-right">{'\u00C7mimi'}</div>
-              <div className="col-span-1 text-center">Zbritja %</div>
-              <div className="col-span-1 text-center">Tvsh %</div>
-              <div className="col-span-2 text-right">{'\u00C7mimi me tvsh'}</div>
-              <div className="col-span-1 text-right">Total</div>
-            </div>
-          </div>
-          <div className="overflow-auto flex-1" style={{ maxHeight: 'calc(100vh - 24rem)' }}>
+        <Card className="dp-cart-card flex-1 border border-gray-200/60 rounded-3xl shadow-sm overflow-hidden bg-white/80 backdrop-blur-md flex flex-col">
+          <div className="dp-cart-scroll overflow-auto flex-1">
             <Table>
+              <TableHeader><TableRow><TableHead>Nr</TableHead><TableHead>Produkti</TableHead><TableHead>Sasia</TableHead><TableHead>Çmimi</TableHead><TableHead>Zbritja %</TableHead><TableHead>TVSH %</TableHead><TableHead>Çmimi me TVSH</TableHead><TableHead>Total</TableHead><TableHead>Veprime</TableHead></TableRow></TableHeader>
               <TableBody>
                 {cart.length === 0 ? (
                   <TableRow>
@@ -2063,7 +2027,7 @@ const addToCart = useCallback((product, mode = null) => {
       </div>
 
       {/* Right Side - Action Buttons */}
-      <div className="w-full lg:w-52 flex flex-row lg:flex-col gap-2 flex-wrap lg:flex-nowrap lg:overflow-y-auto">
+      <div className="dp-pos-actions w-full flex gap-2">
         <Button
           className="flex-1 lg:h-16 flex items-center justify-center gap-2 bg-gradient-to-br from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold shadow-lg shadow-emerald-500/25 rounded-2xl text-base"
           onClick={() => cart.length > 0 && setShowPayment(true)}
@@ -2071,7 +2035,7 @@ const addToCart = useCallback((product, mode = null) => {
           data-testid="pos-print-btn"
         >
           <Printer className="h-5 w-5" />
-          <span className="hidden lg:inline">Shtyp</span>
+          <span className="dp-action-label">Shtyp</span>
           <span className="text-xs bg-white/20 px-2 py-0.5 rounded-md ml-1">F2</span>
         </Button>
 
@@ -2083,7 +2047,7 @@ const addToCart = useCallback((product, mode = null) => {
           data-testid="pos-print-a4-btn"
         >
           <FileDown className="h-5 w-5" strokeWidth={1.75} />
-          <span className="hidden lg:inline">Printo A4</span>
+          <span className="dp-action-label">Printo A4</span>
           <span className="text-xs bg-emerald-100 px-1.5 py-0.5 rounded-md ml-1">F4</span>
         </Button>
 
@@ -2094,7 +2058,7 @@ const addToCart = useCallback((product, mode = null) => {
           data-testid="pos-add-product-btn"
         >
           <Package className="h-5 w-5" strokeWidth={1.75} />
-          <span className="hidden lg:inline">{'K\u00EBrko artikullin'}</span>
+          <span className="dp-action-label">{'K\u00EBrko artikullin'}</span>
           <span className="text-xs bg-gray-100 px-1.5 py-0.5 rounded-md ml-1">F12</span>
         </Button>
 
@@ -2105,7 +2069,7 @@ const addToCart = useCallback((product, mode = null) => {
           data-testid="pos-documents-btn"
         >
           <FileText className="h-5 w-5" strokeWidth={1.75} />
-          <span className="hidden lg:inline">Dokumentin</span>
+          <span className="dp-action-label">Dokumentin</span>
           <span className="text-xs bg-gray-100 px-1.5 py-0.5 rounded-md ml-1">F6</span>
         </Button>
 
@@ -2116,7 +2080,7 @@ const addToCart = useCallback((product, mode = null) => {
           data-testid="pos-print-note-btn"
         >
           <Receipt className="h-5 w-5" strokeWidth={1.75} />
-          <span className="hidden lg:inline">Shtyp Noten</span>
+          <span className="dp-action-label">Shtyp Noten</span>
         </Button>
 
         {companySettings?.show_warranty_in_pos !== false && (
@@ -2128,7 +2092,7 @@ const addToCart = useCallback((product, mode = null) => {
               data-testid="pos-warranty-btn"
             >
               <Shield className="h-5 w-5" strokeWidth={1.75} />
-              <span className="hidden lg:inline">Garancioni</span>
+              <span className="dp-action-label">Garancioni</span>
               <span className="text-xs bg-emerald-100 px-1.5 py-0.5 rounded-md ml-1">F7</span>
             </Button>
 
@@ -2142,7 +2106,7 @@ const addToCart = useCallback((product, mode = null) => {
               data-testid="pos-warranty-list-btn"
             >
               <List className="h-5 w-5" strokeWidth={1.75} />
-              <span className="hidden lg:inline">Garancione</span>
+              <span className="dp-action-label">Garancione</span>
             </Button>
           </>
         )}
@@ -2154,7 +2118,7 @@ const addToCart = useCallback((product, mode = null) => {
           data-testid="pos-customer-btn"
         >
           <User className="h-5 w-5" strokeWidth={1.75} />
-          <span className="hidden lg:inline">Konsumatori</span>
+          <span className="dp-action-label">Konsumatori</span>
         </Button>
 
         <Button
@@ -2164,7 +2128,7 @@ const addToCart = useCallback((product, mode = null) => {
           data-testid="pos-params-btn"
         >
           <Settings className="h-5 w-5" strokeWidth={1.75} />
-          <span className="hidden lg:inline">Parametrat</span>
+          <span className="dp-action-label">Parametrat</span>
         </Button>
 
         <Button
@@ -2174,7 +2138,7 @@ const addToCart = useCallback((product, mode = null) => {
           data-testid="pos-delete-btn"
         >
           <Trash2 className="h-5 w-5" strokeWidth={1.75} />
-          <span className="hidden lg:inline">{'Fshij artikullin'}</span>
+          <span className="dp-action-label">{'Fshij artikullin'}</span>
           <span className="text-xs bg-gray-100 px-1.5 py-0.5 rounded-md ml-1">Del</span>
         </Button>
 
@@ -2185,7 +2149,7 @@ const addToCart = useCallback((product, mode = null) => {
           data-testid="pos-clear-btn"
         >
           <Trash2 className="h-5 w-5" strokeWidth={1.75} />
-          <span className="hidden lg:inline">Pastro</span>
+          <span className="dp-action-label">Pastro</span>
         </Button>
 
         <Button
@@ -2195,7 +2159,7 @@ const addToCart = useCallback((product, mode = null) => {
           data-testid="pos-close-drawer-btn"
         >
           <XCircle className="h-5 w-5" strokeWidth={1.75} />
-          <span className="hidden lg:inline">{'Mbyll Ark\u00EBn'}</span>
+          <span className="dp-action-label">{'Mbyll Ark\u00EBn'}</span>
         </Button>
 
         {(user?.role === 'admin' || user?.role === 'manager') && (
@@ -2205,7 +2169,7 @@ const addToCart = useCallback((product, mode = null) => {
             data-testid="pos-no-vat-btn"
           >
             <Percent className="h-5 w-5" strokeWidth={1.75} />
-            <span className="hidden lg:inline">{applyNoVat ? 'Me TVSH' : 'Pa TVSH'}</span>
+            <span className="dp-action-label">{applyNoVat ? 'Me TVSH' : 'Pa TVSH'}</span>
           </Button>
         )}
 
@@ -2218,7 +2182,7 @@ const addToCart = useCallback((product, mode = null) => {
             data-testid="pos-coupon-btn"
           >
             <Ticket className="h-5 w-5" strokeWidth={1.75} />
-            <span className="hidden lg:inline">Zbritje me kupon</span>
+            <span className="dp-action-label">Zbritje me kupon</span>
           </Button>
         )}
         {couponEnabled && !couponData && (
@@ -4022,9 +3986,9 @@ const addToCart = useCallback((product, mode = null) => {
   // If cashier - show fullscreen POS with header
   if (isCashierFullscreen) {
     return (
-      <div className="min-h-screen bg-[#F8FAFC]">
+      <div className="dp-cashier-shell min-h-screen bg-[#F8FAFC]">
         {/* Cashier Header */}
-        <header className="bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between">
+        <header className="dp-cashier-header bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
             {/* Company Logo */}
             {companySettings?.logo_url ? (
@@ -4069,7 +4033,7 @@ const addToCart = useCallback((product, mode = null) => {
         </header>
         
         {/* POS Content */}
-        <main className="p-4">
+        <main className="dp-cashier-main p-4">
           {posContent}
         </main>
       </div>

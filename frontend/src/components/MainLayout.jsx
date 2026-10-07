@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Outlet, NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../App';
 import {
@@ -15,6 +15,13 @@ const MainLayout = () => {
   const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
+  useEffect(() => {
+    const resize = () => { if (window.innerWidth >= 1280) setSidebarOpen(false); };
+    const escape = (event) => { if (event.key === 'Escape') setSidebarOpen(false); };
+    window.addEventListener('resize', resize);
+    window.addEventListener('keydown', escape);
+    return () => { window.removeEventListener('resize', resize); window.removeEventListener('keydown', escape); };
+  }, []);
 
   const handleLogout = () => { logout(); navigate('/login'); };
 
@@ -49,11 +56,14 @@ const MainLayout = () => {
       : "text-emerald-100 hover:bg-white/10 hover:text-white");
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="dp-shell min-h-screen bg-gray-50">
       {/* Mobile Header */}
-      <header className="lg:hidden fixed top-0 left-0 right-0 z-50 bg-white border-b border-gray-200 px-4 py-3 shadow-sm">
+      <header className="dp-mobile-header lg:hidden fixed top-0 left-0 right-0 z-50 bg-white border-b border-gray-200 px-4 py-3 shadow-sm">
         <div className="flex items-center justify-between">
           <button
+            aria-label={sidebarOpen ? 'Mbyll menunë' : 'Hap menunë'}
+            aria-expanded={sidebarOpen}
+            aria-controls="datapos-sidebar"
             onClick={() => setSidebarOpen(!sidebarOpen)}
             className="w-10 h-10 flex items-center justify-center rounded-lg hover:bg-gray-100"
           >
@@ -71,11 +81,14 @@ const MainLayout = () => {
 
       {/* Sidebar */}
       <aside
+        id="datapos-sidebar"
+        aria-label="Menuja kryesore"
         className={
-          "fixed inset-y-0 left-0 z-40 w-64 bg-gradient-to-b from-[#1E3A8A] via-[#0A3634] to-[#0E4B49] transform transition-transform duration-300 ease-in-out lg:translate-x-0 flex flex-col shadow-2xl " +
+          "dp-sidebar " + (sidebarOpen ? "dp-sidebar-open " : "") + "fixed inset-y-0 left-0 z-40 w-64 bg-gradient-to-b from-[#1E3A8A] via-[#0A3634] to-[#0E4B49] transform transition-transform duration-300 ease-in-out lg:translate-x-0 flex flex-col shadow-2xl " +
           (sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0")
         }
       >
+        <button type="button" className="dp-sidebar-close" onClick={() => setSidebarOpen(false)} aria-label="Mbyll menunë">Mbyll ×</button>
         {/* Brand */}
         <div className="h-14 flex items-center gap-2.5 px-5 border-b border-white/10 flex-shrink-0">
           <div className="w-8 h-8 bg-white/15 rounded-lg flex items-center justify-center">
@@ -141,16 +154,16 @@ const MainLayout = () => {
 
       {/* Mobile overlay */}
       {sidebarOpen && (
-        <div
-          className="fixed inset-0 bg-black/40 backdrop-blur-sm z-30 lg:hidden"
+        <button type="button" aria-label="Mbyll menunë"
+          className="dp-nav-overlay fixed inset-0 bg-black/40 backdrop-blur-sm z-30 lg:hidden"
           onClick={() => setSidebarOpen(false)}
         />
       )}
 
       {/* Main */}
-      <main className="lg:ml-64 min-h-screen pt-16 lg:pt-0">
+      <main className="dp-main lg:ml-64 min-h-screen pt-16 lg:pt-0">
         {/* Desktop Header */}
-        <div className="hidden lg:flex sticky top-0 z-20 h-20 items-center justify-between px-8 bg-white border-b border-gray-200 shadow-sm">
+        <div className="dp-desktop-header hidden lg:flex sticky top-0 z-20 h-20 items-center justify-between px-8 bg-white border-b border-gray-200 shadow-sm">
           <div>
             <h1 className="text-xl font-bold text-gray-900">
               Welcome, {user?.full_name || user?.username || 'Perdorues'} !
@@ -183,7 +196,7 @@ const MainLayout = () => {
         </div>
 
         {/* Page content */}
-        <div className="p-4 md:p-6" key={location.pathname}>
+        <div className="dp-main-content p-4 md:p-6" key={location.pathname}>
           <Outlet />
         </div>
       </main>

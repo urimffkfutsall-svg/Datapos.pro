@@ -207,105 +207,8 @@ code {
    Përshtatje automatike sipas rezolucionit
    ============================================ */
 
-/* Base scaling - uses viewport units */
-:root {
-    --scale-factor: 1;
-    --base-font-size: 16px;
-}
-
-/* Small screens (< 1280px) */
-@media screen and (max-width: 1279px) {
-    :root {
-        --scale-factor: 0.9;
-        --base-font-size: 14px;
-    }
-    
-    html {
-        font-size: 14px;
-    }
-}
-
-/* Medium screens (1280px - 1535px) */
-@media screen and (min-width: 1280px) and (max-width: 1535px) {
-    :root {
-        --scale-factor: 0.95;
-        --base-font-size: 15px;
-    }
-    
-    html {
-        font-size: 15px;
-    }
-}
-
-/* Large screens (1536px - 1919px) */
-@media screen and (min-width: 1536px) and (max-width: 1919px) {
-    :root {
-        --scale-factor: 1;
-        --base-font-size: 16px;
-    }
-    
-    html {
-        font-size: 16px;
-    }
-}
-
-/* Extra large screens (1920px+) */
-@media screen and (min-width: 1920px) {
-    :root {
-        --scale-factor: 1.1;
-        --base-font-size: 17px;
-    }
-    
-    html {
-        font-size: 17px;
-    }
-}
-
-/* Ultra wide screens (2560px+) */
-@media screen and (min-width: 2560px) {
-    :root {
-        --scale-factor: 1.2;
-        --base-font-size: 18px;
-    }
-    
-    html {
-        font-size: 18px;
-    }
-}
-
-/* Low resolution screens (height < 768px) */
-@media screen and (max-height: 767px) {
-    :root {
-        --scale-factor: 0.85;
-    }
-    
-    html {
-        font-size: 13px;
-    }
-    
-    /* Compact spacing for small height screens */
-    .compact-height {
-        padding-top: 0.5rem !important;
-        padding-bottom: 0.5rem !important;
-    }
-}
-
-/* POS specific responsive adjustments */
-@media screen and (max-height: 800px) {
-    .pos-compact .numpad-btn {
-        height: 50px !important;
-    }
-    
-    .pos-compact .card-compact {
-        padding: 0.5rem !important;
-    }
-}
-
-/* Ensure smooth font scaling */
-body {
-    font-size: var(--base-font-size);
-    line-height: 1.5;
-}
+:root { --scale-factor: 1; --base-font-size: 16px; }
+body { line-height: 1.5; }
 
 /* Responsive container */
 .responsive-container {
@@ -377,83 +280,7 @@ body {
    Përshtatje automatike e POS sipas ekranit
    ============================================ */
 
-/* POS container with auto-scaling */
-[data-testid="pos-page"] {
-    --pos-scale: 1;
-    font-size: calc(1rem * var(--pos-scale, 1));
-}
-
-/* Auto-detect and scale for different screen sizes */
-@media screen and (max-width: 1366px) and (max-height: 768px) {
-    /* Laptop 1366x768 */
-    [data-testid="pos-page"] {
-        --pos-scale: 0.85;
-    }
-    .numpad-btn {
-        height: 45px !important;
-        font-size: 1rem !important;
-    }
-}
-
-@media screen and (min-width: 1367px) and (max-width: 1600px) {
-    /* Medium laptops */
-    [data-testid="pos-page"] {
-        --pos-scale: 0.92;
-    }
-    .numpad-btn {
-        height: 52px !important;
-    }
-}
-
-@media screen and (min-width: 1601px) and (max-width: 1920px) {
-    /* Full HD */
-    [data-testid="pos-page"] {
-        --pos-scale: 1;
-    }
-    .numpad-btn {
-        height: 60px !important;
-    }
-}
-
-@media screen and (min-width: 1921px) {
-    /* 2K and above */
-    [data-testid="pos-page"] {
-        --pos-scale: 1.15;
-    }
-    .numpad-btn {
-        height: 70px !important;
-        font-size: 1.25rem !important;
-    }
-}
-
-/* Very small height screens (tablets in landscape) */
-@media screen and (max-height: 650px) {
-    [data-testid="pos-page"] {
-        --pos-scale: 0.75;
-    }
-    .numpad-btn {
-        height: 40px !important;
-        font-size: 0.9rem !important;
-    }
-    /* Reduce padding */
-    [data-testid="pos-page"] .p-4 {
-        padding: 0.5rem !important;
-    }
-    [data-testid="pos-page"] .gap-4 {
-        gap: 0.5rem !important;
-    }
-}
-
-/* Touch-friendly sizing for tablets */
-@media (pointer: coarse) {
-    .numpad-btn {
-        min-height: 50px;
-    }
-    [data-testid="pos-page"] button {
-        min-height: 44px;
-    }
-}
-
+/* POS now reflows instead of scaling down; see responsive.css. */
 /* Product cards auto-sizing */
 [data-testid="pos-page"] .product-card {
     padding: clamp(0.5rem, 1.5vw, 1rem);
@@ -497,7 +324,7 @@ body {
         font-size: 12pt !important;
     }
 }
-â€‹
+
 /* ============================================
 MODERN DESIGN SYSTEM v2 - AI Professional
 ============================================ */

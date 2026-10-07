@@ -496,7 +496,7 @@ const Settings = () => {
   return (
     <div className="space-y-6 animate-fade-in" data-testid="settings-page">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="dp-toolbar flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Konfigurimet</h1>
           <p className="text-gray-500">Menaxho cilësimet e sistemit</p>
@@ -854,7 +854,7 @@ const Settings = () => {
                 <CardTitle>Cilësimet e POS</CardTitle>
               </CardHeader>
               <CardContent className="space-y-6">
-                <div className="flex items-center justify-between">
+                <div className="dp-toolbar flex items-center justify-between">
                   <div>
                     <p className="font-medium">Është me Tvsh</p>
                     <p className="text-sm text-gray-500">Aktivizo kalkulimin e TVSH</p>
@@ -871,7 +871,7 @@ const Settings = () => {
 
                 <Separator />
 
-                <div className="flex items-center justify-between">
+                <div className="dp-toolbar flex items-center justify-between">
                   <div>
                     <p className="font-medium">Shfaq Artikuj me minus</p>
                     <p className="text-sm text-gray-500">Shfaq produktet me stok negativ</p>
@@ -888,7 +888,7 @@ const Settings = () => {
 
                 <Separator />
 
-                <div className="flex items-center justify-between">
+                <div className="dp-toolbar flex items-center justify-between">
                   <div>
                     <p className="font-medium">Lejo shitjen me minus</p>
                     <p className="text-sm text-gray-500">Lejo shitjen kur stoku është negativ</p>
@@ -905,7 +905,7 @@ const Settings = () => {
 
                 <Separator />
 
-                <div className="flex items-center justify-between">
+                <div className="dp-toolbar flex items-center justify-between">
                   <div>
                     <p className="font-medium">Gjenero në mënyrë automatike numrin e faturës</p>
                     <p className="text-sm text-gray-500">Numri i faturës gjenerohet automatikisht</p>
@@ -922,7 +922,7 @@ const Settings = () => {
 
                 <Separator />
 
-                <div className="flex items-center justify-between">
+                <div className="dp-toolbar flex items-center justify-between">
                   <div>
                     <p className="font-medium">Lejo shitjen me shumë zbritje</p>
                     <p className="text-sm text-gray-500">Lejo zbritje të shumëfishta në një artikull</p>
@@ -939,7 +939,7 @@ const Settings = () => {
 
                 <Separator />
 
-                <div className="flex items-center justify-between">
+                <div className="dp-toolbar flex items-center justify-between">
                   <div>
                     <p className="font-medium">Kam restaurant</p>
                     <p className="text-sm text-gray-500">Aktivizo modulin e restorantit</p>
@@ -956,7 +956,7 @@ const Settings = () => {
 
                 <Separator />
 
-                <div className="flex items-center justify-between">
+                <div className="dp-toolbar flex items-center justify-between">
                   <div>
                     <p className="font-medium">Orientimi i faturës</p>
                     <p className="text-sm text-gray-500">Orientimi i printimit të faturës</p>
@@ -1688,7 +1688,7 @@ const Settings = () => {
                 rows={4}
               />
             </div>
-            <div className="flex items-center justify-between">
+            <div className="dp-toolbar flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Switch
                   checked={commentForm.is_default}

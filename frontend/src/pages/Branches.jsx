@@ -136,7 +136,7 @@ const Branches = () => {
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <Card className="border border-gray-200/60 rounded-3xl shadow-sm bg-white/80 backdrop-blur-md">
           <CardContent className="p-6">
-            <div className="flex items-center justify-between">
+            <div className="dp-toolbar flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-500">Total Degë</p>
                 <p className="text-3xl font-bold mt-1">{branches.length}</p>
@@ -147,7 +147,7 @@ const Branches = () => {
         </Card>
         <Card className="border border-gray-200/60 rounded-3xl shadow-sm bg-white/80 backdrop-blur-md">
           <CardContent className="p-6">
-            <div className="flex items-center justify-between">
+            <div className="dp-toolbar flex items-center justify-between">
               <div>
                 <p className="text-sm text-gray-500">Degë Aktive</p>
                 <p className="text-3xl font-bold mt-1 text-green-600">

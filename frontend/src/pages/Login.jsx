@@ -187,14 +187,14 @@ const Login = () => {
      : password.length) === 0;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center p-4">
-      <div className="w-full max-w-5xl">
-        <div className="relative bg-white rounded-3xl shadow-2xl overflow-hidden min-h-[620px]">
-          <div className="absolute inset-0 bg-[#0E4B49] [clip-path:polygon(48%_0,100%_0,100%_100%,32%_100%)]" />
+    <div className="dp-login-page min-h-screen bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center p-4">
+      <div className="dp-login-container w-full max-w-5xl">
+        <div className="dp-login-card relative bg-white rounded-3xl shadow-2xl overflow-hidden">
 
-          <div className="relative grid grid-cols-1 lg:grid-cols-2 min-h-[620px]">
+
+          <div className="dp-login-grid relative grid">
             {/* LEFT */}
-            <div className="flex flex-col p-6 lg:pl-14 lg:pr-8 relative z-10">
+            <div className="dp-login-brand flex flex-col p-6 relative z-10">
               <div className="w-full max-w-[240px] mx-auto lg:mx-0 flex flex-col items-center flex-1 justify-center">
                 {/* Logo */}
                 {tenant?.logo_url ? (
@@ -252,7 +252,7 @@ const Login = () => {
             </div>
 
             {/* RIGHT */}
-            <div className="flex flex-col justify-center p-8 lg:p-12 text-white relative z-10">
+            <div className="dp-login-form flex flex-col justify-center text-white relative z-10">
               {tenantLoading && (
                 <div className="flex items-center justify-center py-10">
                   <div className="w-8 h-8 border-2 border-white border-t-transparent rounded-full animate-spin" />
@@ -469,7 +469,7 @@ const Login = () => {
           ) : (
             <div className="space-y-1.5">
               {QWERTY_ROWS.map((row, i) => (
-                <div key={i} className="flex gap-1 justify-center">
+                <div key={i} className="dp-vk-row flex gap-1 justify-center">
                   {row.map(k => {
                     const isLetter = /[a-z]/.test(k);
                     const display = isLetter && vkShift ? k.toUpperCase() : k;
