@@ -122,3 +122,45 @@
   .dp-login-v3 .dp-login-logo svg { width: 56px; height: 56px; }
   .dp-login-v3 .dp-brand-name h1 { font-size: 24px; }
 }
+
+/* Professional POS colour edition. Scoped to login; uploaded company logos stay untouched. */
+.dp-login-v3.dp-login-page {
+  --auth-ink: #163b43; --auth-muted: #526c73; --auth-border: #c9e1df; --auth-accent: #076b60;
+  background: radial-gradient(ellipse at 10% 12%, #157d7859, transparent 52%), radial-gradient(ellipse at 92% 88%, #21659c45, transparent 50%), linear-gradient(125deg, #082f39 0%, #0a5057 48%, #102f4c 100%);
+}
+.dp-login-v3 .dp-login-container { max-width: 1120px; }
+.dp-login-v3 .dp-login-card { border: 1px solid #7dc8bd; border-top: 5px solid #45c8ad; border-radius: 16px; box-shadow: 0 8px 24px #031e2520, 0 24px 64px #031e2533; }
+.dp-login-v3 .dp-login-brand { background: #fff; border-left: 6px solid #087b70; }
+.dp-login-v3 .dp-brand-name h1 { color: #104d51; }
+.dp-login-v3 .dp-login-logo, .dp-login-v3 .dp-login-logo img { background: transparent !important; }
+.dp-login-v3 .dp-login-form { background: linear-gradient(145deg, #effbf7 0%, #f5fafc 75%, #edf5fc 100%); border-left-color: #d0e7e2; }
+.dp-login-v3 .dp-auth-heading h2 { color: #123f46; }
+.dp-login-v3 .dp-auth-heading h2::after { content: ''; display: block; width: 48px; height: 4px; margin-top: 12px; border-radius: 2px; background: linear-gradient(90deg, #087b70, #2878bd); }
+.dp-login-v3 .dp-auth-switch { background: #e1efec; border-color: #bfdcd5; }
+.dp-login-v3 .dp-auth-switch button { color: #365c62; }
+.dp-login-v3 .dp-auth-switch button[aria-pressed='true'] { background: #076b60; border-color: #076b60; color: #fff; box-shadow: 0 2px 4px #08574e20; }
+.dp-login-v3 .dp-auth-label { color: #224e55; }
+.dp-login-v3 .dp-pin-field, .dp-login-v3 .dp-auth-input-wrap { border-color: #8ebdb8; background: #fff; }
+.dp-login-v3 .dp-pin-field:focus-within, .dp-login-v3 .dp-auth-input-wrap:focus-within { border-color: #087b70; box-shadow: 0 0 0 3px #087b7015; }
+.dp-login-v3 .dp-pin-keypad button { background: #eaf8f2; border-color: #aacfc7; color: #174e4b; box-shadow: 0 2px 0 #cee8de; }
+.dp-login-v3 .dp-pin-keypad button:hover:not(:disabled) { background: #d8f1e6; border-color: #408c7e; }
+.dp-login-v3 .dp-pin-keypad button:active:not(:disabled) { background: #c9e9df; box-shadow: none; }
+.dp-login-v3 .dp-pin-keypad .dp-pin-secondary { background: #e3eefb; border-color: #aac4e2; color: #255786; box-shadow: 0 2px 0 #ccdff2; }
+.dp-login-v3 .dp-pin-keypad .dp-pin-secondary:hover:not(:disabled) { background: #d5e6f9; border-color: #5386b5; }
+.dp-login-v3 .dp-auth-icon-button { color: #286c6a; }
+.dp-login-v3 .dp-auth-icon-button:hover { background: #e0f1eb; color: #076b60; }
+.dp-login-v3 .dp-auth-field-icon { color: #3d7a7a; }
+.dp-login-v3 .dp-auth-primary { background: linear-gradient(110deg, #076b60, #085b70); border-color: #076b60; color: #fff; box-shadow: 0 4px 10px #076b6020; }
+.dp-login-v3 .dp-auth-primary:hover:not(:disabled) { background: linear-gradient(110deg, #07574e, #06495c); }
+.dp-login-v3 .dp-auth-primary:disabled { background: #d5eae5; border-color: #accfc5; color: #3c6562; box-shadow: none; }
+.dp-login-v3 kbd { display: inline-block; padding: 1px 5px; color: #255786; background: #e3eefb; border: 1px solid #c4d9ec; border-radius: 4px; }
+.dp-login-v3 .dp-auth-error { color: #972a3a; background: #fff0f2; border-color: #e7b7c0; }
+.dp-login-v3 .dp-auth-notice { color: #205a67; background: #e2f2f8; border-color: #adcedb; }
+.dp-login-v3 .dp-login-footer, .dp-login-v3 .dp-login-footer a { color: #d2e7e9; }
+.dp-login-v3 .dp-login-footer a:hover { color: #fff; }
+.dp-login-v3 .sp-strip { background: #fff; border-color: #acd3cd; border-left: 4px solid #45c8ad; }
+.dp-login-v3 button:focus-visible, .dp-login-v3 input:focus-visible, .dp-login-v3 a:focus-visible { outline-color: #2477bd; }
+@media (max-width: 859px) {
+  .dp-login-v3 .dp-login-brand { border-left: 0; border-bottom: 3px solid #087b70; }
+  .dp-login-v3 .dp-login-form { border-top: 0; }
+}
