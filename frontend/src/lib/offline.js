@@ -298,7 +298,7 @@ export const attachInterceptors = (api) => {
 
       // GET -> kthe te dhenat e ruajtura
       if (method === 'get') {
-        const cached = readCache(url);
+        const cached = normalize(url).startsWith('/reports') ? null : readCache(url);
         if (cached) {
           return Promise.resolve({
             data: cached.data,

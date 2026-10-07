@@ -1,7 +1,7 @@
 """Reports routes (Dashboard, Sales, Stock, Cashier Performance, PDF/Excel Export)"""
 from fastapi import APIRouter, HTTPException, Depends, Query, Response
 from typing import Optional
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 import io
 
 from reportlab.lib import colors
@@ -11,7 +11,7 @@ from reportlab.lib.styles import getSampleStyleSheet
 import xlsxwriter
 
 from database import db
-from report_dates import date_filter, period_bounds, BUSINESS_TZ
+from report_dates import date_filter, period_bounds, BUSINESS_TZ, period_query, business_date, REPORTING_REVISION
 from models import UserRole
 from auth import get_current_user, require_role, get_tenant_filter
 
@@ -27,11 +27,11 @@ async def get_dashboard(
     today = period_bounds("daily")
     
     tenant_filter = get_tenant_filter(current_user)
-    query = {"created_at": today, **tenant_filter}
+    query = period_query(tenant_filter, today)
     if branch_id:
         query["branch_id"] = branch_id
     
-    sales_today = await db.sales.find(query, {"_id": 0}).to_list(10000)
+    sales_today = await db.sales.find(query, {"_id": 0}).to_list(None)
     total_sales = sum(s.get("grand_total", 0) for s in sales_today)
     total_transactions = len(sales_today)
     
@@ -95,7 +95,7 @@ async def get_sales_report(
 ):
     """Get sales report"""
     tenant_filter = get_tenant_filter(current_user)
-    query = {"created_at": date_filter(start_date, end_date), **tenant_filter}
+    query = period_query(tenant_filter, date_filter(start_date, end_date))
     if branch_id:
         query["branch_id"] = branch_id
     if user_id:
@@ -109,7 +109,7 @@ async def get_sales_report(
     
     daily_sales = {}
     for sale in sales:
-        date = datetime.fromisoformat(sale["created_at"].replace("Z", "+00:00")).astimezone(BUSINESS_TZ).date().isoformat()
+        date = business_date(sale["created_at"])
         if date not in daily_sales:
             daily_sales[date] = {"total": 0, "count": 0}
         daily_sales[date]["total"] += sale.get("grand_total", 0)
@@ -139,7 +139,7 @@ async def get_profit_loss_report(
 ):
     """Get profit/loss report"""
     tenant_filter = get_tenant_filter(current_user)
-    query = {"created_at": date_filter(start_date, end_date), **tenant_filter}
+    query = period_query(tenant_filter, date_filter(start_date, end_date))
     if branch_id:
         query["branch_id"] = branch_id
     
@@ -155,7 +155,7 @@ async def get_profit_loss_report(
     
     daily_data = {}
     for sale in sales:
-        date = datetime.fromisoformat(sale["created_at"].replace("Z", "+00:00")).astimezone(BUSINESS_TZ).date().isoformat()
+        date = business_date(sale["created_at"])
         if date not in daily_data:
             daily_data[date] = {"revenue": 0, "cost": 0, "vat": 0}
         
@@ -238,7 +238,7 @@ async def get_cashier_performance(
 ):
     """Get cashier performance report"""
     tenant_filter = get_tenant_filter(current_user)
-    query = {"created_at": date_filter(start_date, end_date), **tenant_filter}
+    query = period_query(tenant_filter, date_filter(start_date, end_date))
     if branch_id:
         query["branch_id"] = branch_id
     
@@ -301,10 +301,10 @@ async def export_pdf_report(
     elements.append(Spacer(1, 20))
     
     if report_type == "sales" and start_date and end_date:
-        query = {"created_at": date_filter(start_date, end_date), **tenant_filter}
+        query = period_query(tenant_filter, date_filter(start_date, end_date))
         if branch_id:
             query["branch_id"] = branch_id
-        sales = await db.sales.find(query, {"_id": 0}).sort("created_at", -1).to_list(10000)
+        sales = await db.sales.find(query, {"_id": 0}).sort("created_at", -1).to_list(None)
         
         total_sales = sum(s.get("grand_total", 0) for s in sales)
         total_vat = sum(s.get("total_vat", 0) for s in sales)
@@ -337,10 +337,10 @@ async def export_pdf_report(
         elements.append(Spacer(1, 10))
         
         data = [["#", "Data", "Nr. Faturës", "Totali", "TVSH", "Metoda"]]
-        for i, sale in enumerate(sales[:50], 1):
+        for i, sale in enumerate(sales, 1):
             data.append([
                 str(i),
-                sale["created_at"][:10],
+                business_date(sale["created_at"]),
                 sale.get("receipt_number", "-"),
                 f"€{sale.get('grand_total', 0):.2f}",
                 f"€{sale.get('total_vat', 0):.2f}",
@@ -364,7 +364,7 @@ async def export_pdf_report(
             elements.append(Paragraph("Nuk ka shitje në këtë periudhë.", styles['Normal']))
     
     elif report_type == "stock":
-        products = await db.products.find(tenant_filter, {"_id": 0}).sort("name", 1).to_list(10000)
+        products = await db.products.find(tenant_filter, {"_id": 0}).sort("name", 1).to_list(None)
         
         total_products = len(products)
         low_stock = len([p for p in products if (p.get("current_stock", 0) or 0) < 10])
@@ -448,10 +448,10 @@ async def export_excel_report(
         worksheet.write(1, 0, f"Raport Shitjesh: {start_date} - {end_date}")
         worksheet.write(2, 0, f"Gjeneruar: {datetime.now().strftime('%d/%m/%Y %H:%M')}")
         
-        query = {"created_at": date_filter(start_date, end_date), **tenant_filter}
+        query = period_query(tenant_filter, date_filter(start_date, end_date))
         if branch_id:
             query["branch_id"] = branch_id
-        sales = await db.sales.find(query, {"_id": 0}).sort("created_at", -1).to_list(10000)
+        sales = await db.sales.find(query, {"_id": 0}).sort("created_at", -1).to_list(None)
         
         total_sales = sum(s.get("grand_total", 0) for s in sales)
         total_vat = sum(s.get("total_vat", 0) for s in sales)
@@ -476,7 +476,7 @@ async def export_excel_report(
         
         for row, sale in enumerate(sales, start=12):
             worksheet.write(row, 0, row - 11)
-            worksheet.write(row, 1, sale["created_at"][:10])
+            worksheet.write(row, 1, business_date(sale["created_at"]))
             worksheet.write(row, 2, sale.get("receipt_number", "-"))
             worksheet.write(row, 3, sale.get("subtotal", 0), money_format)
             worksheet.write(row, 4, sale.get("total_vat", 0), money_format)
@@ -496,7 +496,7 @@ async def export_excel_report(
         worksheet.write(1, 0, "Raport Stoku")
         worksheet.write(2, 0, f"Gjeneruar: {datetime.now().strftime('%d/%m/%Y %H:%M')}")
         
-        products = await db.products.find(tenant_filter, {"_id": 0}).sort("name", 1).to_list(10000)
+        products = await db.products.find(tenant_filter, {"_id": 0}).sort("name", 1).to_list(None)
         
         total_products = len(products)
         low_stock = len([p for p in products if (p.get("current_stock", 0) or 0) < 10])
@@ -535,3 +535,48 @@ async def export_excel_report(
         media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         headers={"Content-Disposition": f"attachment; filename=raport_{report_type}_{datetime.now().strftime('%Y%m%d')}.xlsx"}
     )
+
+
+@router.get("/sales-panel")
+async def get_sales_panel(
+    period: str = Query("daily", regex="^(daily|weekly|monthly|yearly)$"),
+    anchor: Optional[str] = None,
+    offset: int = Query(0, ge=0),
+    limit: int = Query(50, ge=1, le=100),
+    current_user: dict = Depends(require_role([UserRole.ADMIN, UserRole.MANAGER]))
+):
+    """Only real, active tenant sales; shared by dashboard and printed reports."""
+    tenant_filter = get_tenant_filter(current_user)
+    if not tenant_filter.get("tenant_id"):
+        raise HTTPException(status_code=403, detail="Ky panel është vetëm për firmën tuaj")
+    bounds = period_bounds(period, anchor=anchor)
+    query = period_query(tenant_filter, bounds)
+    sales = await db.sales.find(query, {"_id": 0}).sort("created_at", -1).to_list(None)
+    total = round(sum(s.get("grand_total", 0) for s in sales), 2)
+    start = datetime.fromisoformat(bounds["$gte"]).astimezone(BUSINESS_TZ).date()
+    end = (datetime.fromisoformat(bounds["$lt"]).astimezone(BUSINESS_TZ).date()
+           - timedelta(days=1))
+    return {"reporting_revision": REPORTING_REVISION, "period": period,
+            "start_date": start.isoformat(), "end_date": end.isoformat(),
+            "timezone": str(BUSINESS_TZ), "total": total,
+            "sales_count": len(sales), "sales": sales[offset:offset + limit]}
+
+
+@router.get("/sales-print")
+async def get_sales_print(
+    period: str = Query("daily", regex="^(daily|weekly|monthly|yearly)$"),
+    anchor: Optional[str] = None,
+    current_user: dict = Depends(require_role([UserRole.ADMIN, UserRole.MANAGER]))
+):
+    """One snapshot, all rows: never print only the first page of a report."""
+    tenant_filter = get_tenant_filter(current_user)
+    if not tenant_filter.get("tenant_id"):
+        raise HTTPException(status_code=403, detail="Raporti kërkon firmën tuaj")
+    bounds = period_bounds(period, anchor=anchor)
+    sales = await db.sales.find(period_query(tenant_filter, bounds), {"_id": 0}).sort("created_at", -1).to_list(None)
+    tenant = await db.tenants.find_one({"id": current_user["tenant_id"]}, {"_id": 0})
+    return {"reporting_revision": REPORTING_REVISION, "period": period,
+            "start_date": datetime.fromisoformat(bounds["$gte"]).astimezone(BUSINESS_TZ).date().isoformat(),
+            "end_date": (datetime.fromisoformat(bounds["$lt"]).astimezone(BUSINESS_TZ).date() - timedelta(days=1)).isoformat(),
+            "timezone": str(BUSINESS_TZ), "company_name": (tenant or {}).get("company_name") or (tenant or {}).get("name") or "DataPOS",
+            "sales": sales, "total": round(sum(s.get("grand_total", 0) for s in sales), 2)}

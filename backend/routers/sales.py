@@ -4,7 +4,7 @@ from typing import List, Optional
 from datetime import datetime, timezone
 
 from database import db
-from report_dates import date_filter
+from report_dates import date_filter, period_query
 from auth import require_role
 from models import (
     SaleCreate, SaleResponse, Sale, SaleItem,
@@ -235,7 +235,7 @@ async def get_sales(
     if user_id:
         query["user_id"] = user_id
     if start_date or end_date:
-        query["created_at"] = date_filter(start_date, end_date)
+        query.update(period_query({}, date_filter(start_date, end_date)))
     if is_debt is not None:
         query["is_debt"] = is_debt
     
@@ -281,7 +281,7 @@ async def get_debt_summary(
     query = {**get_tenant_filter(current_user), "is_debt": True}
     
     if start_date or end_date:
-        query["created_at"] = date_filter(start_date, end_date)
+        query.update(period_query({}, date_filter(start_date, end_date)))
     
     debts = await db.sales.find(query, {"_id": 0}).to_list(1000)
     

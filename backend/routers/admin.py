@@ -5,7 +5,7 @@ from datetime import datetime, timezone
 import uuid
 
 from database import db
-from report_dates import period_bounds
+from report_dates import period_bounds, period_query, REPORTING_REVISION
 from models import UserRole, ResetDataRequest
 from auth import (
     hash_password, verify_password, get_current_user, require_role,
@@ -79,7 +79,7 @@ async def reset_data(request: ResetDataRequest, current_user: dict = Depends(req
     drawer_scope = dict(tenant_filter)
     if request.reset_type in {"daily", "monthly"}:
         bounds = period_bounds(request.reset_type)
-        scope["created_at"] = bounds
+        scope = period_query(tenant_filter, bounds)
         drawer_scope["$or"] = [{"opened_at": bounds}, {"status": "open"}]
     elif request.reset_type == "user_specific":
         if not request.user_ids:
@@ -100,6 +100,9 @@ async def reset_data(request: ResetDataRequest, current_user: dict = Depends(req
     # Persist backup BEFORE deleting anything. Delete only captured IDs so new sales survive.
     await db.reset_backups.insert_one(backup)
     result = await db.sales.delete_many({**tenant_filter, "id": {"$in": [x["id"] for x in sales]}})
+    remaining_captured = await db.sales.count_documents({**tenant_filter, "id": {"$in": [x["id"] for x in sales]}})
+    if remaining_captured:
+        raise HTTPException(status_code=500, detail="Resetimi nuk u verifikua në databazë. Mos e përsërisni pa kontrolluar backup-in.")
     drawer_result = await db.cash_drawers.delete_many({**tenant_filter, "id": {"$in": [x["id"] for x in drawers]}})
     movement_count = 0
     if movements:
@@ -112,7 +115,8 @@ async def reset_data(request: ResetDataRequest, current_user: dict = Depends(req
     await log_audit(current_user["id"], "reset_data", "system", request.reset_type,
                     {"backup_id": backup_id, **deleted})
     return {"success": True, "message": "Të dhënat u resetuan me sukses",
-            "backup_id": backup_id, "deleted": deleted}
+            "backup_id": backup_id, "deleted": deleted,
+            "reset_verified": True, "reporting_revision": REPORTING_REVISION}
 
 
 # ============ BACKUPS ============

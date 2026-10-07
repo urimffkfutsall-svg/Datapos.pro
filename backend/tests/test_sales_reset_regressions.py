@@ -10,7 +10,7 @@ from pathlib import Path
 import sys
 import types
 import unittest
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 
 ROOT = Path(__file__).resolve().parents[1]
 class HTTPException(Exception):
@@ -32,7 +32,22 @@ DATES = load_dates()
 
 def matches(doc, query):
     for key, value in query.items():
-        if key == '$or':
+        if key == '$expr':
+            def evaluate(value):
+                if isinstance(value, dict) and '$convert' in value:
+                    try:
+                        raw = doc.get('created_at')
+                        dt = raw if isinstance(raw, datetime) else datetime.fromisoformat(raw.replace('Z','+00:00'))
+                        return dt.replace(tzinfo=timezone.utc) if dt.tzinfo is None else dt
+                    except (TypeError, ValueError, AttributeError): return None
+                return value
+            for condition in value['$and']:
+                op, args = next(iter(condition.items())); a,b = map(evaluate,args)
+                if op == '$ne' and a == b: return False
+                if op == '$gte' and (a is None or a < b): return False
+                if op == '$lt' and (a is None or a >= b): return False
+                if op == '$lte' and (a is None or a > b): return False
+        elif key == '$or':
             if not any(matches(doc, part) for part in value): return False
         elif isinstance(value, dict):
             actual = doc.get(key)
@@ -47,7 +62,7 @@ def matches(doc, query):
 class Cursor:
     def __init__(self, docs): self.docs = copy.deepcopy(docs)
     def sort(self, key, direction):
-        self.docs.sort(key=lambda x: x.get(key, ''), reverse=direction == -1); return self
+        self.docs.sort(key=lambda x: str(x.get(key, '')), reverse=direction == -1); return self
     async def to_list(self, length): return self.docs if length is None else self.docs[:length]
 
 class Collection:
@@ -76,7 +91,7 @@ class Collection:
 
 class DB:
     def __init__(self):
-        for name in ('users','sales','cash_drawers','stock_movements','reset_backups','products','deleted_sales'):
+        for name in ('users','sales','cash_drawers','stock_movements','reset_backups','products','deleted_sales','tenants'):
             setattr(self, name, Collection())
 
 async def no_audit(*args, **kwargs): pass
@@ -93,6 +108,8 @@ def load_function(file, name, db, extra=None):
         'add_tenant_id': lambda doc,u: {**doc,'tenant_id':u['tenant_id']},
         'verify_password': lambda raw,hashed: raw == hashed,
         'period_bounds': DATES.period_bounds, 'date_filter': DATES.date_filter,
+        'period_query': DATES.period_query, 'business_date': DATES.business_date,
+        'REPORTING_REVISION': DATES.REPORTING_REVISION, 'timedelta': timedelta,
         'BUSINESS_TZ': DATES.BUSINESS_TZ, 'uuid': __import__('uuid'), 'log_audit': no_audit,
     }
     namespace.update(extra or {})
@@ -186,5 +203,62 @@ class RegressionTests(unittest.IsolatedAsyncioTestCase):
     def test_invalid_date_and_range(self):
         for start,end in [('bad','2026-10-07'),('2026-10-09','2026-10-07')]:
             with self.assertRaises(HTTPException): DATES.date_filter(start,end)
+
+    async def test_reset_verified_revision_and_new_panel_zero(self):
+        result = await self.reset(self.request(), self.admin)
+        self.assertTrue(result['reset_verified'])
+        self.assertEqual(result['reporting_revision'], 'sales-panel-v2')
+        panel = load_function('routers/reports.py','get_sales_panel',self.db)
+        for _ in range(2):
+            data = await panel('daily',None,0,50,self.admin)
+            self.assertEqual(data['total'],0)
+            self.assertEqual(data['sales'],[])
+    async def test_month_reset_zero_day_month_year_when_only_current_sales(self):
+        await self.reset(self.request('monthly'),self.admin)
+        panel = load_function('routers/reports.py','get_sales_panel',self.db)
+        for period in ('daily','monthly','yearly'):
+            data = await panel(period,None,0,50,self.admin)
+            self.assertEqual(data['total'],0)
+    async def test_delete_excluded_from_all_periods_and_prints(self):
+        delete = load_function('routers/sales.py','delete_sale',self.db)
+        await delete('sale-a',self.admin)
+        panel = load_function('routers/reports.py','get_sales_panel',self.db)
+        printing = load_function('routers/reports.py','get_sales_print',self.db)
+        for period in ('daily','weekly','monthly','yearly'):
+            data = await panel(period,None,0,50,self.admin)
+            printed = await printing(period,None,self.admin)
+            self.assertEqual(data['total'],0); self.assertEqual(printed['total'],0)
+            self.assertEqual(printed['sales'],[])
+    async def test_legacy_timestamp_formats_same_reset_and_summary(self):
+        self.db.sales.docs = [
+            {**self.sale,'id':'z','created_at':self.now.replace('+00:00','Z')},
+            {**self.sale,'id':'bson','created_at':datetime.now(timezone.utc)},
+            {**self.sale,'id':'offset','created_at':datetime.now(DATES.BUSINESS_TZ).isoformat()},
+            {**self.sale,'id':'bad','created_at':'invalid'},
+        ]
+        panel = load_function('routers/reports.py','get_sales_panel',self.db)
+        before = await panel('daily',None,0,50,self.admin)
+        self.assertEqual(before['total'],75)
+        reset = await self.reset(self.request(),self.admin)
+        self.assertEqual(reset['deleted']['sales'],3)
+        after = await panel('daily',None,0,50,self.admin)
+        self.assertEqual(after['total'],0)
+    async def test_new_sale_after_reset_is_counted(self):
+        await self.reset(self.request(),self.admin)
+        self.db.sales.docs.append({**self.sale,'id':'new','created_at':datetime.now(timezone.utc).isoformat()})
+        panel = load_function('routers/reports.py','get_sales_panel',self.db)
+        data = await panel('daily',None,0,50,self.admin)
+        self.assertEqual(data['total'],25)
+    async def test_print_contains_more_than_first_page(self):
+        self.db.sales.docs = [{**self.sale,'id':str(i)} for i in range(125)]
+        printing = load_function('routers/reports.py','get_sales_print',self.db)
+        data = await printing('daily',None,self.admin)
+        self.assertEqual(len(data['sales']),125)
+        self.assertEqual(data['total'],3125)
+    def test_anchor_week_and_year(self):
+        week = DATES.period_bounds('weekly',anchor='2026-10-07')
+        self.assertEqual(DATES.business_date(week['$gte']),'2026-10-05')
+        year = DATES.period_bounds('yearly',anchor='2026-10-07')
+        self.assertEqual(DATES.business_date(year['$gte']),'2026-01-01')
 
 if __name__ == '__main__': unittest.main()
