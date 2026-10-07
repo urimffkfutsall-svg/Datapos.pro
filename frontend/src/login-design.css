@@ -13,7 +13,7 @@
 .dp-login-v3 button, .dp-login-v3 a, .dp-login-v3 input { -webkit-tap-highlight-color: transparent; }
 .dp-login-v3 svg { width: 20px; height: 20px; flex-shrink: 0; }
 .dp-login-v3 .dp-login-container { width: 100%; max-width: 1080px; margin-inline: auto; }
-.dp-login-v3 .dp-login-card { border: 1px solid var(--auth-border); border-radius: 20px; background: #fff; overflow: hidden; box-shadow: 0 4px 8px #14232d04, 0 24px 64px #14232d0b; }
+.dp-login-v3 .dp-login-card { border: 1px solid #0e4b49; border-top: 5px solid #0e4b49; border-radius: 20px; background: #fff; overflow: hidden; box-shadow: 0 4px 8px #14232d04, 0 24px 64px #14232d0b; }
 .dp-login-v3 .dp-login-grid { display: grid; grid-template-columns: minmax(0, 1.08fr) minmax(0, 1fr); min-height: 620px; }
 .dp-login-v3 .dp-login-brand { padding: 44px 48px; background: #fff; color: var(--auth-ink); display: flex; flex-direction: column; min-width: 0; }
 .dp-login-v3 .dp-brand-identity { display: flex; flex-direction: column; align-items: flex-start; gap: 16px; }
@@ -102,3 +102,7 @@
   .dp-login-v3 .dp-auth-switch button { gap: 5px; }
 }
 @media (prefers-reduced-motion: reduce) { .dp-login-v3 *, .dp-login-v3 *::before, .dp-login-v3 *::after { animation: none !important; transition: none !important; } }
+
+/* Dark-green boundary accents, not a background behind uploaded logos. */
+.dp-login-v3 .sp-strip { border-color: #bed0ca; border-left: 4px solid #0e4b49; }
+.dp-login-v3 .dp-login-form { background: #f6faf8; }

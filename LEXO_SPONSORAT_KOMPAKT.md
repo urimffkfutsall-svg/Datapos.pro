@@ -9,10 +9,10 @@ Ky ZIP përmban versionin e plotë me të gjitha korrigjimet e mëparshme.
 - Faqja e menaxhimit Sponsorat dhe firmat mbetet e pandryshuar për superadministratorin.
 
 ## Aplikimi
-Shpaketojeni në Desktop si Datapos-sponsors-compact-compact dhe ekzekutoni:
+Shpaketojeni në Desktop si Datapos-sponsors-compact dhe ekzekutoni:
 
 ```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File "$HOME\Desktop\Datapos-sponsors-compact-compact\APLIKO_KOMPAKT.ps1"
+powershell -NoProfile -ExecutionPolicy Bypass -File "$HOME\Desktop\Datapos-sponsors-compact\APLIKO_KOMPAKT.ps1"
 ```
 
 Skripti kontrollon versionin dhe ndryshimet lokale, aplikon patch-in dhe bën commit/push pa force-push. Pritni frontend-in në Vercel të jetë Ready dhe bëni Ctrl+Shift+R. Ky ndryshim është vetëm frontend; backend-i duhet përditësuar vetëm nëse paketa fillestare e sponsorëve nuk është publikuar.

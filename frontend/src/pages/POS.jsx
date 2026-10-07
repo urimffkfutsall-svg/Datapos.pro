@@ -13,6 +13,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
   DialogFooter,
 } from '../components/ui/dialog';
 import {
@@ -60,6 +61,9 @@ import {
 } from 'lucide-react';
 import InvoiceA4 from '../components/InvoiceA4';
 import ThermalReceipt from '../components/ThermalReceipt';
+import '../payment-layout.css';
+import { armCatalogAutoClose } from '../lib/catalogTimer';
+import { usePaymentViewport } from '../lib/usePaymentViewport';
 import { Checkbox } from '../components/ui/checkbox';
 
 const POS = () => {
@@ -97,7 +101,15 @@ const POS = () => {
   const [screenSize, setScreenSize] = useState('large');
   const [activeCategory, setActiveCategory] = useState('ALL');
   const [activeSubcategory, setActiveSubcategory] = useState('ALL');
-  const [showCatalog, setShowCatalog] = useState(true); // Për responsive scaling
+  const [showCatalog, setShowCatalog] = useState(false); // Closed on every fresh POS entry
+  const paymentViewport = usePaymentViewport(showPayment);
+
+  useEffect(() => {
+    if (!showCatalog) return undefined;
+    return armCatalogAutoClose(() => setShowCatalog(false));
+  }, [showCatalog]);
+
+  useEffect(() => { setShowCatalog(false); }, [cashDrawer?.id]);
   const [currentTime, setCurrentTime] = useState(new Date()); // For clock display
   // Debt (Borgj) state
   const [isDebt, setIsDebt] = useState(false);
@@ -1335,11 +1347,13 @@ const addToCart = useCallback((product, mode = null) => {
 
   // Focus on cash input when payment dialog opens
   useEffect(() => {
-    if (showPayment && paymentMethod === 'cash' && cashInputRef.current) {
-      setTimeout(() => {
-        cashInputRef.current?.focus();
+    // Do not open the native keyboard automatically on touch devices.
+    if (showPayment && paymentMethod === 'cash' && !window.matchMedia('(pointer: coarse)').matches) {
+      const timer = setTimeout(() => {
+        cashInputRef.current?.focus({ preventScroll: true });
         cashInputRef.current?.select();
       }, 100);
+      return () => clearTimeout(timer);
     }
   }, [showPayment, paymentMethod]);
 
@@ -1795,6 +1809,8 @@ const addToCart = useCallback((product, mode = null) => {
                 onClick={() => setShowCatalog(v => !v)}
                 className={`h-10 px-4 rounded-xl text-sm font-bold uppercase tracking-wide transition-colors flex items-center gap-2 ${showCatalog ? 'bg-[#0E4B49] text-white shadow-sm' : 'bg-white text-[#0E4B49] border border-[#0E4B49]/25 hover:bg-[#0E4B49]/5'}`}
                 data-testid="pos-catalog-toggle"
+                aria-expanded={showCatalog}
+                aria-controls="pos-catalog-panel"
               >
                 <Package className="h-4 w-4" />
                 Katalogu
@@ -1804,7 +1820,7 @@ const addToCart = useCallback((product, mode = null) => {
           </div>
 
           {showCatalog && (
-            <div className="rounded-2xl border border-[#0E4B49]/15 bg-white/85 backdrop-blur-md shadow-sm p-3">
+            <div id="pos-catalog-panel" className="rounded-2xl border border-[#0E4B49]/15 bg-white/85 backdrop-blur-md shadow-sm p-3">
               {/* Kategorite kryesore */}
               <div className="flex flex-wrap gap-2 pb-2 border-b border-gray-100">
                 <button
@@ -2235,27 +2251,28 @@ const addToCart = useCallback((product, mode = null) => {
 
       {/* Payment Dialog */}
       <Dialog open={showPayment} onOpenChange={(open) => { if (!paymentInFlight.current) { setShowPayment(open); if (!open) setConfirmSale(false); } }}>
-        <DialogContent onKeyDownCapture={(e) => {
+        <DialogContent style={paymentViewport} onKeyDownCapture={(e) => {
           if (e.key === 'Enter') {
             e.preventDefault(); e.stopPropagation();
             if (!e.repeat) { if (confirmSale) handlePayment(); else requestPayment(); }
           }
-        }} className="sm:max-w-md p-0 overflow-hidden border-0 bg-transparent shadow-none">
-          <div className="relative rounded-3xl overflow-hidden bg-[#faf9f4] border border-[#0E4B49]/15 shadow-xl shadow-[#0E4B49]/10">
-            <div className="relative p-6 space-y-5">
-              <DialogHeader className="flex flex-row items-center justify-between space-y-0">
+        }} className="dp-payment-dialog sm:max-w-md p-0">
+          <div className="dp-payment-surface">
+            <div className="dp-payment-layout">
+              <DialogHeader className="dp-payment-header flex flex-row items-center justify-between space-y-0">
                 <div className="flex items-center gap-3">
                   <div className="h-10 w-1 rounded-full bg-[#0E4B49]"></div>
                   <div className="text-left">
                     <DialogTitle className="text-lg font-bold text-gray-900 tracking-tight m-0">{'P\u00EBrfundimi i Pages\u00EBs'}</DialogTitle>
-                    <p className="text-xs text-gray-400 font-medium mt-0.5">{'Zgjidh m\u00EBnyr\u00EBn e pages\u00EBs'}</p>
+                    <DialogDescription className="dp-payment-description">Zgjidh mënyrën e pagesës.</DialogDescription>
                   </div>
                 </div>
-                <button type="button" onClick={() => setShowPayment(false)} className="h-9 w-9 rounded-xl bg-gray-100 hover:bg-gray-200 border border-gray-200 text-gray-600 hover:text-gray-900 flex items-center justify-center transition">
+                <button type="button" onClick={() => { if (!paymentInFlight.current) { setShowPayment(false); setConfirmSale(false); } }} disabled={paymentSubmitting} aria-label="Mbyll pagesën" className="h-9 w-9 rounded-xl bg-gray-100 hover:bg-gray-200 border border-gray-200 text-gray-600 hover:text-gray-900 flex items-center justify-center transition">
                   <X className="h-4 w-4" />
                 </button>
               </DialogHeader>
-              <div className="relative rounded-2xl bg-[#0E4B49]/8 border border-[#0E4B49]/15 p-5 text-center">
+              <div className="dp-payment-scroll" tabIndex={0} aria-label="Të dhënat e pagesës">
+              <div className="dp-payment-total relative rounded-2xl bg-[#0E4B49]/8 border border-[#0E4B49]/15 p-5 text-center">
                 <div className="text-[10px] uppercase tracking-[0.3em] text-[#0E4B49]/80 font-semibold mb-1">{'Totali p\u00EBr Pages\u00EB'}</div>
                 <div className="text-5xl font-extrabold tabular-nums text-[#0E4B49]">{`\u20AC${Math.max(0, cartTotals.total - (couponData?.discount_amount || 0)).toFixed(2)}`}</div>
                 <Zap className="absolute top-3 right-3 h-4 w-4 text-[#0E4B49]/60" />
@@ -2269,12 +2286,12 @@ const addToCart = useCallback((product, mode = null) => {
                 </button>
               </div>
               {paymentMethod === 'cash' && (
-                <div className="space-y-4">
-                  <div className="relative">
+                <div className="dp-payment-cash space-y-4">
+                  <div className="dp-payment-amount relative">
                     <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[#0E4B49] font-bold text-lg pointer-events-none">{'\u20AC'}</span>
-                    <input ref={cashInputRef} type="text" value={cashAmount} onChange={(e) => setCashAmount(e.target.value)} placeholder={'Shkruaj shum\u00EBn e paguar...'} autoFocus data-testid="cash-amount-input" className="w-full h-14 pl-10 pr-4 rounded-2xl bg-white border border-gray-200 text-xl font-bold text-gray-900 tabular-nums placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#0E4B49]/40 focus:border-[#0E4B49]/40 transition" />
+                    <input ref={cashInputRef} type="text" value={cashAmount} onChange={(e) => setCashAmount(e.target.value)} placeholder={'Shkruaj shum\u00EBn e paguar...'} inputMode="decimal" aria-label="Shuma e paguar" data-testid="cash-amount-input" className="w-full h-14 pl-10 pr-4 rounded-2xl bg-white border border-gray-200 text-xl font-bold text-gray-900 tabular-nums placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#0E4B49]/40 focus:border-[#0E4B49]/40 transition" />
                   </div>
-                  <div className="grid grid-cols-3 gap-2">
+                  <div className="dp-payment-summary grid grid-cols-3 gap-2">
                     <div className="rounded-xl bg-gray-50 border border-gray-200 p-3">
                       <div className="text-[9px] uppercase tracking-widest text-gray-500 font-semibold">Total</div>
                       <div className="text-base font-bold text-gray-900 tabular-nums mt-0.5">{`\u20AC${Math.max(0, cartTotals.total - (couponData?.discount_amount || 0)).toFixed(2)}`}</div>
@@ -2288,11 +2305,11 @@ const addToCart = useCallback((product, mode = null) => {
                       <div className={`text-base font-bold tabular-nums mt-0.5 ${changeAmount > 0 ? 'text-emerald-600' : 'text-gray-600'}`}>{`\u20AC${changeAmount.toFixed(2)}`}</div>
                     </div>
                   </div>
-                  <div className="grid grid-cols-3 gap-2">
+                  <div className="dp-payment-keypad grid grid-cols-3 gap-2">
                     {['7','8','9','4','5','6','1','2','3','.','0'].map((num) => (
                       <button key={num} type="button" onClick={() => handleNumpad(num)} className="h-12 rounded-xl bg-white hover:bg-gray-50 border border-gray-200 text-gray-900 text-lg font-bold tabular-nums transition active:scale-95">{num}</button>
                     ))}
-                    <button type="button" onClick={() => handleNumpad('backspace')} className="h-12 rounded-xl bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-600 transition active:scale-95 flex items-center justify-center">
+                    <button type="button" onClick={() => handleNumpad('backspace')} aria-label="Fshij shifrën" className="h-12 rounded-xl bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-600 transition active:scale-95 flex items-center justify-center">
                       <Delete className="h-5 w-5" />
                     </button>
                   </div>
@@ -2355,6 +2372,8 @@ const addToCart = useCallback((product, mode = null) => {
                   </button>
                 )}
               </div>
+              </div>
+              <div className="dp-payment-footer">
               {confirmSale && (
                 <div role="alertdialog" aria-labelledby="confirm-sale-title" className="p-4 border border-[#0E4B49]/30 rounded-xl bg-emerald-50 space-y-3">
                   <p id="confirm-sale-title" className="font-semibold">Dëshironi të përfundoni shitjen?</p>
@@ -2373,6 +2392,7 @@ const addToCart = useCallback((product, mode = null) => {
                   <ArrowRight className="h-4 w-4" />
                 </span>
               </button>
+              </div>
             </div>
           </div>
         </DialogContent>

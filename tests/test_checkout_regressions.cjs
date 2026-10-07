@@ -1,0 +1,17 @@
+const fs=require('fs'),path=require('path'),vm=require('vm'),assert=require('assert/strict');
+const root=path.resolve(__dirname,'..'),read=f=>fs.readFileSync(path.join(root,f),'utf8');
+let now=0,closed=0,next=1;const timers=new Map(),listeners=new Map();
+const events={addEventListener:(n,f)=>listeners.set(n,f),removeEventListener:(n,f)=>{if(listeners.get(n)===f)listeners.delete(n)}};
+const scheduler={setTimeout:(f,ms)=>{assert.equal(ms,60000);let id=next++;timers.set(id,f);return id},clearTimeout:id=>timers.delete(id)};
+const ctx={Date:{now:()=>now},document:events,window:events};vm.createContext(ctx);
+vm.runInContext(read('frontend/src/lib/catalogTimer.js').replace(/export /g,'')+';this.arm=armCatalogAutoClose;',ctx);
+let cleanup=ctx.arm(()=>closed++,scheduler);assert.equal(timers.size,1);now=59999;listeners.get('focus')();assert.equal(closed,0);now=60000;listeners.get('focus')();assert.equal(closed,1);cleanup();assert.equal(timers.size,0);assert.equal(listeners.size,0);
+closed=0;now=100000;cleanup=ctx.arm(()=>closed++,scheduler);cleanup();assert.equal(timers.size,0);assert.equal(closed,0);now=120000;cleanup=ctx.arm(()=>closed++,scheduler);now=160000;listeners.get('visibilitychange')();assert.equal(closed,0);now=180000;listeners.get('visibilitychange')();assert.equal(closed,1);cleanup();
+console.log('PASS actual one-minute timer, background deadline, cleanup and fresh reopening');
+const pos=read('frontend/src/pages/POS.jsx'),css=read('frontend/src/payment-layout.css'),hook=read('frontend/src/lib/usePaymentViewport.js');
+assert(pos.includes('[showCatalog, setShowCatalog] = useState(false)'));assert(pos.includes('return armCatalogAutoClose'));assert(pos.includes('setShowCatalog(false); }, [cashDrawer?.id]'));assert(pos.includes('aria-expanded={showCatalog}'));
+console.log('PASS catalog defaults closed, follows drawer lifecycle and retains accessible toggle');
+assert(pos.includes('dp-payment-scroll'));assert(pos.includes('dp-payment-footer'));assert(css.includes('overflow-y: auto'));assert(css.includes('--payment-viewport-height'));assert(css.includes('flex: 0 0 auto'));assert(css.includes('.dp-payment-dialog > button { display: none; }'));
+console.log('PASS checkout has bounded viewport, scrollable fields and separate fixed actions');
+assert(hook.includes('window.visualViewport'));assert(hook.includes("viewport?.addEventListener('resize', update)"));assert(hook.includes("viewport?.removeEventListener('resize', update)"));assert(pos.includes("!window.matchMedia('(pointer: coarse)').matches"));assert(pos.includes('aria-label="Mbyll pagesën"'));assert(pos.includes('DialogDescription className="dp-payment-description"'));
+console.log('PASS visual viewport cleanup, touch keyboard handling and labelled close/description');

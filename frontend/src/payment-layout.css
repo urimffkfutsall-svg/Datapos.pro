@@ -1,0 +1,48 @@
+/* Only checkout: bounded viewport, scrollable fields, permanently reachable actions. */
+.dp-dialog.dp-payment-dialog {
+  width: min(640px, calc(var(--payment-viewport-width, 100vw) - 24px)) !important;
+  max-width: 640px !important;
+  max-height: calc(var(--payment-viewport-height, 100vh) - 24px) !important;
+  max-height: calc(var(--payment-viewport-height, 100dvh) - 24px) !important;
+  top: var(--payment-top, 50%); left: var(--payment-left, 50%);
+  display: block !important; padding: 0 !important; overflow: hidden !important;
+  background: white !important; border: 1px solid #c4d6d1; border-radius: 16px;
+}
+.dp-payment-dialog *, .dp-payment-dialog *::before, .dp-payment-dialog *::after { box-sizing: border-box; }
+/* The labelled, guarded header control replaces the primitive's duplicate close. */
+.dp-payment-dialog > button { display: none; }
+.dp-payment-surface { display: flex; flex-direction: column; overflow: hidden; max-height: calc(var(--payment-viewport-height, 100vh) - 26px); max-height: calc(var(--payment-viewport-height, 100dvh) - 26px); background: #fff; }
+.dp-payment-layout { display: contents; }
+.dp-payment-header { flex: 0 0 auto; margin: 0; padding: 16px 20px; border-bottom: 1px solid #e3ebe8; background: #fff; }
+.dp-payment-header > div { min-width: 0; }
+.dp-payment-header button { flex: 0 0 44px; width: 44px; height: 44px; min-height: 44px; }
+.dp-payment-description { margin: 4px 0 0; color: #596973; font-size: 14px; line-height: 1.4; }
+.dp-payment-scroll { min-height: 0; flex: 1 1 auto; overflow-y: auto; overflow-x: hidden; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; padding: 16px 20px; display: flex; flex-direction: column; gap: 16px; scroll-padding: 16px; }
+.dp-payment-scroll > * { flex-shrink: 0; min-width: 0; }
+.dp-payment-total { padding: 12px !important; }
+.dp-payment-total > div:first-child { font-size: 12px; letter-spacing: .12em; }
+.dp-payment-total > div:nth-child(2) { font-size: clamp(32px, 5vw, 44px); line-height: 1.15; }
+.dp-payment-scroll input { font-size: 16px !important; min-height: 44px; width: 100%; }
+.dp-payment-scroll button { min-height: 44px; }
+.dp-payment-summary > div { padding: 10px; }
+.dp-payment-summary > div > div:first-child { font-size: 12px; letter-spacing: .03em; }
+.dp-payment-keypad button { height: 44px; }
+.dp-payment-footer { flex: 0 0 auto; padding: 12px 20px; border-top: 1px solid #dce7e2; background: #fff; max-height: calc(var(--payment-viewport-height, 100dvh) * .55); overflow-y: auto; overscroll-behavior: contain; }
+.dp-payment-footer > button { width: 100%; min-height: 48px; height: auto; padding: 12px; box-shadow: none; }
+.dp-payment-footer [role='alertdialog'] { margin-bottom: 12px; }
+.dp-payment-footer [role='alertdialog'] .flex { flex-wrap: wrap; }
+.dp-payment-footer button { min-height: 44px; white-space: normal; }
+.dp-payment-dialog button:focus-visible, .dp-payment-scroll:focus-visible { outline: 2px solid #0e4b49; outline-offset: -3px; }
+@media (min-width: 600px) {
+  .dp-payment-cash { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 12px; }
+  .dp-payment-cash > * { margin-top: 0 !important; }
+  .dp-payment-amount { grid-column: 1 / -1; }
+  .dp-payment-summary { grid-column: 1; display: flex; flex-direction: column; }
+  .dp-payment-keypad { grid-column: 2; grid-row: 2; }
+}
+@media (max-width: 599px) {
+  .dp-payment-header { padding: 12px 14px; }
+  .dp-payment-scroll { padding: 12px 14px; gap: 12px; }
+  .dp-payment-footer { padding: 10px 14px; padding-bottom: max(10px, env(safe-area-inset-bottom)); }
+}
+@media (prefers-reduced-motion: reduce) { .dp-payment-dialog, .dp-payment-dialog * { animation: none !important; transition: none !important; } }
