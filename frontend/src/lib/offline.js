@@ -5,7 +5,7 @@
  *
  * Kur nuk ka internet:
  *  - Kerkesat GET kthehen nga cache-i lokal (te dhenat e fundit te shkarkuara).
- *  - Kerkesat POST/PUT/DELETE per veprime shitjeje ruhen ne radhe (queue).
+ *  - Kerkesat POST/PUT per veprime shitjeje ruhen ne radhe (queue).
  *
  * Kur lidhja kthehet:
  *  - Radha dergohet automatikisht ne server, sipas rendit kronologjik.
@@ -14,6 +14,11 @@
 const CACHE_PREFIX = 'datapos_cache:';
 const QUEUE_KEY = 'datapos_sync_queue';
 const LAST_SYNC_KEY = 'datapos_last_sync';
+export const sessionOwner = () => {
+  try { const user = JSON.parse(localStorage.getItem('t3next_user') || 'null'); return user?.id ? (user.tenant_id || user.tenant?.id || 'legacy') + ':' + user.id : null; }
+  catch { return null; }
+};
+export const blockedCount = () => {const owner=sessionOwner();return getQueue().filter(item=>owner&&item.owner===owner&&item.status==='blocked').length;};
 export const OFFLINE_EVENT = 'datapos-offline-state';
 
 /** Endpoint-et GET qe ruhen ne cache per pune offline. */
@@ -51,7 +56,8 @@ const emitState = (extra = {}) => {
       new CustomEvent(OFFLINE_EVENT, {
         detail: {
           offline: isOffline(),
-          queued: getQueue().length,
+          queued: queueCount(),
+          blocked: blockedCount(),
           lastSync: getLastSync(),
           ...extra,
         },
@@ -92,7 +98,7 @@ export const writeCache = (url, data) => {
   try {
     localStorage.setItem(
       CACHE_PREFIX + url,
-      JSON.stringify({ data, at: new Date().toISOString() })
+      JSON.stringify({ data, owner: sessionOwner(), at: new Date().toISOString() })
     );
   } catch (e) {
     /* kuota e mbushur - hesht */
@@ -103,7 +109,8 @@ export const readCache = (url) => {
   try {
     const raw = localStorage.getItem(CACHE_PREFIX + url);
     if (!raw) return null;
-    return JSON.parse(raw);
+    const cached = JSON.parse(raw);
+    return cached.owner && cached.owner === sessionOwner() ? cached : null;
   } catch (e) {
     return null;
   }
@@ -133,84 +140,77 @@ export const getQueue = () => {
 };
 
 const saveQueue = (queue) => {
-  try {
-    localStorage.setItem(QUEUE_KEY, JSON.stringify(queue));
-  } catch (e) {
-    /* ignore */
-  }
+  localStorage.setItem(QUEUE_KEY, JSON.stringify(queue));
 };
+const updateQueueItem = (id, changes) => saveQueue(getQueue().map(item=>item.id===id?{...item,...changes}:item));
+const removeQueueItem = id => saveQueue(getQueue().filter(item=>item.id!==id));
 
-export const enqueue = (item) => {
+export const enqueue = item => {
+  const owner = sessionOwner();
+  if (!owner) throw new Error('Sesioni mungon. Shitja nuk u ruajt offline.');
   const queue = getQueue();
-  const entry = {
-    id: 'q-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 8),
-    method: (item.method || 'post').toLowerCase(),
-    url: item.url,
-    data: item.data ?? null,
-    created_at: new Date().toISOString(),
-    attempts: 0,
-  };
+  const key = item.data?.request_id;
+  const prior = key && queue.find(row=>row.owner===owner&&row.data?.request_id===key);
+  if (prior) {
+    if (JSON.stringify(prior.data)!==JSON.stringify(item.data)) throw new Error('Kërkesa offline ka të dhëna të ndryshme. Verifikoni shitjen.');
+    return prior;
+  }
+  const entry = {id:'q-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,10),
+    method:(item.method||'post').toLowerCase(),url:item.url,data:item.data??null,
+    owner,status:'pending',created_at:new Date().toISOString(),attempts:0};
   queue.push(entry);
-  saveQueue(queue);
+  saveQueue(queue); // quota/full storage must reject instead of pretending the sale was saved
   emitState();
   return entry;
 };
+export const queueCount = () => {const owner=sessionOwner();return getQueue().filter(item=>owner&&item.owner===owner).length;};
 
-export const queueCount = () => getQueue().length;
-
-/**
- * Dergon radhen ne server. Ndalon te gabimi i pare i rrjetit, por i heq
- * elementet qe serveri i refuzon perfundimisht (4xx), qe radha te mos bllokohet.
- */
-export const flushQueue = async (api) => {
-  if (syncing || !api) return { sent: 0, failed: 0 };
-  const queue = getQueue();
-  if (!queue.length) return { sent: 0, failed: 0 };
-
-  syncing = true;
-  emitState({ syncing: true });
-
-  let sent = 0;
-  let failed = 0;
-  const remaining = [...queue];
-
-  while (remaining.length) {
-    const item = remaining[0];
-    try {
-      await api.request({
-        method: item.method,
-        url: item.url,
-        data: item.data,
-        headers: { 'X-Offline-Sync': '1' },
-      });
-      remaining.shift();
-      sent += 1;
-      saveQueue(remaining);
-    } catch (error) {
-      const status = error?.response?.status;
-      if (status && status >= 400 && status < 500) {
-        // Refuzim perfundimtar - hiqe nga radha
-        remaining.shift();
-        failed += 1;
-        saveQueue(remaining);
-        continue;
-      }
-      // Problem rrjeti/serveri - provo perseri me vone
-      item.attempts = (item.attempts || 0) + 1;
-      saveQueue(remaining);
-      break;
-    }
-  }
-
+/** Never discard a rejected sale. Keep its payload and error for manual review. */
+export const flushQueue = async api => {
+  if (syncing || !api) return {sent:0,failed:0};
+  const owner=sessionOwner();
+  if (!owner) return {sent:0,failed:0};
+  const candidates=getQueue().filter(item=>item.owner===owner&&item.status!=='blocked');
+  if (!candidates.length) {emitState();return {sent:0,failed:0};}
+  syncing=true;emitState({syncing:true});let sent=0,failed=0;
   try {
-    localStorage.setItem(LAST_SYNC_KEY, new Date().toISOString());
-  } catch (e) {
-    /* ignore */
+    for(const candidate of candidates){
+      if(sessionOwner()!==owner) break; // never replay another cashier's queue after a session switch
+      const item=getQueue().find(row=>row.id===candidate.id);
+      if(!item)continue;
+      const key=item.data?.request_id||item.id;
+      if(item.method==='post'&&normalize(item.url)==='/sales'&&!item.data?.request_id){
+        item.data={...item.data,request_id:key};updateQueueItem(item.id,{data:item.data});
+      }
+      try{
+        const response=await api.request({method:item.method,url:item.url,data:item.data,
+          headers:{'X-Offline-Sync':'1',...(normalize(item.url)==='/sales'?{'Idempotency-Key':key}:{})}});
+        if(response?.queued||response?.data?.queued)throw new Error('Shitja nuk u konfirmua në server.');
+        removeQueueItem(item.id);sent++;
+      }catch(error){
+        const status=error?.response?.status;
+        const detail=error?.response?.data?.detail;
+        const changes={attempts:(item.attempts||0)+1,last_error:typeof detail==='string'?detail.slice(0,400):'Sinkronizimi nuk u konfirmua.',last_status:status||null};
+        if([401,403,408,429].includes(status)){
+          updateQueueItem(item.id,{...changes,status:'pending'});failed++;break;
+        }
+        if(status>=400&&status<500){
+          updateQueueItem(item.id,{...changes,status:'blocked'});failed++;break;
+        }
+        updateQueueItem(item.id,{...changes,status:'pending'});failed++;break;
+      }
+    }
+    if(sent)localStorage.setItem(LAST_SYNC_KEY,new Date().toISOString());
+  }finally{
+    syncing=false;emitState({syncing:false,sent,failed});
+    if(sent)window.dispatchEvent(new Event('datapos-sales-changed'));
   }
-
-  syncing = false;
-  emitState({ syncing: false, sent, failed });
-  return { sent, failed };
+  return {sent,failed};
+};
+export const retryBlocked = async api => {
+  const owner=sessionOwner();
+  saveQueue(getQueue().map(item=>item.owner===owner&&item.status==='blocked'?{...item,status:'pending'}:item));
+  emitState();return flushQueue(api);
 };
 
 /* ------------------------------------------------------------------ */
@@ -346,6 +346,8 @@ const offlineApi = {
   isOffline,
   setOfflineState,
   getQueue,
+  blockedCount,
+  retryBlocked,
   queueCount,
   enqueue,
   flushQueue,

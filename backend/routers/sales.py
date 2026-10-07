@@ -1,9 +1,10 @@
 """Sales routes with debt management"""
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException, Depends, Header
 from typing import List, Optional
 from datetime import datetime, timezone
 
 from database import db
+from sale_service import save_sale, SaleError
 from report_dates import date_filter, period_query
 from auth import require_role
 from models import (
@@ -17,205 +18,23 @@ from auth import get_current_user, get_tenant_filter, add_tenant_id, log_audit
 router = APIRouter(prefix="/sales", tags=["Sales"])
 
 
-async def generate_receipt_number(branch_id: str = None, tenant_id: str = None) -> str:
-    """Generate a unique receipt number"""
-    today = datetime.now(timezone.utc).strftime("%Y%m%d")
-    prefix = f"RCP-{today}"
-    query = {"receipt_number": {"$regex": f"^{prefix}"}}
-    if tenant_id:
-        query["tenant_id"] = tenant_id
-    count = await db.sales.count_documents(query)
-    return f"{prefix}-{str(count + 1).zfill(4)}"
-
-
 @router.post("", response_model=SaleResponse)
-async def create_sale(sale_data: SaleCreate, current_user: dict = Depends(get_current_user)):
-    """Create a new sale (with optional debt)"""
-    tenant_filter = get_tenant_filter(current_user)
-    
-    drawer = await db.cash_drawers.find_one({
-        "user_id": current_user["id"],
-        "status": CashDrawerStatus.OPEN.value,
-        **tenant_filter
-    }, {"_id": 0})
-    
-    if not drawer:
-        raise HTTPException(status_code=409, detail="Arka është mbyllur ose resetuar. Hapeni përsëri para shitjes.")
+async def create_sale(sale_data: SaleCreate, current_user: dict = Depends(get_current_user),
+                      idempotency_key: Optional[str] = Header(None, alias="Idempotency-Key")):
+    try:
+        doc = await save_sale(db, sale_data.model_dump(mode="json"), current_user,
+                              get_tenant_filter(current_user), idempotency_key)
+        return SaleResponse(**doc)
+    except SaleError as error:
+        raise HTTPException(status_code=error.status, detail=error.detail) from error
 
-    items = []
-    subtotal = 0
-    total_discount = 0
-    total_vat = 0
-    
-    for item_data in sale_data.items:
-        product = await db.products.find_one({"id": item_data.product_id, **tenant_filter}, {"_id": 0})
-        if not product:
-            raise HTTPException(status_code=404, detail=f"Produkti {item_data.product_id} nuk u gjet")
-        
-        item_subtotal = item_data.quantity * item_data.unit_price
-        item_discount = item_subtotal * (item_data.discount_percent / 100)
-        item_after_discount = item_subtotal - item_discount
-        item_vat = item_after_discount * (item_data.vat_percent / 100)
-        item_total = item_after_discount + item_vat
-        
-        items.append(SaleItem(
-            product_id=item_data.product_id,
-            product_name=product.get("name"),
-            quantity=item_data.quantity,
-            unit_price=item_data.unit_price,
-            discount_percent=item_data.discount_percent,
-            vat_percent=item_data.vat_percent,
-            subtotal=item_subtotal,
-            vat_amount=item_vat,
-            total=item_total
-        ))
-        
-        subtotal += item_subtotal
-        total_discount += item_discount
-        total_vat += item_vat
-        
-        new_stock = product.get("current_stock", 0) - item_data.quantity
-        await db.products.update_one(
-            {"id": item_data.product_id, **tenant_filter},
-            {"$set": {"current_stock": new_stock, "updated_at": datetime.now(timezone.utc).isoformat()}}
-        )
-        
-        movement = StockMovement(
-            product_id=item_data.product_id,
-            quantity=item_data.quantity,
-            movement_type=StockMovementType.SALE,
-            reason="Shitje",
-            user_id=current_user["id"],
-            branch_id=current_user.get("branch_id")
-        )
-        mov_doc = movement.model_dump()
-        mov_doc['created_at'] = mov_doc['created_at'].isoformat()
-        mov_doc = add_tenant_id(mov_doc, current_user)
-        await db.stock_movements.insert_one(mov_doc)
-    
-    grand_total = subtotal - total_discount + total_vat
-    # Apply coupon if provided
-    coupon_code = None
-    coupon_discount = 0.0
-    coupon_doc_for_inc = None
-    if sale_data.coupon_code:
-        coupon_code = sale_data.coupon_code.strip().upper()
-        coupon_doc_for_inc = await db.coupons.find_one({**tenant_filter, "code": coupon_code})
-        if not coupon_doc_for_inc:
-            raise HTTPException(status_code=400, detail=f"Kuponi '{coupon_code}' nuk u gjet")
-        if not coupon_doc_for_inc.get("active", True):
-            raise HTTPException(status_code=400, detail=f"Kuponi '{coupon_code}' nuk eshte aktiv")
 
-        def _to_dt(v):
-            if v is None:
-                return None
-            if isinstance(v, str):
-                v = datetime.fromisoformat(v.replace("Z", "+00:00"))
-            if v.tzinfo is None:
-                v = v.replace(tzinfo=timezone.utc)
-            return v
-
-        _now = datetime.now(timezone.utc)
-        _vf = _to_dt(coupon_doc_for_inc.get("valid_from"))
-        _vu = _to_dt(coupon_doc_for_inc.get("valid_until"))
-        if _vf and _now < _vf:
-            raise HTTPException(status_code=400, detail=f"Kuponi '{coupon_code}' nuk eshte aktiv ende")
-        if _vu and _now > _vu:
-            raise HTTPException(status_code=400, detail=f"Kuponi '{coupon_code}' ka skaduar")
-
-        _max_uses = coupon_doc_for_inc.get("max_uses")
-        _used = coupon_doc_for_inc.get("used_count", 0)
-        if _max_uses is not None and _used >= _max_uses:
-            raise HTTPException(status_code=400, detail=f"Kuponi '{coupon_code}' ka arritur limitin e perdorimit")
-
-        _min_purchase = coupon_doc_for_inc.get("min_purchase_amount")
-        if _min_purchase is not None and grand_total < float(_min_purchase):
-            raise HTTPException(status_code=400, detail=f"Shuma minimale per kete kupon eshte {float(_min_purchase):.2f} EUR")
-
-        _c_type = coupon_doc_for_inc.get("discount_type", "percent")
-        _c_value = float(coupon_doc_for_inc.get("discount_value", 0))
-        if _c_type == "percent":
-            coupon_discount = round(grand_total * (_c_value / 100.0), 2)
-        else:
-            coupon_discount = round(min(_c_value, grand_total), 2)
-
-        grand_total = max(0.0, round(grand_total - coupon_discount, 2))
-    
-    # Handle debt logic
-    is_debt = sale_data.is_debt
-    remaining_debt = 0
-    debtor_name = sale_data.debtor_name
-    
-    if is_debt:
-        # If debt, remaining_debt is specified or defaults to grand_total
-        if sale_data.remaining_debt is not None:
-            remaining_debt = sale_data.remaining_debt
-        else:
-            remaining_debt = grand_total
-        
-        # Validate debtor name for debt sales
-        if not debtor_name:
-            raise HTTPException(status_code=400, detail="Emri i debitorit është i detyrueshëm për borxh")
-    
-    change_amount = 0
-    if not is_debt and sale_data.payment_method == PaymentMethod.CASH:
-        change_amount = (sale_data.cash_amount or 0) - grand_total
-    
-    receipt_number = await generate_receipt_number(current_user.get("branch_id"), current_user.get("tenant_id"))
-    
-    sale = Sale(
-        receipt_number=receipt_number,
-        items=[item.model_dump() for item in items],
-        subtotal=round(subtotal, 2),
-        total_discount=round(total_discount, 2),
-        total_vat=round(total_vat, 2),
-        grand_total=round(grand_total, 2),
-        payment_method=sale_data.payment_method,
-        cash_amount=sale_data.cash_amount or 0,
-        bank_amount=sale_data.bank_amount or 0,
-        change_amount=round(max(0, change_amount), 2),
-        customer_name=sale_data.customer_name or debtor_name,
-        notes=sale_data.notes,
-        user_id=current_user["id"],
-        branch_id=current_user.get("branch_id"),
-        cash_drawer_id=drawer["id"] if drawer else None,
-        # Debt fields
-        is_debt=is_debt,
-        debtor_name=debtor_name,
-        remaining_debt=round(remaining_debt, 2),
-        # Coupon fields
-        coupon_code=coupon_code,
-        coupon_discount=round(coupon_discount, 2)
-    )
-    
-    doc = sale.model_dump()
-    doc['created_at'] = doc['created_at'].isoformat()
-    if doc.get('debt_paid_at'):
-        doc['debt_paid_at'] = doc['debt_paid_at'].isoformat()
-    doc = add_tenant_id(doc, current_user)
-    await db.sales.insert_one(doc)
-
-    # Increment coupon used_count after successful sale
-    if coupon_doc_for_inc:
-        await db.coupons.update_one(
-            {**tenant_filter, "code": coupon_code},
-            {"$inc": {"used_count": 1}}
-        )
-    
-    # Only update cash drawer for non-debt sales
-    if drawer and sale_data.cash_amount and not is_debt:
-        new_expected = drawer["expected_balance"] + sale_data.cash_amount - change_amount
-        await db.cash_drawers.update_one(
-            {"id": drawer["id"], **tenant_filter},
-            {"$set": {"expected_balance": new_expected}}
-        )
-    
-    await log_audit(current_user["id"], "create_sale", "sale", sale.id, {
-        "total": grand_total,
-        "is_debt": is_debt,
-        "remaining_debt": remaining_debt
-    })
-    return SaleResponse(**doc)
+@router.get("/readiness")
+async def sale_readiness(current_user: dict = Depends(get_current_user)):
+    """Authenticated pre-deployment check; never exposes connection strings."""
+    hello = await db.command("hello")
+    capable = bool(hello.get("setName") or hello.get("msg") == "isdbgrid") and hello.get("logicalSessionTimeoutMinutes") is not None and hello.get("maxWireVersion", 0) >= 9
+    return {"transaction_capable": capable, "idempotent_sales": True, "money_version": "cents-v1"}
 
 
 @router.get("", response_model=List[SaleResponse])
@@ -387,7 +206,8 @@ async def delete_sale(sale_id: str, current_user: dict = Depends(require_role([U
     result = await db.sales.delete_one(query)
     if result.deleted_count == 0:
         raise HTTPException(status_code=404, detail="Shitja është fshirë tashmë")
-    if sale.get("cash_drawer_id") and not sale.get("is_debt"):
+    if sale.get("cash_drawer_id") and (not sale.get("is_debt") or sale.get("request_id")):
+        # New atomic sales include partial cash for debts; historical debts used the old balance rule.
         net_cash = sale.get("cash_amount", 0) - sale.get("change_amount", 0)
         await db.cash_drawers.update_one({"id": sale["cash_drawer_id"], **tenant_filter},
                                           {"$inc": {"expected_balance": -net_cash}})

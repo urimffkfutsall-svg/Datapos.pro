@@ -1,0 +1,5 @@
+/* In the page flow: sync warnings must never cover checkout/login controls. */
+.dp-offline-status { position: relative; z-index: 40; width: calc(100% - 32px); max-width: 768px; margin: 16px auto; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; padding: 12px 16px; border-radius: 8px; font-size: 14px; line-height: 1.5; box-sizing: border-box; }
+.dp-offline-status svg { flex: 0 0 auto; }
+.dp-offline-status span { min-width: 0; flex: 1 1 200px; overflow-wrap: anywhere; }
+.dp-offline-status button { min-height: 44px; padding: 8px 12px; }

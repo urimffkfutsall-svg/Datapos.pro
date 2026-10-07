@@ -62,6 +62,8 @@ import {
 import InvoiceA4 from '../components/InvoiceA4';
 import ThermalReceipt from '../components/ThermalReceipt';
 import '../payment-layout.css';
+import { calculateSaleLine, sumSaleLines, toCents } from '../lib/saleMoney';
+import { prepareSaleAttempt, completeSaleAttempt, releaseRejectedSaleAttempt, pendingSaleAttempt } from '../lib/saleAttempt';
 import { armCatalogAutoClose } from '../lib/catalogTimer';
 import { usePaymentViewport } from '../lib/usePaymentViewport';
 import { Checkbox } from '../components/ui/checkbox';
@@ -153,6 +155,22 @@ const POS = () => {
   const searchRef = useRef(null);
   const invoiceRef = useRef(null);
   const thermalReceiptRef = useRef(null);
+
+  useEffect(() => {
+    const pending = pendingSaleAttempt(user);
+    if (!pending?.context?.cart) return;
+    const data = pending.payload;
+    setCart(pending.context.cart);
+    setCouponData(pending.context.couponData || null);
+    setPrintReceipt(Boolean(pending.context.printReceipt));
+    setPaymentMethod(data.payment_method);
+    setCashAmount(String(data.payment_method === 'bank' ? data.bank_amount : data.cash_amount));
+    setCustomerName(data.customer_name || '');
+    setCustomerNote(data.notes || '');
+    setIsDebt(Boolean(data.is_debt));
+    setDebtorName(data.debtor_name || '');
+    toast.info('U rikthye një shitje e pakonfirmuar. Provoni përsëri pa ndryshuar shportën; nuk krijohet dublim.');
+  }, [user?.id]);
 
   // Clock update every minute
   useEffect(() => {
@@ -456,25 +474,10 @@ const addToCart = useCallback((product, mode = null) => {
   };
 
   // Calculate totals
-  const calculateItemTotal = (item) => {
-    const subtotal = item.quantity * item.unit_price;
-    const discount = subtotal * (item.discount_percent / 100);
-    const afterDiscount = subtotal - discount;
-    const vat = afterDiscount * (item.vat_percent / 100);
-    return { subtotal, discount, vat, total: afterDiscount + vat };
-  };
+  const calculateItemTotal = calculateSaleLine;
+  const cartTotals = sumSaleLines(cart);
 
-  const cartTotals = cart.reduce((acc, item) => {
-    const { subtotal, discount, vat, total } = calculateItemTotal(item);
-    return {
-      subtotal: acc.subtotal + subtotal,
-      discount: acc.discount + discount,
-      vat: acc.vat + vat,
-      total: acc.total + total
-    };
-  }, { subtotal: 0, discount: 0, vat: 0, total: 0 });
-
-  const changeAmount = Math.max(0, (parseFloat(cashAmount) || 0) - (cartTotals.total - (couponData?.discount_amount || 0)));
+  const changeAmount = Math.max(0, toCents((parseFloat(cashAmount) || 0) - (cartTotals.total - (couponData?.discount_amount || 0))) / 100);
 
   // State for receipt preview
   const [showReceiptPreview, setShowReceiptPreview] = useState(false);
@@ -1051,7 +1054,7 @@ const addToCart = useCallback((product, mode = null) => {
 
   const requestPayment = () => {
     if (paymentInFlight.current) return;
-    const total = Math.max(0, cartTotals.total - (couponData?.discount_amount || 0));
+    const total = Math.max(0, toCents(cartTotals.total - (couponData?.discount_amount || 0)) / 100);
     if (isDebt && !debtorName.trim()) { toast.error('Shkruani emrin e debitorit'); return; }
     if (!isDebt && paymentMethod === 'cash' && (parseFloat(cashAmount) || 0) < total) {
       toast.error('Shuma e paguar është më e vogël se totali'); return;
@@ -1076,7 +1079,7 @@ const addToCart = useCallback((product, mode = null) => {
     // Calculate paid amount and remaining debt
     const paidAmount = parseFloat(cashAmount) || 0;
     const couponDiscount = couponData?.discount_amount || 0;
-    const finalTotal = Math.max(0, cartTotals.total - couponDiscount);
+    const finalTotal = Math.max(0, toCents(cartTotals.total - couponDiscount) / 100);
     const remainingDebt = isDebt ? Math.max(0, finalTotal - paidAmount) : 0;
     if (!isDebt && paymentMethod === 'cash' && paidAmount < finalTotal) {
       toast.error('Shuma e paguar është më e vogël se totali'); return;
@@ -1090,11 +1093,12 @@ const addToCart = useCallback((product, mode = null) => {
           quantity: item.quantity,
           unit_price: item.unit_price,
           discount_percent: item.discount_percent,
-          vat_percent: item.vat_percent
+          vat_percent: item.vat_percent,
+          is_package_sale: Boolean(item.is_package_sale)
         })),
         payment_method: paymentMethod,
-        cash_amount: paidAmount,
-        bank_amount: !isDebt && paymentMethod === 'bank' ? finalTotal : 0,
+        cash_amount: paymentMethod === 'cash' ? paidAmount : 0,
+        bank_amount: paymentMethod === 'bank' ? (isDebt ? paidAmount : finalTotal) : 0,
         customer_name: isDebt ? debtorName : (customerName || null),
         notes: customerNote || null,
         // Debt fields
@@ -1104,9 +1108,15 @@ const addToCart = useCallback((product, mode = null) => {
         coupon_code: couponData?.code || null
       };
 
-      const response = await api.post('/sales', saleData);
+      const attempt = prepareSaleAttempt(saleData, user, undefined, {cart, couponData, printReceipt});
+      saleData.request_id = attempt.key;
+      const response = await api.post('/sales', saleData, {headers: {'Idempotency-Key': attempt.key}});
+      completeSaleAttempt(user);
+      const queued = Boolean(response.queued || response.data?.queued);
       
-      if (isDebt) {
+      if (queued) {
+        toast.warning('Shitja u ruajt në këtë pajisje dhe pret sinkronizimin. Ende nuk është konfirmuar në server.');
+      } else if (isDebt) {
         if (remainingDebt > 0) {
           toast.success(`Borgj i regjistruar: ${response.data.receipt_number} - ${debtorName} (Mbetur: €${remainingDebt.toFixed(2)})`);
         } else {
@@ -1114,30 +1124,6 @@ const addToCart = useCallback((product, mode = null) => {
         }
       } else {
         toast.success(`Shitja u regjistrua: ${response.data.receipt_number}`);
-      }
-      
-      // Print thermal receipt if option is checked
-      if (printReceipt) {
-        const receiptData = {
-          ...response.data,
-          items: cart.map(item => ({
-            ...item,
-            total: calculateItemTotal(item).total
-          })),
-          subtotal: cartTotals.subtotal,
-          total_discount: cartTotals.discount,
-          total_vat: cartTotals.vat,
-          grand_total: cartTotals.total,
-          cash_amount: paidAmount,
-          change_amount: !isDebt ? Math.max(0, paidAmount - cartTotals.total) : 0,
-          customer_name: isDebt ? debtorName : (customerName || null),
-          is_debt: isDebt,
-          debtor_name: isDebt ? debtorName : null,
-          remaining_debt: remainingDebt,
-        coupon_code: couponData?.code || null,
-          paid_amount: paidAmount
-        };
-        printThermalReceipt(receiptData);
       }
       
       setCart([]);
@@ -1152,9 +1138,17 @@ const addToCart = useCallback((product, mode = null) => {
       // Reset debt state
       setIsDebt(false);
       setDebtorName('');
+      if (printReceipt && !queued) {
+        try {
+          printThermalReceipt({...response.data, paid_amount: response.data.cash_amount + response.data.bank_amount});
+        } catch {
+          toast.warning('Shitja u ruajt, por printimi dështoi. Printojeni nga Dokumentet; mos e regjistroni përsëri.');
+        }
+      }
       loadData();
     } catch (error) {
-      toast.error(error.response?.data?.detail || 'Gabim gjatë regjistrimit të shitjes');
+      releaseRejectedSaleAttempt(error, user);
+      toast.error(error.response?.data?.detail || error.message || 'Gabim gjatë regjistrimit të shitjes');
     } finally {
       paymentInFlight.current = false;
       setPaymentSubmitting(false);

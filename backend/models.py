@@ -344,6 +344,7 @@ class CloseDrawerRequest(BaseModel):
 
 # ============ SALE MODELS ============
 class SaleItemCreate(BaseModel):
+    is_package_sale: bool = False
     product_id: str
     quantity: float
     unit_price: float
@@ -351,6 +352,7 @@ class SaleItemCreate(BaseModel):
     vat_percent: Optional[float] = 0
 
 class SaleCreate(BaseModel):
+    request_id: Optional[str] = Field(None, min_length=8, max_length=128)
     items: List[SaleItemCreate]
     payment_method: PaymentMethod
     cash_amount: Optional[float] = 0
@@ -365,6 +367,8 @@ class SaleCreate(BaseModel):
     coupon_code: Optional[str] = None
 
 class SaleItem(BaseModel):
+    is_package_sale: bool = False
+    stock_quantity: Optional[float] = None
     product_id: str
     product_name: Optional[str] = None
     quantity: float
@@ -405,6 +409,7 @@ class Sale(BaseModel):
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 class SaleResponse(BaseModel):
+    request_id: Optional[str] = None
     id: str
     receipt_number: str
     items: List[SaleItem]

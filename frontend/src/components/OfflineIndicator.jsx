@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { WifiOff, RefreshCw, CheckCircle2 } from 'lucide-react';
+import '../offline-status.css';
 import offline, { OFFLINE_EVENT } from '../lib/offline';
 
 /**
@@ -16,6 +17,7 @@ const OfflineIndicator = ({ api }) => {
     offline: !navigator.onLine,
     queued: offline.queueCount(),
     syncing: false,
+    blocked: offline.blockedCount(),
     justSynced: false,
   });
 
@@ -25,6 +27,7 @@ const OfflineIndicator = ({ api }) => {
       setState((prev) => ({
         offline: detail.offline ?? prev.offline,
         queued: detail.queued ?? prev.queued,
+        blocked: detail.blocked ?? prev.blocked,
         syncing: detail.syncing ?? false,
         justSynced: (detail.sent || 0) > 0,
       }));
@@ -39,12 +42,18 @@ const OfflineIndicator = ({ api }) => {
     return () => window.removeEventListener(OFFLINE_EVENT, handler);
   }, []);
 
-  const { offline: isOff, queued, syncing, justSynced } = state;
+  const { offline: isOff, queued, syncing, justSynced, blocked } = state;
 
   if (!isOff && !queued && !syncing && !justSynced) return null;
 
-  const base =
-    'fixed bottom-4 left-4 z-[9999] flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium shadow-lg';
+  const base = 'dp-offline-status text-sm font-medium';
+
+  if (blocked > 0) {
+    return <div role="alert" data-testid="offline-sync-error" className={base + ' bg-red-700 text-white flex-wrap max-w-[calc(100vw-32px)]'}>
+      <WifiOff size={16} /><span>{blocked} veprime nuk u pranuan. Të dhënat ruhen në këtë pajisje.</span>
+      <button type="button" disabled={syncing || isOff} onClick={() => offline.retryBlocked(api)} className="min-h-[44px] px-3 border border-white/60 rounded-md">Provo përsëri</button>
+    </div>;
+  }
 
   if (isOff) {
     return (
