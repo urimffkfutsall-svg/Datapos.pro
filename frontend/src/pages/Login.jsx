@@ -8,17 +8,17 @@ import {
 } from '../components/ui/dialog';
 import {
   Delete, CornerDownLeft, User, Lock, Eye, EyeOff,
-  ArrowLeft, AlertTriangle, CreditCard, Phone,
+  AlertTriangle, CreditCard, Phone,
   ShoppingCart, Package, BarChart3, Users, Boxes, Store,
   Keyboard,
 } from 'lucide-react';
-import LoginSlideshow from '../components/LoginSlideshow';
+import '../login-design.css';
 
 const SERVICES = [
   { icon: ShoppingCart, label: 'Arka POS' },
   { icon: Package,      label: 'Produkte' },
   { icon: BarChart3,    label: 'Raporte' },
-  { icon: Users,        label: 'Klientet' },
+  { icon: Users,        label: 'Klientët' },
   { icon: Boxes,        label: 'Stoku' },
 ];
 
@@ -39,7 +39,6 @@ const Login = () => {
   const [error, setError] = useState('');
   const [showExpiredModal, setShowExpiredModal] = useState(false);
   const [expiredDays, setExpiredDays] = useState(0);
-  const [rememberMe, setRememberMe] = useState(false);
 
   // Virtual Keyboard state
   const [vkOpen, setVkOpen] = useState(false);
@@ -72,6 +71,8 @@ const Login = () => {
   const tenantLoading = tenantContext?.tenantLoading;
 
   const brandName = tenant?.company_name || tenant?.name || 'DataPOS';
+  const [logoFailed, setLogoFailed] = useState(false);
+  useEffect(() => { setLogoFailed(false); }, [tenant?.logo_url]);
 
   const handleSubscriptionExpired = (errorDetail) => {
     if (errorDetail && errorDetail.startsWith('SUBSCRIPTION_EXPIRED|')) {
@@ -187,248 +188,121 @@ const Login = () => {
      : password.length) === 0;
 
   return (
-    <div className="dp-login-page min-h-screen bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center p-4">
-      <div className="dp-login-container w-full max-w-5xl">
-        <div className="dp-login-card relative bg-white rounded-3xl shadow-2xl overflow-hidden">
-
-
-          <div className="dp-login-grid relative grid">
-            {/* LEFT */}
-            <div className="dp-login-brand flex flex-col p-6 relative z-10">
-              <div className="w-full max-w-[240px] mx-auto lg:mx-0 flex flex-col items-center flex-1 justify-center">
-                {/* Logo */}
-                {tenant?.logo_url ? (
-                  <img
-                    src={tenant.logo_url}
-                    alt={brandName}
-                    className="max-w-[150px] max-h-[104px] w-auto object-contain mb-4"
-                    onError={(e) => { e.target.style.display = 'none'; }}
-                  />
-                ) : (
-                  <div className="w-24 h-24 bg-[#0E4B49] rounded-3xl shadow-lg flex items-center justify-center mb-4">
-                    <Store className="w-12 h-12 text-white" strokeWidth={1.5} />
-                  </div>
-                )}
-
-                <h1 className="text-2xl font-bold text-[#0E4B49] tracking-tight text-center leading-tight break-words w-full">
-                  {brandName}
-                </h1>
-                <p className="text-[11px] text-gray-500 text-center mt-1 mb-5">Sistemi POS Moderne</p>
-
-                {/* Services */}
-                <div className="grid grid-cols-2 gap-2 w-full">
-                  {SERVICES.map((s, i) => {
-                    const Icon = s.icon;
-                    return (
-                      <div key={i} className="flex items-center gap-1.5 bg-gray-50 rounded-lg px-2 py-1.5 border border-gray-100">
-                        <div className="w-6 h-6 rounded-md flex items-center justify-center flex-shrink-0">
-                          <Icon className="w-3.5 h-3.5 text-[#0E4B49]" />
-                        </div>
-                        <span className="text-[11px] text-gray-700 font-medium truncate">{s.label}</span>
-                      </div>
-                    );
-                  })}
+    <div className="dp-login-page dp-login-v3">
+      <div className="dp-login-container">
+        <main className="dp-login-card" aria-label="Hyrja në DataPOS">
+          <div className="dp-login-grid">
+            <section className="dp-login-brand" aria-label="Firma">
+              <div className="dp-brand-identity">
+                <div className="dp-login-logo">
+                  {tenant?.logo_url && !logoFailed ? (
+                    <img src={tenant.logo_url} alt={`Logo e ${brandName}`} onError={() => setLogoFailed(true)} />
+                  ) : <Store aria-hidden="true" strokeWidth={1.5} />}
+                </div>
+                <div className="dp-brand-name">
+                  <h1>{brandName}</h1>
+                  <p>Hapësira juaj e punës</p>
                 </div>
               </div>
-
-              {/* Footer */}
-              <div className="w-full max-w-[240px] mx-auto lg:mx-0 mt-4">
-                <div className="pt-3 border-t border-gray-200 text-center space-y-0.5">
-                  <p className="text-[11px] text-gray-600">
-                    Powered by <span className="font-bold text-[#0E4B49]">DataPOS</span>
-                  </p>
-                  <p className="text-[10px] text-gray-400 pt-1">&copy; Copyright 2026</p>
-                  <a
-                    href="https://www.datapos.pro"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-[10px] text-[#0E4B49] hover:underline block"
-                  >
-                    www.datapos.pro
-                  </a>
-                  <p className="text-[10px] text-gray-500">+383 45 278 279</p>
+              <div className="dp-brand-intro">
+                <span className="dp-brand-eyebrow">ME DATAPOS</span>
+                <h2>Punë më e thjeshtë.<br />Kontroll më i plotë.</h2>
+                <p>Shitjet, produktet dhe raportet — në një hapësirë të vetme për biznesin tuaj.</p>
+                <div className="dp-brand-services" aria-label="Modulet e sistemit">
+                  {SERVICES.map(({icon: Icon, label}) => (
+                    <div key={label}><Icon aria-hidden="true" /><span>{label}</span></div>
+                  ))}
                 </div>
               </div>
-            </div>
+              <div className="dp-brand-signature"><span>Powered by</span> <strong>DataPOS</strong></div>
+            </section>
 
-            {/* RIGHT */}
-            <div className="dp-login-form flex flex-col justify-center text-white relative z-10">
-              {tenantLoading && (
-                <div className="flex items-center justify-center py-10">
-                  <div className="w-8 h-8 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                </div>
-              )}
+            <section className="dp-login-form" aria-labelledby="dp-login-heading">
+              <div className="dp-auth-heading">
+                <h2 id="dp-login-heading">Hyni në sistem</h2>
+                <p>Zgjidhni mënyrën e hyrjes për të vazhduar.</p>
+              </div>
+              <div className="dp-auth-switch" role="group" aria-label="Mënyra e hyrjes">
+                <button type="button" aria-pressed={!showAdminLogin} disabled={loading}
+                  onClick={() => { setShowAdminLogin(false); setUsername(''); setPassword(''); setError(''); }}>
+                  <ShoppingCart aria-hidden="true" />Hyrje me PIN
+                </button>
+                <button type="button" aria-pressed={showAdminLogin} disabled={loading}
+                  onClick={() => { setShowAdminLogin(true); setError(''); }}>
+                  <User aria-hidden="true" />Administrator
+                </button>
+              </div>
 
-              {!tenantLoading && !showAdminLogin && (
-                <>
-                  <p className="text-emerald-100 text-sm mb-4">Shkruaj kodin PIN per te hyre</p>
-
-                  <div className="relative mb-4">
-                    <div className="w-full h-14 rounded-xl bg-white/10 backdrop-blur-sm border border-white/25 flex items-center justify-center text-2xl font-bold tracking-[0.5em] text-white pr-14">
-                      {pin ? '\u2022'.repeat(pin.length) : <span className="text-emerald-200 text-base tracking-normal">PIN</span>}
+              {tenantLoading ? (
+                <div className="dp-auth-loading" role="status"><span className="dp-auth-spinner" />Duke ngarkuar firmën…</div>
+              ) : !showAdminLogin ? (
+                <div className="dp-auth-content">
+                  <label className="dp-auth-label" id="dp-pin-label">Kodi PIN</label>
+                  <div className="dp-pin-field" aria-labelledby="dp-pin-label">
+                    <div className={pin ? 'dp-pin-value' : 'dp-pin-placeholder'} role="status"
+                      aria-label={pin ? `Kodi PIN: ${pin.length} shifra të vendosura` : 'Vendosni kodin PIN'}>
+                      {pin ? '\u2022'.repeat(pin.length) : 'Vendosni PIN-in'}
                     </div>
-                    <button
-                      type="button"
-                      onClick={() => openVK('pin')}
-                      className="absolute right-2 top-1/2 -translate-y-1/2 w-10 h-10 flex items-center justify-center bg-white/15 hover:bg-white/30 rounded-lg transition-colors"
-                      title="Hap tastieren virtuale"
-                    >
-                      <Keyboard className="h-4 w-4 text-white" />
-                    </button>
+                    <button type="button" className="dp-auth-icon-button" onClick={() => openVK('pin')}
+                      title="Hap tastierën virtuale" aria-label="Hap tastierën virtuale për PIN-in"><Keyboard aria-hidden="true" /></button>
                   </div>
-
-                  <div className="grid grid-cols-3 gap-2.5 mb-4">
-                    {numpadButtons.map((btn) => {
-                      if (btn === 'clear') return (
-                        <button key={btn} onClick={clearPin} className="h-12 rounded-xl bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/25 text-white font-medium transition-all">C</button>
-                      );
-                      if (btn === 'delete') return (
-                        <button key={btn} onClick={removeDigit} className="h-12 rounded-xl bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/25 flex items-center justify-center transition-all">
-                          <Delete className="h-5 w-5 text-white" />
-                        </button>
-                      );
-                      return (
-                        <button key={btn} onClick={() => addDigit(btn)} className="h-12 rounded-xl bg-white hover:bg-emerald-50 text-[#0E4B49] text-xl font-bold transition-all shadow-sm">{btn}</button>
-                      );
-                    })}
+                  <div className="dp-pin-keypad" aria-label="Tastiera numerike">
+                    {numpadButtons.map(btn => (
+                      <button type="button" key={btn} disabled={loading}
+                        className={btn === 'clear' || btn === 'delete' ? 'dp-pin-secondary' : ''}
+                        aria-label={btn === 'clear' ? 'Pastro PIN-in' : btn === 'delete' ? 'Fshi shifrën e fundit' : `Shifra ${btn}`}
+                        onClick={() => btn === 'clear' ? clearPin() : btn === 'delete' ? removeDigit() : addDigit(btn)}>
+                        {btn === 'clear' ? 'C' : btn === 'delete' ? <Delete aria-hidden="true" /> : btn}
+                      </button>
+                    ))}
                   </div>
-
-                  {error && (
-                    <div className="bg-red-500/20 border border-red-300/40 text-red-100 px-3 py-2 rounded-xl text-sm text-center mb-3">{error}</div>
-                  )}
-
-                  <Button
-                    onClick={handlePinLogin}
-                    disabled={pin.length < 1 || loading}
-                    className="w-full h-12 bg-white hover:bg-emerald-50 text-[#0E4B49] font-bold rounded-xl shadow-lg tracking-wider transition-all flex items-center justify-center gap-2"
-                  >
-                    {loading ? <div className="w-5 h-5 border-2 border-[#0E4B49] border-t-transparent rounded-full animate-spin" /> : (<><CornerDownLeft className="h-4 w-4" /> KYCU</>)}
+                  {error && <div className="dp-auth-error" role="alert">{error}</div>}
+                  <Button className="dp-auth-primary" onClick={handlePinLogin} disabled={pin.length < 1 || loading}>
+                    {loading ? <><span className="dp-auth-spinner" />Duke u kyçur…</> : <>Hyr në POS<CornerDownLeft aria-hidden="true" /></>}
                   </Button>
-
-                  <button
-                    onClick={() => { setShowAdminLogin(true); setError(''); }}
-                    className="mt-5 text-center w-full text-emerald-100 hover:text-white text-sm font-medium transition-colors flex items-center justify-center gap-2"
-                  >
-                    <User className="h-4 w-4" />
-                    Kycu si Administrator
-                  </button>
-
-                  <p className="text-emerald-200/70 text-xs text-center mt-3">
-                    Perdor tastet 0-9, Backspace, Enter
-                  </p>
-                </>
+                  <p className="dp-auth-keyboard-hint">Mund të përdorni edhe tastierën: <kbd>0–9</kbd> dhe <kbd>Enter</kbd></p>
+                </div>
+              ) : (
+                <form onSubmit={handleAdminLogin} className="dp-auth-content dp-admin-form">
+                  {lockedCompany && <div className="dp-auth-notice">Ky kompjuter është i rezervuar për <strong>{lockedCompany}</strong>.</div>}
+                  <div className="dp-auth-field">
+                    <label className="dp-auth-label" htmlFor="dp-username">Emri i përdoruesit</label>
+                    <div className="dp-auth-input-wrap">
+                      <User className="dp-auth-field-icon" aria-hidden="true" />
+                      <input id="dp-username" name="username" autoComplete="username" type="text" placeholder="Emri i përdoruesit"
+                        value={username} onChange={e => setUsername(e.target.value)} required autoFocus />
+                      <button type="button" className="dp-auth-icon-button" onClick={() => openVK('username')}
+                        title="Hap tastierën virtuale" aria-label="Hap tastierën virtuale për emrin e përdoruesit"><Keyboard aria-hidden="true" /></button>
+                    </div>
+                  </div>
+                  <div className="dp-auth-field">
+                    <label className="dp-auth-label" htmlFor="dp-password">Fjalëkalimi</label>
+                    <div className="dp-auth-input-wrap dp-auth-password-wrap">
+                      <Lock className="dp-auth-field-icon" aria-hidden="true" />
+                      <input id="dp-password" name="password" autoComplete="current-password" type={showPassword ? 'text' : 'password'}
+                        placeholder="Fjalëkalimi juaj" value={password} onChange={e => setPassword(e.target.value)} required />
+                      <button type="button" className="dp-auth-icon-button dp-password-toggle" onClick={() => setShowPassword(!showPassword)}
+                        aria-label={showPassword ? 'Fshih fjalëkalimin' : 'Shfaq fjalëkalimin'} aria-pressed={showPassword}>
+                        {showPassword ? <EyeOff aria-hidden="true" /> : <Eye aria-hidden="true" />}
+                      </button>
+                      <button type="button" className="dp-auth-icon-button" onClick={() => openVK('password')}
+                        title="Hap tastierën virtuale" aria-label="Hap tastierën virtuale për fjalëkalimin"><Keyboard aria-hidden="true" /></button>
+                    </div>
+                  </div>
+                  {error && <div className="dp-auth-error" role="alert">{error}</div>}
+                  <Button type="submit" className="dp-auth-primary" disabled={loading}>
+                    {loading ? <><span className="dp-auth-spinner" />Duke u kyçur…</> : <>Hyr si administrator<CornerDownLeft aria-hidden="true" /></>}
+                  </Button>
+                  <p className="dp-auth-admin-help">Përdorni llogarinë e administratorit të firmës suaj.</p>
+                </form>
               )}
-
-              {!tenantLoading && showAdminLogin && (
-                <>
-                  <button
-                    onClick={() => { setShowAdminLogin(false); setUsername(''); setPassword(''); setError(''); }}
-                    className="flex items-center gap-1 text-emerald-100 hover:text-white text-sm mb-3 self-start transition-colors"
-                  >
-                    <ArrowLeft className="h-4 w-4" />
-                    Kthehu
-                  </button>
-                  <h2 className="text-2xl lg:text-3xl font-bold mb-1">Administrator</h2>
-                  <p className="text-emerald-100 text-sm mb-5">Vendos kredencialet per te vazhduar</p>
-
-                  {lockedCompany && (
-                    <div className="mb-4 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-900">
-                      <span className="font-semibold">Ky kompjuter \u00ebsht\u00eb i rezervuar:</span>{' '}
-                      {lockedCompany}
-                    </div>
-                  )}
-                  <form onSubmit={handleAdminLogin} className="space-y-4">
-                    <div>
-                      <label className="block text-emerald-100 text-xs font-medium mb-1.5">Username</label>
-                      <div className="relative">
-                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                          <User className="h-4 w-4 text-gray-400" />
-                        </div>
-                        <input
-                          type="text"
-                          placeholder="Enter your username"
-                          value={username}
-                          onChange={(e) => setUsername(e.target.value)}
-                          className="w-full pl-10 pr-10 h-11 bg-white text-gray-900 placeholder-gray-400 border-0 rounded-lg focus:ring-2 focus:ring-white outline-none transition-all"
-                          required
-                          autoFocus
-                        />
-                        <button
-                          type="button"
-                          onClick={() => openVK('username')}
-                          className="absolute inset-y-0 right-0 pr-3 flex items-center"
-                          title="Hap tastieren virtuale"
-                        >
-                          <Keyboard className="h-4 w-4 text-gray-400 hover:text-[#0E4B49]" />
-                        </button>
-                      </div>
-                    </div>
-
-                    <div>
-                      <label className="block text-emerald-100 text-xs font-medium mb-1.5">Password</label>
-                      <div className="relative">
-                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                          <Lock className="h-4 w-4 text-gray-400" />
-                        </div>
-                        <input
-                          type={showPassword ? 'text' : 'password'}
-                          placeholder="Enter your password"
-                          value={password}
-                          onChange={(e) => setPassword(e.target.value)}
-                          className="w-full pl-10 pr-20 h-11 bg-white text-gray-900 placeholder-gray-400 border-0 rounded-lg focus:ring-2 focus:ring-white outline-none transition-all"
-                          required
-                        />
-                        <button
-                          type="button"
-                          onClick={() => setShowPassword(!showPassword)}
-                          className="absolute inset-y-0 right-10 pr-1 flex items-center"
-                        >
-                          {showPassword ? <EyeOff className="h-4 w-4 text-gray-400" /> : <Eye className="h-4 w-4 text-gray-400" />}
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => openVK('password')}
-                          className="absolute inset-y-0 right-0 pr-3 flex items-center"
-                          title="Hap tastieren virtuale"
-                        >
-                          <Keyboard className="h-4 w-4 text-gray-400 hover:text-[#0E4B49]" />
-                        </button>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center justify-between text-sm">
-                      <label className="flex items-center gap-2 cursor-pointer text-emerald-100 select-none">
-                        <input
-                          type="checkbox"
-                          checked={rememberMe}
-                          onChange={(e) => setRememberMe(e.target.checked)}
-                          className="w-4 h-4 rounded border-white/40 bg-white/10 accent-white"
-                        />
-                        Remember me
-                      </label>
-                      <button type="button" className="text-white hover:underline text-sm">Recover password</button>
-                    </div>
-
-                    {error && (
-                      <div className="bg-red-500/20 border border-red-300/40 text-red-100 px-3 py-2 rounded-lg text-sm text-center">{error}</div>
-                    )}
-
-                    <Button
-                      type="submit"
-                      disabled={loading}
-                      className="w-full h-12 bg-[#0F5A57] hover:bg-[#3BB0AA] text-white font-bold rounded-lg shadow-lg tracking-widest transition-all"
-                    >
-                      {loading ? <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" /> : 'SIGN IN'}
-                    </Button>
-                  </form>
-                </>
-              )}
-            </div>
+            </section>
           </div>
-        </div>
-
-        {/* Slideshow: cfare ben DataPOS */}
-        <LoginSlideshow />
+        </main>
+        <footer className="dp-login-footer">
+          <span>© {new Date().getFullYear()} DataPOS</span>
+          <div><a href="https://www.datapos.pro" target="_blank" rel="noopener noreferrer">www.datapos.pro</a><span aria-hidden="true">·</span><a href="tel:+38345278279">+383 45 278 279</a></div>
+        </footer>
       </div>
 
       {/* Virtual Keyboard Modal */}
