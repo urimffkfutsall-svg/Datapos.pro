@@ -5,6 +5,7 @@ from datetime import datetime, timezone
 from dateutil import parser as date_parser
 
 from database import db
+from tenant_context import request_tenant_subdomain
 from models import LoginRequest, TokenResponse, UserResponse, UserRole, TenantPublicInfo
 from auth import hash_password, verify_password, create_token, get_current_user
 
@@ -29,15 +30,8 @@ def _extract_subdomain_from_host(host: str):
 
 
 async def _resolve_tenant_id_from_request(http_request: Request):
-    """
-    Percakton tenant_id-n VETEM nga domain-i real i kerkeses (Host header),
-    jo nga cfare i thote frontend-i. Kjo mbyll boshllekun ku nje deshtim/race
-    condition ne frontend do te lejonte login global cross-tenant.
-    Kthen (tenant_id, is_strict). is_strict=True do te thote qe jemi ne nje
-    subdomain firme te vertete dhe login-i DUHET kufizuar rreptesisht aty.
-    """
-    host = http_request.headers.get('x-forwarded-host') or http_request.headers.get('host')
-    subdomain = _extract_subdomain_from_host(host)
+    """Use the same tenant resolver as protected API routes, including separate API hosts."""
+    subdomain = request_tenant_subdomain(http_request)
     if not subdomain:
         return None, False
 

@@ -9,6 +9,7 @@ import os
 import bcrypt
 
 from database import db
+from tenant_context import request_tenant_subdomain
 from models import UserRole, AuditLog
 
 # JWT Config
@@ -69,8 +70,7 @@ async def _host_tenant_id(request: Request):
     """Tenant-i i kerkuar nga domain-i i kerkeses (None per domain-in kryesor)."""
     if request is None:
         return None
-    host = request.headers.get('x-forwarded-host') or request.headers.get('host')
-    sub = extract_subdomain(host)
+    sub = request_tenant_subdomain(request)
     if not sub:
         return None
     tenant = await db.tenants.find_one(
