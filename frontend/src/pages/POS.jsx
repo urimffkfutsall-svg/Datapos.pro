@@ -2266,11 +2266,26 @@ const addToCart = useCallback((product, mode = null) => {
                 </button>
               </DialogHeader>
               <div className="dp-payment-scroll" tabIndex={0} aria-label="Të dhënat e pagesës">
-              <div className="dp-payment-total relative rounded-2xl bg-[#0E4B49]/8 border border-[#0E4B49]/15 p-5 text-center">
-                <div className="text-[10px] uppercase tracking-[0.3em] text-[#0E4B49]/80 font-semibold mb-1">{'Totali p\u00EBr Pages\u00EB'}</div>
-                <div className="text-5xl font-extrabold tabular-nums text-[#0E4B49]">{`\u20AC${Math.max(0, cartTotals.total - (couponData?.discount_amount || 0)).toFixed(2)}`}</div>
-                <Zap className="absolute top-3 right-3 h-4 w-4 text-[#0E4B49]/60" />
-              </div>
+              <section className="dp-payment-overview" aria-label="Përmbledhja e pagesës">
+                <div className="dp-payment-total">
+                  <div className="dp-payment-total-label">Totali për pagesë</div>
+                  <div className="dp-payment-total-value">{`\u20AC${Math.max(0, cartTotals.total - (couponData?.discount_amount || 0)).toFixed(2)}`}</div>
+                </div>
+                <dl className="dp-payment-summary" aria-label="Totali, paguar dhe kusuri">
+                  <div className="dp-payment-stat">
+                    <dt>Totali</dt>
+                    <dd className="dp-payment-stat-value">{`\u20AC${Math.max(0, cartTotals.total - (couponData?.discount_amount || 0)).toFixed(2)}`}</dd>
+                  </div>
+                  <div className="dp-payment-stat">
+                    <dt>Paguar</dt>
+                    <dd className="dp-payment-stat-value dp-payment-paid-value">{`\u20AC${(paymentMethod === 'bank' && !isDebt ? Math.max(0, cartTotals.total - (couponData?.discount_amount || 0)) : (parseFloat(cashAmount) || 0)).toFixed(2)}`}</dd>
+                  </div>
+                  <div className="dp-payment-stat dp-payment-stat-change" data-positive={paymentMethod === 'cash' && changeAmount > 0}>
+                    <dt>Kusuri</dt>
+                    <dd className="dp-payment-stat-value">{`\u20AC${(paymentMethod === 'cash' ? changeAmount : 0).toFixed(2)}`}</dd>
+                  </div>
+                </dl>
+              </section>
               <div className="grid grid-cols-2 gap-2 p-1 rounded-2xl bg-gray-50 border border-gray-200">
                 <button type="button" onClick={() => setPaymentMethod('cash')} data-testid="payment-cash-btn" className={`relative h-11 rounded-xl flex items-center justify-center gap-2 font-semibold text-sm transition-all ${paymentMethod === 'cash' ? 'bg-[#0E4B49] text-white shadow-md shadow-[#0E4B49]/30' : 'text-gray-500 hover:text-gray-900'}`}>
                   <Banknote className="h-4 w-4" /> Cash
@@ -2284,20 +2299,6 @@ const addToCart = useCallback((product, mode = null) => {
                   <div className="dp-payment-amount relative">
                     <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[#0E4B49] font-bold text-lg pointer-events-none">{'\u20AC'}</span>
                     <input ref={cashInputRef} type="text" value={cashAmount} onChange={(e) => setCashAmount(e.target.value)} placeholder={'Shkruaj shum\u00EBn e paguar...'} inputMode="decimal" aria-label="Shuma e paguar" data-testid="cash-amount-input" className="w-full h-14 pl-10 pr-4 rounded-2xl bg-white border border-gray-200 text-xl font-bold text-gray-900 tabular-nums placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#0E4B49]/40 focus:border-[#0E4B49]/40 transition" />
-                  </div>
-                  <div className="dp-payment-summary grid grid-cols-3 gap-2">
-                    <div className="rounded-xl bg-gray-50 border border-gray-200 p-3">
-                      <div className="text-[9px] uppercase tracking-widest text-gray-500 font-semibold">Total</div>
-                      <div className="text-base font-bold text-gray-900 tabular-nums mt-0.5">{`\u20AC${Math.max(0, cartTotals.total - (couponData?.discount_amount || 0)).toFixed(2)}`}</div>
-                    </div>
-                    <div className="rounded-xl bg-gray-50 border border-gray-200 p-3">
-                      <div className="text-[9px] uppercase tracking-widest text-gray-500 font-semibold">Paguar</div>
-                      <div className="text-base font-bold text-[#0E4B49] tabular-nums mt-0.5">{`\u20AC${(parseFloat(cashAmount) || 0).toFixed(2)}`}</div>
-                    </div>
-                    <div className={`rounded-xl border p-3 transition ${changeAmount > 0 ? 'bg-emerald-50 border-emerald-300 shadow-lg shadow-emerald-500/30' : 'bg-gray-50 border-gray-200'}`}>
-                      <div className="text-[9px] uppercase tracking-widest text-gray-500 font-semibold">Kusuri</div>
-                      <div className={`text-base font-bold tabular-nums mt-0.5 ${changeAmount > 0 ? 'text-emerald-600' : 'text-gray-600'}`}>{`\u20AC${changeAmount.toFixed(2)}`}</div>
-                    </div>
                   </div>
                   <div className="dp-payment-keypad grid grid-cols-3 gap-2">
                     {['7','8','9','4','5','6','1','2','3','.','0'].map((num) => (
