@@ -5,6 +5,7 @@ import { getQueue } from '../lib/offline';
 import SalesDashboardView from '../components/SalesDashboardView';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '../components/ui/dialog';
 import '../sales-panel.css';
+import { saleProductsTitle } from '../lib/saleProducts';
 
 const REVISION = 'sales-panel-v2';
 const today = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; };
@@ -81,7 +82,7 @@ export default function Dashboard() {
 
   const modal = <Dialog open={!!action} onOpenChange={open => { if (!open && !busy) { setAction(null); setPassword(''); } }}>
     <DialogContent className="dp-dialog">
-      <DialogHeader><DialogTitle>{action?.sale ? 'Fshij këtë shitje?' : action?.kind === 'monthly' ? 'Reseto shitjet e muajit?' : 'Reseto shitjet e ditës?'}</DialogTitle><DialogDescription>{action?.sale ? `Kuponi ${action.sale.receipt_number} hiqet nga shitjet ditore, mujore, vjetore dhe raportet e printuara.` : 'Shitjet e periudhës aktuale do të hiqen nga llogaritjet në server, jo vetëm në ekran. Ruhet një backup para fshirjes.'}</DialogDescription></DialogHeader>
+      <DialogHeader><DialogTitle>{action?.sale ? 'Fshij këtë shitje?' : action?.kind === 'monthly' ? 'Reseto shitjet e muajit?' : 'Reseto shitjet e ditës?'}</DialogTitle><DialogDescription>{action?.sale ? `Shitja për ${saleProductsTitle(action.sale)} hiqet nga shitjet ditore, mujore, vjetore dhe raportet e printuara.` : 'Shitjet e periudhës aktuale do të hiqen nga llogaritjet në server, jo vetëm në ekran. Ruhet një backup para fshirjes.'}</DialogDescription></DialogHeader>
       <form onSubmit={submitAction} className="dp-form">
         <p className="dp-muted">Stoku nuk rikthehet. Pas resetimit hapeni përsëri arkën. Sinkronizoni të gjitha pajisjet para resetimit.</p>
         {!action?.sale && <label htmlFor="reset-password">Fjalëkalimi i administratorit<input id="reset-password" type="password" autoComplete="current-password" autoFocus required value={password} onChange={e => setPassword(e.target.value)} disabled={busy} /></label>}

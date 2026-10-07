@@ -1,4 +1,5 @@
 import React from 'react';
+import { saleProductLines } from '../lib/saleProducts';
 
 export const money = value => `€${Number(value || 0).toFixed(2)}`;
 export const periodLabels = { daily: 'Ditore', monthly: 'Mujore', yearly: 'Vjetore' };
@@ -29,7 +30,7 @@ export default function SalesDashboardView({ summaries, report, period, anchor, 
           <div className="dp-sale-list">
             {report.sales.map(sale => (
               <article key={sale.id} className="dp-sale-row">
-                <div className="dp-sale-info"><strong>{sale.receipt_number}</strong><span className="dp-muted">{new Date(sale.created_at).toLocaleString('sq-AL', { timeZone: report.timezone })} · {sale.is_debt ? 'Borxh' : sale.payment_method === 'cash' ? 'Cash' : 'Bank'}</span></div>
+                <div className="dp-sale-info"><div className="dp-sale-products">{saleProductLines(sale).map((line, index) => <strong key={index}>{line}</strong>)}</div><span className="dp-muted">{new Date(sale.created_at).toLocaleString('sq-AL', { timeZone: report.timezone })} · {sale.is_debt ? 'Borxh' : sale.payment_method === 'cash' ? 'Cash' : 'Bank'}</span></div>
                 <span className="dp-sale-total">{money(sale.grand_total)}</span>
                 {canManage && period === 'daily' && <button className="dp-button dp-danger-outline" onClick={() => onDelete(sale)} data-testid={`delete-sale-${sale.id}`}>Fshij këtë shitje</button>}
               </article>
