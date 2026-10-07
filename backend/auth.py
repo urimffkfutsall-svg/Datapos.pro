@@ -78,6 +78,8 @@ async def _host_tenant_id(request: Request):
     )
     if not tenant:
         raise HTTPException(status_code=404, detail="Firma nuk u gjet për këtë domain")
+    if tenant.get("status") == "suspended" or tenant.get("deleting"):
+        raise HTTPException(status_code=403, detail="Firma është pezulluar ose në proces fshirjeje")
     return tenant.get("id")
 
 
@@ -102,7 +104,13 @@ async def get_current_user(
     except jwt.InvalidTokenError:
         raise HTTPException(status_code=401, detail="Token i pavlefshëm")
 
+    if not user.get("is_active", True):
+        raise HTTPException(status_code=401, detail="Llogaria është e çaktivizuar")
     is_super = user.get("role") == "super_admin"
+    if is_super:
+        # Authentication was already checked against the signed JWT and DB user.
+        # Global company management must also work from deleted/unknown tenant hosts.
+        return user
     host_tenant = await _host_tenant_id(request)
 
     if not is_super:
@@ -137,7 +145,7 @@ def get_tenant_filter(current_user: dict) -> dict:
         return {}
     tenant_id = current_user.get("tenant_id")
     if not tenant_id:
-        return {}
+        raise HTTPException(status_code=403, detail="Llogaria nuk është e lidhur me një firmë")
     return {"tenant_id": tenant_id}
 
 

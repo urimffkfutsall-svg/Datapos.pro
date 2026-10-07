@@ -53,6 +53,19 @@ class TenantTests(unittest.IsolatedAsyncioTestCase):
         class Invalid(Exception): pass
         env.update({'jwt':types.SimpleNamespace(decode=lambda *a,**k:{'sub':'user'},ExpiredSignatureError=Expired,InvalidTokenError=Invalid),'JWT_SECRET':'test','JWT_ALGORITHM':'HS256'})
         self.current=compile_function('auth.py','get_current_user',env)
+    async def test_super_admin_is_independent_of_missing_tenant_host(self):
+        self.db.users.data[0]['role']='super_admin'
+        req=request(host='backend.vercel.app',origin='https://deletedfirm.datapos.pro')
+        result=await self.current(req,types.SimpleNamespace(credentials='mocked-jwt'))
+        self.assertEqual(result['role'],'super_admin')
+    async def test_inactive_user_is_rejected(self):
+        self.db.users.data[0]['is_active']=False
+        with self.assertRaises(HTTPException) as err: await self.current(request(host='marketnlagje.datapos.pro'),types.SimpleNamespace(credentials='mocked-jwt'))
+        self.assertEqual(err.exception.status_code,401)
+    async def test_suspended_tenant_existing_session_is_rejected(self):
+        self.db.tenants.data[0]['status']='suspended'
+        with self.assertRaises(HTTPException) as err: await self.current(request(host='marketnlagje.datapos.pro'),types.SimpleNamespace(credentials='mocked-jwt'))
+        self.assertEqual(err.exception.status_code,403)
     async def test_vercel_origin_fallback(self):
         req=request(host='backend.vercel.app',origin='https://marketnlagje.datapos.pro')
         self.assertEqual(await self.resolve(req),'A')

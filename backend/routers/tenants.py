@@ -4,6 +4,8 @@ from typing import List, Optional
 from datetime import datetime, timezone
 from pydantic import BaseModel
 import uuid
+import re
+from dateutil.relativedelta import relativedelta
 import qrcode
 import io
 import base64
@@ -32,7 +34,7 @@ def generate_whatsapp_qr(phone: str) -> str:
         return None
     
     # Create WhatsApp link
-    whatsapp_url = f"https://wa.me/{clean_phone}"
+    whatsapp_url = 'https://wa.me/' + clean_phone
     
     # Generate QR code
     qr = qrcode.QRCode(
@@ -62,14 +64,14 @@ async def get_tenant_by_subdomain(subdomain: str):
     """Get tenant public info by subdomain - PUBLIC ENDPOINT for subdomain routing"""
     # Clean subdomain - remove www if present
     subdomain = subdomain.lower().strip()
-    if subdomain == 'www' or subdomain == 'app':
+    if not re.fullmatch(r'[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?', subdomain) or subdomain in ('www', 'app', 'api'):
         raise HTTPException(status_code=404, detail="Firma nuk u gjet")
     
     # Search by name (subdomain is the tenant name)
     tenant = await db.tenants.find_one(
         {"$or": [
             {"name": subdomain},
-            {"name": {"$regex": f"^{subdomain}$", "$options": "i"}}
+            {"name": {"$regex": f"^{re.escape(subdomain)}$", "$options": "i"}}
         ]},
         {"_id": 0}
     )
@@ -121,6 +123,11 @@ async def create_tenant(tenant: TenantCreate, current_user: dict = Depends(get_c
     if existing_email:
         raise HTTPException(status_code=400, detail="Email-i ekziston tashmë")
     
+    now = datetime.now(timezone.utc)
+    months = tenant.subscription_months
+    expires = (now + relativedelta(months=months)).isoformat() if months else None
+    # Hash BEFORE writing the tenant so invalid passwords cannot leave an orphan company.
+    password_hash = hash_password(tenant.admin_password)
     # Generate WhatsApp QR code if phone is provided
     whatsapp_qr = generate_whatsapp_qr(tenant.phone) if tenant.phone else None
     
@@ -137,8 +144,8 @@ async def create_tenant(tenant: TenantCreate, current_user: dict = Depends(get_c
         "primary_color": tenant.primary_color,
         "secondary_color": tenant.secondary_color,
         "stripe_payment_link": tenant.stripe_payment_link,
-        "status": TenantStatus.TRIAL,
-        "subscription_expires": None,
+        "status": TenantStatus.ACTIVE if months else TenantStatus.TRIAL,
+        "subscription_expires": expires,
         "created_at": datetime.now(timezone.utc).isoformat(),
         "created_by": current_user["id"]
     }
@@ -148,14 +155,18 @@ async def create_tenant(tenant: TenantCreate, current_user: dict = Depends(get_c
     admin_user = {
         "id": str(uuid.uuid4()),
         "username": tenant.admin_username,
-        "password_hash": hash_password(tenant.admin_password),
+        "password_hash": password_hash,
         "full_name": tenant.admin_full_name,
         "role": UserRole.ADMIN,
         "tenant_id": tenant_id,
         "is_active": True,
         "created_at": datetime.now(timezone.utc).isoformat()
     }
-    await db.users.insert_one(admin_user)
+    try:
+        await db.users.insert_one(admin_user)
+    except Exception:
+        await db.tenants.delete_one({"id": tenant_id})
+        raise
     
     await log_audit(current_user["id"], "create", "tenant", tenant_id)
     
@@ -190,6 +201,10 @@ async def update_tenant(tenant_id: str, update: TenantUpdate, current_user: dict
     
     update_data = {k: v for k, v in update.model_dump().items() if v is not None}
     
+    if "email" in update_data:
+        duplicate = await db.tenants.find_one({"email": update_data["email"], "id": {"$ne": tenant_id}})
+        if duplicate:
+            raise HTTPException(status_code=400, detail="Email-i ekziston tashmë")
     # Regenerate WhatsApp QR code if phone number changed
     if "phone" in update_data:
         new_qr = generate_whatsapp_qr(update_data["phone"])
@@ -247,8 +262,11 @@ async def create_tenant_user(tenant_id: str, user_data: TenantUserCreate, curren
         if existing_pin:
             raise HTTPException(status_code=400, detail="PIN ekziston tashmë në këtë firmë")
     
-    # Determine role
-    role = UserRole.ADMIN if user_data.role == "admin" else UserRole.CASHIER
+    if user_data.role not in ('admin', 'manager', 'cashier'):
+        raise HTTPException(status_code=422, detail="Roli i përdoruesit është i pavlefshëm")
+    if not user_data.username.strip() or not user_data.full_name.strip() or not user_data.password:
+        raise HTTPException(status_code=422, detail="Plotësoni username, emrin dhe fjalëkalimin")
+    role = UserRole(user_data.role)
     
     new_user = {
         "id": str(uuid.uuid4()),
@@ -269,6 +287,44 @@ async def create_tenant_user(tenant_id: str, user_data: TenantUserCreate, curren
     new_user.pop("password_hash", None)
     new_user.pop("_id", None)
     return {"message": "Përdoruesi u krijua me sukses", "user": new_user}
+
+
+class TenantUserUpdate(BaseModel):
+    full_name: Optional[str] = None
+    password: Optional[str] = None
+    role: Optional[str] = None
+    pin: Optional[str] = None
+
+
+@router.put("/{tenant_id}/users/{user_id}")
+async def update_tenant_user(tenant_id: str, user_id: str, update: TenantUserUpdate, current_user: dict = Depends(get_current_user)):
+    if current_user.get("role") != "super_admin":
+        raise HTTPException(status_code=403, detail="Vetëm Super Admin ka akses")
+    existing = await db.users.find_one({"id": user_id, "tenant_id": tenant_id})
+    if not existing:
+        raise HTTPException(status_code=404, detail="Përdoruesi nuk u gjet në këtë firmë")
+    data = update.model_dump(exclude_none=True)
+    if "role" in data and data["role"] not in ('admin', 'manager', 'cashier'):
+        raise HTTPException(status_code=422, detail="Roli është i pavlefshëm")
+    if "full_name" in data:
+        data["full_name"] = data["full_name"].strip()
+        if not data["full_name"]: raise HTTPException(status_code=422, detail="Emri nuk mund të jetë bosh")
+    if "password" in data:
+        password = data.pop("password")
+        if not password or len(password.encode('utf-8')) > 72:
+            raise HTTPException(status_code=422, detail="Fjalëkalimi duhet të ketë 1–72 byte")
+        data["password_hash"] = hash_password(password)
+    if "pin" in data:
+        pin = data["pin"]
+        if pin and not re.fullmatch(r'\d{4}', pin):
+            raise HTTPException(status_code=422, detail="PIN-i duhet të ketë 4 shifra")
+        if pin and await db.users.find_one({"tenant_id": tenant_id, "pin": pin, "id": {"$ne": user_id}}):
+            raise HTTPException(status_code=400, detail="PIN-i ekziston tashmë në këtë firmë")
+        data["pin"] = pin or None
+    await db.users.update_one({"id": user_id, "tenant_id": tenant_id}, {"$set": data})
+    # Never put a password/hash in an audit log or response.
+    await log_audit(current_user["id"], "update_tenant_user", "user", user_id, {"tenant_id": tenant_id, "password_changed": "password_hash" in data})
+    return {"message": "Përdoruesi u përditësua"}
 
 
 @router.delete("/{tenant_id}/users/{user_id}")
@@ -296,19 +352,44 @@ async def delete_tenant(tenant_id: str, current_user: dict = Depends(get_current
     if not existing:
         raise HTTPException(status_code=404, detail="Firma nuk u gjet")
     
-    # Delete all tenant data
-    await db.users.delete_many({"tenant_id": tenant_id})
-    await db.products.delete_many({"tenant_id": tenant_id})
-    await db.sales.delete_many({"tenant_id": tenant_id})
-    await db.branches.delete_many({"tenant_id": tenant_id})
-    await db.cash_drawers.delete_many({"tenant_id": tenant_id})
-    await db.stock_movements.delete_many({"tenant_id": tenant_id})
-    await db.settings.delete_many({"tenant_id": tenant_id})
+    # Archive tenant-owned records before deletion. Keep these backups independent
+    # of a removed tenant; Mongo's document size limit cannot truncate one huge dump.
+    backup_id = str(uuid.uuid4())
+    await db.tenant_deletion_backups.insert_one({
+        "id": backup_id, "kind": "manifest", "tenant_id": tenant_id,
+        "tenant": existing, "deleted_by": current_user["id"],
+        "created_at": datetime.now(timezone.utc).isoformat(), "status": "archiving"
+    })
+    names = await db.list_collection_names()
+    excluded = {"tenants", "tenant_deletion_backups", "audit_logs"}
+    captured = {}
+    for name in names:
+        if name in excluded: continue
+        rows = await db[name].find({"tenant_id": tenant_id}).to_list(None)
+        captured[name] = [row["_id"] for row in rows]
+        for row in rows:
+            await db.tenant_deletion_backups.insert_one({
+                "backup_id": backup_id, "kind": "record", "tenant_id": tenant_id,
+                "collection": name, "record": row
+            })
+    await db.tenant_deletion_backups.update_one({"id": backup_id}, {"$set": {"status": "archived"}})
+    # Block new authenticated tenant activity while removing archived records.
+    await db.tenants.update_one({"id": tenant_id}, {"$set": {"deleting": True, "status": "suspended"}})
+    deleted = {}
+    for name, ids in captured.items():
+        item_count = 0
+        for offset in range(0, len(ids), 500):
+            result = await db[name].delete_many({"tenant_id": tenant_id, "_id": {"$in": ids[offset:offset+500]}})
+            item_count += result.deleted_count
+        deleted[name] = item_count
+    # Never claim success or remove the tenant if concurrent records remain.
+    for name in (await db.list_collection_names()):
+        if name not in excluded and await db[name].count_documents({"tenant_id": tenant_id}):
+            raise HTTPException(status_code=409, detail="Mbetën të dhëna të firmës. Firma u pezullua; riprovoni fshirjen.")
     await db.tenants.delete_one({"id": tenant_id})
-    
-    await log_audit(current_user["id"], "delete", "tenant", tenant_id)
-    
-    return {"message": "Firma dhe të gjitha të dhënat u fshinë me sukses"}
+    await db.tenant_deletion_backups.update_one({"id": backup_id}, {"$set": {"status": "deleted", "deleted": deleted}})
+    await log_audit(current_user["id"], "delete", "tenant", tenant_id, {"backup_id": backup_id})
+    return {"message": "Firma dhe të dhënat u fshinë; backup-i u ruajt", "backup_id": backup_id, "deleted": deleted}
 
 
 @router.get("/public/{tenant_name}", response_model=TenantPublicInfo)

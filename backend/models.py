@@ -1,5 +1,5 @@
 """Pydantic models for the POS system"""
-from pydantic import BaseModel, Field, ConfigDict
+from pydantic import BaseModel, Field, ConfigDict, field_validator
 from typing import List, Optional, Dict, Any
 from datetime import datetime, timezone
 from enum import Enum
@@ -52,6 +52,37 @@ class TenantCreate(BaseModel):
     admin_username: str
     admin_password: str
     admin_full_name: str
+    subscription_months: int = Field(default=0, ge=0, le=120)
+
+    @field_validator('name')
+    @classmethod
+    def valid_subdomain(cls, value):
+        import re
+        value = value.strip().lower()
+        if not re.fullmatch(r'[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?', value) or value in {'www', 'app', 'api'}:
+            raise ValueError('Përdorni 1–63 shkronja/numra dhe viza, jo domain-in e plotë')
+        return value
+
+    @field_validator('company_name', 'admin_username', 'admin_full_name')
+    @classmethod
+    def required_text(cls, value):
+        if not value.strip(): raise ValueError('Fusha nuk mund të jetë bosh')
+        return value.strip()
+
+    @field_validator('admin_password')
+    @classmethod
+    def required_password(cls, value):
+        if not value or len(value.encode('utf-8')) > 72:
+            raise ValueError('Fjalëkalimi duhet të ketë 1–72 byte')
+        return value
+
+    @field_validator('email')
+    @classmethod
+    def valid_email(cls, value):
+        import re
+        value = value.strip().lower()
+        if not re.fullmatch(r'[^\s@]+@[^\s@]+\.[^\s@]+', value): raise ValueError('Email-i është i pavlefshëm')
+        return value
 
 class TenantUpdate(BaseModel):
     company_name: Optional[str] = None
@@ -69,6 +100,19 @@ class TenantUpdate(BaseModel):
     subscription_expires: Optional[str] = None
     nui: Optional[str] = None
     nf: Optional[str] = None
+
+    @field_validator('email')
+    @classmethod
+    def valid_email(cls, value):
+        return TenantCreate.valid_email(value) if value is not None else None
+
+    @field_validator('subscription_expires')
+    @classmethod
+    def valid_expiration(cls, value):
+        if value is not None:
+            try: datetime.fromisoformat(value.replace('Z', '+00:00'))
+            except ValueError: raise ValueError('Data e abonimit është e pavlefshme')
+        return value
 
 class TenantResponse(BaseModel):
     id: str

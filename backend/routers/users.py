@@ -17,7 +17,8 @@ router = APIRouter(prefix="/users", tags=["Users"])
 async def create_user(user_data: UserCreate, current_user: dict = Depends(require_role([UserRole.ADMIN]))):
     """Create a new user"""
     tenant_filter = get_tenant_filter(current_user)
-    
+    if user_data.role == UserRole.SUPER_ADMIN:
+        raise HTTPException(status_code=403, detail="Nuk mund të krijoni një Super Admin nga kjo faqe")
     existing = await db.users.find_one({"username": user_data.username, **tenant_filter})
     if existing:
         raise HTTPException(status_code=400, detail="Username ekziston tashmë")
@@ -74,6 +75,8 @@ async def update_user(
 ):
     """Update a user"""
     tenant_filter = get_tenant_filter(current_user)
+    if user_data.role == UserRole.SUPER_ADMIN:
+        raise HTTPException(status_code=403, detail="Nuk mund të caktoni rolin Super Admin")
     update_dict = {k: v for k, v in user_data.model_dump().items() if v is not None}
     
     if "password" in update_dict:

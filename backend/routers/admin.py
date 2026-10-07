@@ -251,74 +251,8 @@ async def get_categories(current_user: dict = Depends(get_current_user)):
     return sorted(categories)
 
 
-# ============ SUPER ADMIN INIT ============
+# Legacy public credential-reset endpoints are deliberately disabled.
 @init_router.post("/super-admin")
-async def init_super_admin():
-    """Initialize or reset super admin user - can be called anytime"""
-    existing = await db.users.find_one({"role": "super_admin"})
-    
-    new_username = "urimi1806"
-    new_password = "1806"
-    password_hash = hash_password(new_password)
-    
-    if existing:
-        # Update existing super admin with new credentials
-        await db.users.update_one(
-            {"role": "super_admin"},
-            {"$set": {
-                "username": new_username,
-                "password_hash": password_hash,
-                "is_active": True
-            }}
-        )
-        return {"message": "Super Admin u përditësua me sukses", "username": new_username, "password": new_password}
-    
-    # Create new super admin
-    super_admin = {
-        "id": str(uuid.uuid4()),
-        "username": new_username,
-        "password_hash": password_hash,
-        "full_name": "Super Administrator",
-        "role": "super_admin",
-        "is_active": True,
-        "tenant_id": None,
-        "created_at": datetime.now(timezone.utc).isoformat()
-    }
-    await db.users.insert_one(super_admin)
-    
-    return {"message": "Super Admin u krijua me sukses", "username": new_username, "password": new_password}
-
-
 @init_router.get("/super-admin")
-async def init_super_admin_get():
-    """Initialize super admin via GET request (easier to call from browser)"""
-    existing = await db.users.find_one({"role": "super_admin"})
-    
-    new_username = "urimi1806"
-    new_password = "1806"
-    password_hash = hash_password(new_password)
-    
-    if existing:
-        await db.users.update_one(
-            {"role": "super_admin"},
-            {"$set": {
-                "username": new_username,
-                "password_hash": password_hash,
-                "is_active": True
-            }}
-        )
-        return {"message": "Super Admin u përditësua me sukses", "username": new_username, "password": new_password}
-    
-    super_admin = {
-        "id": str(uuid.uuid4()),
-        "username": new_username,
-        "password_hash": password_hash,
-        "full_name": "Super Administrator",
-        "role": "super_admin",
-        "is_active": True,
-        "tenant_id": None,
-        "created_at": datetime.now(timezone.utc).isoformat()
-    }
-    await db.users.insert_one(super_admin)
-    
-    return {"message": "Super Admin u krijua me sukses", "username": new_username, "password": new_password}
+async def init_super_admin():
+    raise HTTPException(status_code=410, detail="Ky funksion është çaktivizuar. Përdorni konfigurimin e serverit për krijimin fillestar.")

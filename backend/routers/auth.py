@@ -130,7 +130,7 @@ async def login(request: LoginRequest, http_request: Request):
     if not user.get("is_active", True):
         raise HTTPException(status_code=401, detail="Llogaria është e çaktivizuar")
     
-    if user.get("pin") == request.password:
+    if user.get("pin") and user.get("pin") == request.password:
         pass
     elif not verify_password(request.password, user.get("password_hash", "")):
         raise HTTPException(status_code=401, detail="Kredencialet e gabuara")

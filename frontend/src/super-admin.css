@@ -1,0 +1,17 @@
+/* Keep management controls reachable on desktop and narrow/mobile screens. */
+.sa-page { min-width: 0; }
+.sa-error { color: #991b1b; background: #fef2f2; border: 1px solid #fecaca; padding: 12px; border-radius: 8px; overflow-wrap: anywhere; margin: 8px; }
+.sa-hint { color: #52615f; font-size: 13px; }
+.sa-header { flex-wrap: wrap; gap: 12px; }
+.sa-tenant-row { gap: 16px; flex-wrap: wrap; }
+.sa-tenant-identity { min-width: 0; flex: 1 1 240px; }
+.sa-tenant-identity > div:last-child { min-width: 0; overflow-wrap: anywhere; }
+.sa-tenant-identity > img, .sa-tenant-identity > div:first-child { flex-shrink: 0; }
+.sa-contact { flex-wrap: wrap; overflow-wrap: anywhere; }
+.sa-actions { flex-wrap: wrap; justify-content: flex-end; gap: 8px; max-width: 100%; }
+.sa-counts { flex: 1 0 100%; }
+@media (max-width: 640px) {
+  .sa-actions { width: 100%; justify-content: flex-start; }
+  .sa-counts { text-align: left; }
+  .sa-tenant-identity h3 { font-size: 16px; }
+}

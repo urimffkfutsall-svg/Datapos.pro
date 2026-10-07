@@ -90,7 +90,7 @@ export const getSubdomain = () => {
   const hostname = window.location.hostname;
   if (!/^[a-z0-9-]+\.datapos\.pro$/i.test(hostname)) return null;
   const parts = hostname.split('.');
-  if (parts[0] === 'www' || parts[0] === 'app') return null;
+  if (['www', 'app', 'api'].includes(parts[0].toLowerCase())) return null;
   return parts[0].toLowerCase();
 };
 

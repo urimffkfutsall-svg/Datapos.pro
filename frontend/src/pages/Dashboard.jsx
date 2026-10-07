@@ -92,7 +92,7 @@ export default function Dashboard() {
       <form onSubmit={submitAction} className="dp-form">
         {actionError && <div role="alert" className="dp-error">{actionError}</div>}
         <p className="dp-muted">Stoku nuk rikthehet. Pas resetimit hapeni përsëri arkën. Sinkronizoni të gjitha pajisjet para resetimit.</p>
-        {!action?.sale && <label htmlFor="reset-password">Fjalëkalimi i administratorit<input id="reset-password" type="password" autoComplete="current-password" autoFocus required value={password} onChange={e => setPassword(e.target.value)} disabled={busy} /></label>}
+        {!action?.sale && <label htmlFor="reset-password">Fjalëkalimi i kësaj llogarie (jo PIN)<input id="reset-password" type="password" autoComplete="current-password" autoFocus required value={password} onChange={e => setPassword(e.target.value)} disabled={busy} /></label>}
         <div className="dp-dialog-actions"><button type="button" className="dp-button dp-secondary" disabled={busy} onClick={() => setAction(null)}>Anulo</button><button type="submit" className="dp-button dp-danger" disabled={busy || (!action?.sale && !password)}>{busy ? 'Duke verifikuar...' : action?.sale ? 'Po, fshije' : 'Konfirmo resetimin'}</button></div>
       </form>
     </DialogContent>

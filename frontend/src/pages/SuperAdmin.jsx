@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { api, useAuth } from '../App';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../components/ui/card';
 import { Button } from '../components/ui/button';
@@ -45,11 +45,30 @@ import {
   Ban,
   RefreshCw, Sparkles, Globe, UserCircle, ChevronRight } from 'lucide-react';
 import { toast } from 'sonner';
+import { apiErrorMessage } from '../lib/apiError';
+import '../super-admin.css';
 
 const SuperAdmin = () => {
   const { user } = useAuth();
   const [tenants, setTenants] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [actionError, setActionError] = useState('');
+  const [editingUser, setEditingUser] = useState(null);
+  const mutationLock = useRef(false);
+  const reportError = (error, fallback) => {
+    const message = apiErrorMessage(error, fallback);
+    setActionError(message);
+    toast.error(message);
+  };
+  const beginMutation = () => {
+    if (mutationLock.current) return false;
+    mutationLock.current = true;
+    setSaving(true);
+    setActionError('');
+    return true;
+  };
+  const endMutation = () => { mutationLock.current = false; setSaving(false); };
   const [showDialog, setShowDialog] = useState(false);
   const [showUserDialog, setShowUserDialog] = useState(false);
   const [showUsersListDialog, setShowUsersListDialog] = useState(false);
@@ -104,17 +123,19 @@ const SuperAdmin = () => {
   }, []);
 
   const loadTenants = async () => {
+    setLoading(true);
     try {
       const response = await api.get('/tenants');
       setTenants(response.data);
     } catch (error) {
-      toast.error('Gabim gjatë ngarkimit të firmave');
+      reportError(error, 'Gabim gjatë ngarkimit të firmave');
     } finally {
       setLoading(false);
     }
   };
 
   const openCreateDialog = () => {
+    setActionError('');
     setEditingTenant(null);
     setFormData({
       name: '',
@@ -135,6 +156,7 @@ const SuperAdmin = () => {
   };
 
   const openEditDialog = (tenant) => {
+    setActionError('');
     setEditingTenant(tenant);
     setFormData({
       name: tenant.name,
@@ -167,7 +189,7 @@ const SuperAdmin = () => {
   };
 
   const handleSubscriptionUpdate = async () => {
-    setLoading(true);
+    if (!beginMutation()) return;
     try {
       let newExpires;
       let newStatus = subscriptionData.current_status;
@@ -201,16 +223,16 @@ const SuperAdmin = () => {
       
       toast.success('Abonimi u përditësua me sukses!');
       setShowSubscriptionDialog(false);
-      loadTenants();
+      await loadTenants();
     } catch (error) {
-      toast.error('Gabim gjatë përditësimit të abonimit');
+      reportError(error, 'Gabim gjatë përditësimit të abonimit');
     } finally {
-      setLoading(false);
+      endMutation();
     }
   };
 
   const handleSubmit = async () => {
-    setLoading(true);
+    if (!beginMutation()) return;
     try {
       if (editingTenant) {
         await api.put(`/tenants/${editingTenant.id}`, {
@@ -229,11 +251,11 @@ const SuperAdmin = () => {
         toast.success('Firma u krijua me sukses!');
       }
       setShowDialog(false);
-      loadTenants();
+      await loadTenants();
     } catch (error) {
-      toast.error(error.response?.data?.detail || 'Gabim gjatë ruajtjes');
+      reportError(error, 'Gabim gjatë ruajtjes');
     } finally {
-      setLoading(false);
+      endMutation();
     }
   };
 
@@ -241,22 +263,28 @@ const SuperAdmin = () => {
     if (!window.confirm('Jeni i sigurt? Kjo do të fshijë firmën dhe TË GJITHA të dhënat e saj!')) return;
     if (!window.confirm('KUJDES: Ky veprim NUK mund të kthehet! Konfirmoni përsëri.')) return;
     
+    if (!beginMutation()) return;
     try {
       await api.delete(`/tenants/${tenantId}`);
       toast.success('Firma u fshi me sukses');
-      loadTenants();
+      await loadTenants();
     } catch (error) {
-      toast.error('Gabim gjatë fshirjes');
+      reportError(error, 'Gabim gjatë fshirjes');
+    } finally {
+      endMutation();
     }
   };
 
   const updateTenantStatus = async (tenantId, status) => {
+    if (!beginMutation()) return;
     try {
       await api.put(`/tenants/${tenantId}`, { status });
       toast.success('Statusi u përditësua');
-      loadTenants();
+      await loadTenants();
     } catch (error) {
-      toast.error('Gabim gjatë përditësimit');
+      reportError(error, 'Gabim gjatë përditësimit');
+    } finally {
+      endMutation();
     }
   };
 
@@ -275,6 +303,8 @@ const SuperAdmin = () => {
 
   // User Management Functions
   const openUserDialog = (tenant) => {
+    setEditingUser(null);
+    setActionError('');
     setSelectedTenant(tenant);
     setUserFormData({
       username: '',
@@ -286,6 +316,14 @@ const SuperAdmin = () => {
     setShowUserDialog(true);
   };
 
+  const openEditUserDialog = (account) => {
+    setEditingUser(account);
+    setActionError('');
+    setUserFormData({username: account.username, full_name: account.full_name || '', password: '', role: account.role, pin: account.pin || ''});
+    setShowUsersListDialog(false);
+    setShowUserDialog(true);
+  };
+
   const openUsersListDialog = async (tenant) => {
     setSelectedTenant(tenant);
     setShowUsersListDialog(true);
@@ -293,42 +331,52 @@ const SuperAdmin = () => {
       const response = await api.get(`/tenants/${tenant.id}/users`);
       setTenantUsers(response.data);
     } catch (error) {
-      toast.error('Gabim gjatë ngarkimit të përdoruesve');
+      reportError(error, 'Gabim gjatë ngarkimit të përdoruesve');
       setTenantUsers([]);
     }
   };
 
   const handleCreateUser = async () => {
-    if (!userFormData.username || !userFormData.password || !userFormData.full_name) {
+    if (!userFormData.username || (!editingUser && !userFormData.password) || !userFormData.full_name) {
       toast.error('Plotësoni të gjitha fushat e detyrueshme');
       return;
     }
     
-    setLoading(true);
+    if (!beginMutation()) return;
     try {
-      await api.post(`/tenants/${selectedTenant.id}/users`, userFormData);
-      toast.success('Përdoruesi u krijua me sukses!');
+      if (editingUser) {
+        const { username, password, ...data } = userFormData;
+        if (password) data.password = password;
+        await api.put(`/tenants/${selectedTenant.id}/users/${editingUser.id}`, data);
+        toast.success('Përdoruesi u përditësua!');
+      } else {
+        await api.post(`/tenants/${selectedTenant.id}/users`, userFormData);
+        toast.success('Përdoruesi u krijua me sukses!');
+      }
       setShowUserDialog(false);
-      loadTenants();
+      await loadTenants();
     } catch (error) {
-      toast.error(error.response?.data?.detail || 'Gabim gjatë krijimit');
+      reportError(error, 'Gabim gjatë krijimit');
     } finally {
-      setLoading(false);
+      endMutation();
     }
   };
 
   const handleDeleteUser = async (userId) => {
     if (!window.confirm('Jeni i sigurt që doni të fshini këtë përdorues?')) return;
     
+    if (!beginMutation()) return;
     try {
       await api.delete(`/tenants/${selectedTenant.id}/users/${userId}`);
       toast.success('Përdoruesi u fshi');
       // Refresh user list
       const response = await api.get(`/tenants/${selectedTenant.id}/users`);
       setTenantUsers(response.data);
-      loadTenants();
+      await loadTenants();
     } catch (error) {
-      toast.error('Gabim gjatë fshirjes');
+      reportError(error, 'Gabim gjatë fshirjes');
+    } finally {
+      endMutation();
     }
   };
 
@@ -350,16 +398,18 @@ const SuperAdmin = () => {
   }
 
   return (
-    <div className="space-y-6" data-testid="super-admin-page">
+    <div className="space-y-6 sa-page" data-testid="super-admin-page">
+      {actionError && <div role="alert" className="sa-error">{actionError}</div>}
+      <p className="sa-hint">Menaxhimi global i firmave. Fjalëkalimet e administratorëve ndryshohen te Përdoruesit → Edito.</p>
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between sa-header">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Menaxhimi i Firmave</h1>
           <p className="text-gray-500">Shto, edito dhe menaxho firmat që përdorin sistemin</p>
         </div>
         <Button 
           className="bg-[#0E4B49] hover:bg-[#0A3634]"
-          onClick={openCreateDialog}
+          disabled={saving} onClick={openCreateDialog}
           data-testid="add-tenant-btn"
         >
           <Plus className="h-4 w-4 mr-2" />
@@ -426,7 +476,7 @@ const SuperAdmin = () => {
       {/* Tenants List */}
       <Card className="border-0 shadow-sm">
         <CardHeader>
-          <CardTitle>Lista e Firmave</CardTitle>
+          <CardTitle>Lista e Firmave <Button variant="outline" size="sm" onClick={loadTenants} disabled={loading || saving}>Rifresko</Button></CardTitle>
         </CardHeader>
         <CardContent>
           {loading ? (
@@ -437,7 +487,7 @@ const SuperAdmin = () => {
             <div className="text-center py-12">
               <Building2 className="h-16 w-16 text-gray-300 mx-auto mb-4" />
               <p className="text-gray-500">Ende nuk ka firma të regjistruara</p>
-              <Button className="mt-4" onClick={openCreateDialog}>
+              <Button className="mt-4" disabled={saving} onClick={openCreateDialog}>
                 <Plus className="h-4 w-4 mr-2" />
                 Shto Firmën e Parë
               </Button>
@@ -450,8 +500,8 @@ const SuperAdmin = () => {
                   className="border rounded-lg p-4 hover:shadow-md transition-shadow"
                   style={{ borderLeftColor: tenant.primary_color, borderLeftWidth: '4px' }}
                 >
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-start gap-4">
+                  <div className="flex items-start justify-between sa-tenant-row">
+                    <div className="flex items-start gap-4 sa-tenant-identity">
                       {tenant.logo_url ? (
                         <img src={tenant.logo_url} alt="" className="h-12 w-12 object-contain rounded" />
                       ) : (
@@ -467,8 +517,8 @@ const SuperAdmin = () => {
                           <h3 className="font-semibold text-lg">{tenant.company_name}</h3>
                           {getStatusBadge(tenant.status)}
                         </div>
-                        <p className="text-sm text-gray-500">{tenant.name}.app.com</p>
-                        <div className="flex items-center gap-4 mt-2 text-sm text-gray-600">
+                        <p className="text-sm text-gray-500">{tenant.name}.datapos.pro</p>
+                        <div className="flex items-center gap-4 mt-2 text-sm text-gray-600 sa-contact">
                           <span className="flex items-center gap-1">
                             <Mail className="h-3 w-3" /> {tenant.email}
                           </span>
@@ -480,8 +530,8 @@ const SuperAdmin = () => {
                         </div>
                       </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <div className="text-right mr-4">
+                    <div className="flex items-center gap-2 sa-actions">
+                      <div className="text-right mr-4 sa-counts">
                         <p className="text-sm"><Users className="h-3 w-3 inline mr-1" />{tenant.users_count || 0} përdorues</p>
                         <p className="text-sm"><ShoppingCart className="h-3 w-3 inline mr-1" />{tenant.sales_count || 0} shitje</p>
                         {tenant.subscription_expires && (
@@ -495,7 +545,7 @@ const SuperAdmin = () => {
                         variant="outline" 
                         size="sm"
                         className="text-purple-500 hover:bg-purple-50"
-                        onClick={() => openSubscriptionDialog(tenant)}
+                        disabled={saving} onClick={() => openSubscriptionDialog(tenant)}
                         title="Menaxho Abonimin"
                       >
                         <Calendar className="h-4 w-4" />
@@ -513,14 +563,14 @@ const SuperAdmin = () => {
                           <SelectItem value="suspended">Pezullo</SelectItem>
                         </SelectContent>
                       </Select>
-                      <Button variant="outline" size="sm" onClick={() => openEditDialog(tenant)}>
+                      <Button variant="outline" size="sm" disabled={saving} onClick={() => openEditDialog(tenant)}>
                         <Edit2 className="h-4 w-4" />
                       </Button>
                       <Button 
                         variant="outline" 
                         size="sm"
                         className="text-emerald-500 hover:bg-emerald-50"
-                        onClick={() => openUserDialog(tenant)}
+                        disabled={saving} onClick={() => openUserDialog(tenant)}
                         title="Shto Përdorues"
                       >
                         <UserPlus className="h-4 w-4" />
@@ -537,7 +587,7 @@ const SuperAdmin = () => {
                         variant="outline" 
                         size="sm" 
                         className="text-red-500 hover:bg-red-50"
-                        onClick={() => handleDelete(tenant.id)}
+                        disabled={saving} onClick={() => handleDelete(tenant.id)}
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
@@ -566,6 +616,7 @@ const SuperAdmin = () => {
       {/* Add/Edit Dialog */}
       <Dialog open={showDialog} onOpenChange={setShowDialog}>
         <DialogContent className="sm:max-w-4xl max-h-[92vh] overflow-y-auto p-0 rounded-3xl border-0 shadow-2xl">
+          {actionError && <div role="alert" className="sa-error">{actionError}</div>}
           {/* Hero header */}
           <div className="bg-gradient-to-br from-[#0E4B49] via-[#009891] to-[#0F5A57] p-7 text-white relative overflow-hidden">
             <div className="absolute -right-12 -top-12 w-48 h-48 bg-white/10 rounded-full blur-3xl pointer-events-none" />
@@ -609,7 +660,7 @@ const SuperAdmin = () => {
                     <Globe className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
                     <Input
                       value={formData.name}
-                      onChange={(e) => setFormData({...formData, name: e.target.value.toLowerCase().replace(/[^a-z0-9]/g, '')})}
+                      onChange={(e) => setFormData({...formData, name: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '')})}
                       placeholder="p.sh. mobilshopurimi"
                       disabled={editingTenant}
                       className="pl-9 rounded-xl bg-gray-50 border-gray-200 focus-visible:ring-2 focus-visible:ring-[#0E4B49]/30 focus-visible:border-[#0E4B49] disabled:bg-gray-100"
@@ -617,7 +668,7 @@ const SuperAdmin = () => {
                   </div>
                   <p className="text-xs text-gray-500 mt-1.5 flex items-center gap-1">
                     <ChevronRight className="h-3 w-3" />
-                    <span className="font-mono">{formData.name || 'firma'}.app.com</span>
+                    <span className="font-mono">{formData.name || 'firma'}.datapos.pro</span>
                   </p>
                 </div>
 
@@ -887,9 +938,9 @@ const SuperAdmin = () => {
               <Button
                 onClick={handleSubmit}
                 className="bg-gradient-to-r from-[#0E4B49] to-[#0A3634] hover:from-[#0A3634] hover:to-[#0F5A57] text-white rounded-xl shadow-lg shadow-[#0E4B49]/30 transition-all"
-                disabled={loading || !formData.name || !formData.company_name || !formData.email || (!editingTenant && (!formData.admin_username || !formData.admin_password || !formData.admin_full_name))}
+                disabled={saving || !formData.name || !formData.company_name || !formData.email || (!editingTenant && (!formData.admin_username || !formData.admin_password || !formData.admin_full_name))}
               >
-                {loading ? (
+                {saving ? (
                   <span className="flex items-center gap-2">
                     <div className="spinner border-white border-t-transparent w-4 h-4" />
                     Duke ruajtur...
@@ -909,10 +960,11 @@ const SuperAdmin = () => {
       {/* Add User Dialog */}
       <Dialog open={showUserDialog} onOpenChange={setShowUserDialog}>
         <DialogContent className="sm:max-w-md">
+          {actionError && <div role="alert" className="sa-error">{actionError}</div>}
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <UserPlus className="h-5 w-5" />
-              Shto Përdorues për {selectedTenant?.company_name}
+              {editingUser ? 'Edito Përdoruesin' : 'Shto Përdorues'} për {selectedTenant?.company_name}
             </DialogTitle>
           </DialogHeader>
           
@@ -929,6 +981,7 @@ const SuperAdmin = () => {
             <div>
               <Label>Username *</Label>
               <Input
+                disabled={!!editingUser}
                 value={userFormData.username}
                 onChange={(e) => setUserFormData({...userFormData, username: e.target.value})}
                 placeholder="username"
@@ -936,7 +989,7 @@ const SuperAdmin = () => {
             </div>
             
             <div>
-              <Label>Fjalëkalimi *</Label>
+              <Label>{editingUser ? 'Fjalëkalimi i ri (bosh = pa ndryshim)' : 'Fjalëkalimi *'}</Label>
               <div className="relative">
                 <Input
                   type={showPassword ? "text" : "password"}
@@ -986,9 +1039,9 @@ const SuperAdmin = () => {
             <Button 
               onClick={handleCreateUser} 
               className="bg-[#0E4B49] hover:bg-[#0A3634]"
-              disabled={loading || !userFormData.username || !userFormData.password || !userFormData.full_name}
+              disabled={saving || !userFormData.username || (!editingUser && !userFormData.password) || !userFormData.full_name}
             >
-              {loading ? 'Duke krijuar...' : 'Krijo Përdoruesin'}
+              {saving ? 'Duke ruajtur...' : editingUser ? 'Ruaj Ndryshimet' : 'Krijo Përdoruesin'}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -1030,6 +1083,7 @@ const SuperAdmin = () => {
                     <span className={`px-2 py-1 text-xs rounded ${u.role === 'admin' ? 'bg-purple-100 text-purple-700' : 'bg-emerald-100 text-emerald-700'}`}>
                       {u.role === 'admin' ? 'Admin' : 'Arkëtar'}
                     </span>
+                    <Button variant="outline" size="sm" onClick={() => openEditUserDialog(u)} disabled={saving}>Edito</Button>
                     <Button 
                       variant="ghost" 
                       size="sm"
@@ -1042,7 +1096,7 @@ const SuperAdmin = () => {
                       variant="ghost" 
                       size="sm"
                       className="text-red-500 hover:bg-red-50"
-                      onClick={() => handleDeleteUser(u.id)}
+                      disabled={saving} onClick={() => handleDeleteUser(u.id)}
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>
@@ -1071,6 +1125,7 @@ const SuperAdmin = () => {
       {/* Subscription Management Dialog */}
       <Dialog open={showSubscriptionDialog} onOpenChange={setShowSubscriptionDialog}>
         <DialogContent className="sm:max-w-md">
+          {actionError && <div role="alert" className="sa-error">{actionError}</div>}
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Calendar className="h-5 w-5 text-purple-500" />

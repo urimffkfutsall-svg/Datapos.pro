@@ -52,43 +52,27 @@ logger = logging.getLogger(__name__)
 
 
 async def init_super_admin():
-    """Initialize or update super admin on startup"""
+    """Provision only a missing super-admin using deployment environment variables."""
+    import os
+    import uuid
+    from datetime import datetime, timezone
     try:
-        new_username = "urimi1806"
-        new_password = "1806"
-        password_hash = hash_password(new_password)
-        
-        existing = await db.users.find_one({"role": "super_admin"})
-        
-        if existing:
-            # Update existing super admin
-            await db.users.update_one(
-                {"role": "super_admin"},
-                {"$set": {
-                    "username": new_username,
-                    "password_hash": password_hash,
-                    "is_active": True
-                }}
-            )
-            logger.info(f"Super Admin updated: {new_username}")
-        else:
-            # Create new super admin
-            import uuid
-            from datetime import datetime, timezone
-            super_admin = {
-                "id": str(uuid.uuid4()),
-                "username": new_username,
-                "password_hash": password_hash,
-                "full_name": "Super Administrator",
-                "role": "super_admin",
-                "is_active": True,
-                "tenant_id": None,
-                "created_at": datetime.now(timezone.utc).isoformat()
-            }
-            await db.users.insert_one(super_admin)
-            logger.info(f"Super Admin created: {new_username}")
-    except Exception as e:
-        logger.error(f"Error initializing super admin: {e}")
+        if await db.users.find_one({"role": "super_admin"}):
+            return
+        username = os.environ.get("BOOTSTRAP_ADMIN_USERNAME", "").strip()
+        password = os.environ.get("BOOTSTRAP_ADMIN_PASSWORD", "")
+        if not username or not password:
+            logger.warning("No super-admin exists. Configure BOOTSTRAP_ADMIN_USERNAME/PASSWORD to provision one.")
+            return
+        await db.users.insert_one({
+            "id": str(uuid.uuid4()), "username": username,
+            "password_hash": hash_password(password), "full_name": "Super Administrator",
+            "role": "super_admin", "is_active": True, "tenant_id": None,
+            "created_at": datetime.now(timezone.utc).isoformat()
+        })
+        logger.info("Super-admin provisioned from deployment settings")
+    except Exception:
+        logger.exception("Super-admin provisioning failed")
 
 
 @asynccontextmanager
