@@ -4,6 +4,8 @@ from typing import List, Optional
 from datetime import datetime, timezone
 
 from database import db
+from report_dates import date_filter
+from auth import require_role
 from models import (
     SaleCreate, SaleResponse, Sale, SaleItem,
     StockMovement, StockMovementType,
@@ -37,6 +39,9 @@ async def create_sale(sale_data: SaleCreate, current_user: dict = Depends(get_cu
         **tenant_filter
     }, {"_id": 0})
     
+    if not drawer:
+        raise HTTPException(status_code=409, detail="Arka është mbyllur ose resetuar. Hapeni përsëri para shitjes.")
+
     items = []
     subtotal = 0
     total_discount = 0
@@ -229,10 +234,8 @@ async def get_sales(
         query["branch_id"] = branch_id
     if user_id:
         query["user_id"] = user_id
-    if start_date:
-        query["created_at"] = {"$gte": start_date}
-    if end_date:
-        query.setdefault("created_at", {})["$lte"] = end_date
+    if start_date or end_date:
+        query["created_at"] = date_filter(start_date, end_date)
     if is_debt is not None:
         query["is_debt"] = is_debt
     
@@ -277,10 +280,8 @@ async def get_debt_summary(
     
     query = {**get_tenant_filter(current_user), "is_debt": True}
     
-    if start_date:
-        query["created_at"] = {"$gte": start_date}
-    if end_date:
-        query.setdefault("created_at", {})["$lte"] = end_date
+    if start_date or end_date:
+        query["created_at"] = date_filter(start_date, end_date)
     
     debts = await db.sales.find(query, {"_id": 0}).to_list(1000)
     
@@ -368,3 +369,28 @@ async def get_sale(sale_id: str, current_user: dict = Depends(get_current_user))
     if not sale:
         raise HTTPException(status_code=404, detail="Shitja nuk u gjet")
     return SaleResponse(**sale)
+
+
+@router.delete("/{sale_id}")
+async def delete_sale(sale_id: str, current_user: dict = Depends(require_role([UserRole.ADMIN]))):
+    """Remove a sale from reports, keeping an audit/archive; not a stock return."""
+    tenant_filter = get_tenant_filter(current_user)
+    if not tenant_filter.get("tenant_id"):
+        raise HTTPException(status_code=403, detail="Zgjidhni firmën për këtë veprim")
+    query = {"id": sale_id, **tenant_filter}
+    sale = await db.sales.find_one(query, {"_id": 0})
+    if not sale:
+        raise HTTPException(status_code=404, detail="Shitja nuk u gjet")
+    archive = {**sale, "deleted_at": datetime.now(timezone.utc).isoformat(),
+               "deleted_by": current_user["id"]}
+    await db.deleted_sales.update_one(query, {"$setOnInsert": archive}, upsert=True)
+    result = await db.sales.delete_one(query)
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Shitja është fshirë tashmë")
+    if sale.get("cash_drawer_id") and not sale.get("is_debt"):
+        net_cash = sale.get("cash_amount", 0) - sale.get("change_amount", 0)
+        await db.cash_drawers.update_one({"id": sale["cash_drawer_id"], **tenant_filter},
+                                          {"$inc": {"expected_balance": -net_cash}})
+    await log_audit(current_user["id"], "delete_sale", "sale", sale_id,
+                    {"tenant_id": current_user["tenant_id"], "total": sale.get("grand_total", 0)})
+    return {"success": True, "message": "Shitja u fshi nga raportet"}

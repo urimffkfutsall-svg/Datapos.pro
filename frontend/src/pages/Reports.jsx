@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { api } from '../App';
+import React, { useState, useEffect, useRef } from 'react';
+import { api, useAuth } from '../App';
 import { toast } from 'sonner';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
@@ -41,8 +41,15 @@ import {
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, PieChart, Pie, Cell } from 'recharts';
 import { format } from 'date-fns';
 import { sq } from 'date-fns/locale';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '../components/ui/dialog';
 
 const Reports = () => {
+  const { user } = useAuth();
+  const reportRequest = useRef(0);
+  const deleteInFlight = useRef(false);
+  const [salePage, setSalePage] = useState(0);
+  const [saleToDelete, setSaleToDelete] = useState(null);
+  const [deletingSale, setDeletingSale] = useState(false);
   const [activeTab, setActiveTab] = useState('sales');
   const [branches, setBranches] = useState([]);
   const [selectedBranch, setSelectedBranch] = useState('all');
@@ -63,7 +70,7 @@ const Reports = () => {
   useEffect(() => {
     loadReport();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeTab, selectedBranch, dateRange]);
+  }, [activeTab, selectedBranch, dateRange, salePage]);
 
   const loadBranches = async () => {
     try {
@@ -75,6 +82,8 @@ const Reports = () => {
   };
 
   const loadReport = async () => {
+    if (!dateRange.from || !dateRange.to) return;
+    const requestId = ++reportRequest.current;
     setLoading(true);
     try {
       const startDate = format(dateRange.from, 'yyyy-MM-dd');
@@ -82,23 +91,41 @@ const Reports = () => {
       const branchParam = selectedBranch !== 'all' ? `&branch_id=${selectedBranch}` : '';
 
       if (activeTab === 'sales') {
-        const response = await api.get(`/reports/sales?start_date=${startDate}&end_date=${endDate}${branchParam}`);
-        setSalesReport(response.data);
+        const response = await api.get(`/reports/sales?start_date=${startDate}&end_date=${endDate}${branchParam}&sale_offset=${salePage * 50}&sale_limit=50`);
+        if (requestId === reportRequest.current) setSalesReport(response.data);
       } else if (activeTab === 'profit') {
         const response = await api.get(`/reports/profit-loss?start_date=${startDate}&end_date=${endDate}${branchParam}`);
-        setProfitReport(response.data);
+        if (requestId === reportRequest.current) setProfitReport(response.data);
       } else if (activeTab === 'stock') {
         const response = await api.get(`/reports/stock?${branchParam.slice(1)}`);
-        setStockReport(response.data);
+        if (requestId === reportRequest.current) setStockReport(response.data);
       } else if (activeTab === 'cashier') {
         const response = await api.get(`/reports/cashier-performance?start_date=${startDate}&end_date=${endDate}${branchParam}`);
-        setCashierReport(response.data);
+        if (requestId === reportRequest.current) setCashierReport(response.data);
       }
     } catch (error) {
       console.error('Error loading report:', error);
       toast.error('Gabim gjatë ngarkimit të raportit');
     } finally {
-      setLoading(false);
+      if (requestId === reportRequest.current) setLoading(false);
+    }
+  };
+
+  const deleteSale = async () => {
+    if (!saleToDelete || deleteInFlight.current) return;
+    deleteInFlight.current = true;
+    setDeletingSale(true);
+    try {
+      await api.delete(`/sales/${saleToDelete.id}`);
+      toast.success('Shitja u fshi nga raportet');
+      setSaleToDelete(null);
+      if (salePage > 0 && salesReport?.sales.length === 1) setSalePage(salePage - 1);
+      else await loadReport();
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Shitja nuk mund të fshihet. Kontrolloni lidhjen.');
+    } finally {
+      deleteInFlight.current = false;
+      setDeletingSale(false);
     }
   };
 
@@ -156,6 +183,7 @@ const Reports = () => {
         from = new Date(new Date().setDate(new Date().getDate() - 30));
     }
     
+    setSalePage(0);
     setDateRange({ from, to });
   };
 
@@ -163,6 +191,16 @@ const Reports = () => {
 
   return (
     <div className="space-y-6 animate-fade-in" data-testid="reports-page">
+      <Dialog open={!!saleToDelete} onOpenChange={(open) => { if (!open && !deletingSale) setSaleToDelete(null); }}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Fshij këtë shitje?</DialogTitle></DialogHeader>
+          <p>Kuponi {saleToDelete?.receipt_number} do të hiqet nga të gjitha raportet dhe shumat do të përditësohen. Stoku nuk rikthehet; ky veprim nuk është kthim malli.</p>
+          <DialogFooter>
+            <Button variant="outline" disabled={deletingSale} onClick={() => setSaleToDelete(null)}>Anulo</Button>
+            <Button className="bg-red-700 hover:bg-red-800" disabled={deletingSale} onClick={deleteSale}>{deletingSale ? 'Duke fshirë...' : 'Po, fshije'}</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
@@ -228,10 +266,10 @@ const Reports = () => {
         <Button 
           variant="outline" 
           size="sm" 
-          onClick={() => setQuickDateRange('today')}
+          onClick={() => { setActiveTab('sales'); setQuickDateRange('today'); }}
           className="text-xs"
         >
-          Sot
+          Shfaq shitjet e ditës së sotme
         </Button>
         <Button 
           variant="outline" 
@@ -280,6 +318,18 @@ const Reports = () => {
         <CardContent className="p-4">
           <div className="flex flex-wrap gap-4 items-end">
             <div className="space-y-2">
+              <Label htmlFor="report-start-date">Nga data</Label>
+              <Input id="report-start-date" type="date" value={dateRange.from ? format(dateRange.from, 'yyyy-MM-dd') : ''}
+                max={dateRange.to ? format(dateRange.to, 'yyyy-MM-dd') : undefined}
+                onChange={(e) => { if (e.target.value) { setSalePage(0); setDateRange(prev => ({ ...prev, from: new Date(e.target.value + 'T00:00:00') })); } }} />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="report-end-date">Deri më datë</Label>
+              <Input id="report-end-date" type="date" value={dateRange.to ? format(dateRange.to, 'yyyy-MM-dd') : ''}
+                min={dateRange.from ? format(dateRange.from, 'yyyy-MM-dd') : undefined}
+                onChange={(e) => { if (e.target.value) { setSalePage(0); setDateRange(prev => ({ ...prev, to: new Date(e.target.value + 'T00:00:00') })); } }} />
+            </div>
+            <div className="space-y-2">
               <Label>Periudha</Label>
               <Popover>
                 <PopoverTrigger asChild>
@@ -298,7 +348,7 @@ const Reports = () => {
                   <Calendar
                     mode="range"
                     selected={dateRange}
-                    onSelect={(range) => range && setDateRange(range)}
+                    onSelect={(range) => { if (range?.from) { setSalePage(0); setDateRange({ from: range.from, to: range.to || range.from }); } }}
                     numberOfMonths={2}
                   />
                 </PopoverContent>
@@ -308,7 +358,7 @@ const Reports = () => {
             {branches.length > 0 && (
               <div className="space-y-2">
                 <Label>Dega</Label>
-                <Select value={selectedBranch} onValueChange={setSelectedBranch}>
+                <Select value={selectedBranch} onValueChange={(value) => { setSalePage(0); setSelectedBranch(value); }}>
                   <SelectTrigger className="w-[200px]" data-testid="report-branch-filter">
                     <SelectValue />
                   </SelectTrigger>
@@ -445,6 +495,39 @@ const Reports = () => {
                       ))}
                     </TableBody>
                   </Table>
+                </CardContent>
+              </Card>
+              <Card className="border border-gray-200 rounded-xl">
+                <CardHeader><CardTitle>Shitjet e periudhës së zgjedhur</CardTitle></CardHeader>
+                <CardContent>
+                  <Table>
+                    <TableHeader><TableRow>
+                      <TableHead>Kuponi</TableHead><TableHead>Data / ora</TableHead>
+                      <TableHead>Pagesa</TableHead><TableHead className="text-right">Totali</TableHead>
+                      {user?.role === 'admin' && <TableHead>Veprime</TableHead>}
+                    </TableRow></TableHeader>
+                    <TableBody>
+                      {(salesReport.sales || []).map(sale => (
+                        <TableRow key={sale.id}>
+                          <TableCell>{sale.receipt_number}</TableCell>
+                          <TableCell>{format(new Date(sale.created_at), 'dd.MM.yyyy HH:mm')}</TableCell>
+                          <TableCell>{sale.is_debt ? 'Borxh' : sale.payment_method === 'cash' ? 'Cash' : 'Bank'}</TableCell>
+                          <TableCell className="text-right">€{(sale.grand_total || 0).toFixed(2)}</TableCell>
+                          {user?.role === 'admin' && <TableCell>
+                            <Button variant="outline" className="text-red-700 border-red-200" onClick={() => setSaleToDelete(sale)} data-testid={`delete-sale-${sale.id}`}>Fshij këtë shitje</Button>
+                          </TableCell>}
+                        </TableRow>
+                      ))}
+                      {!salesReport.sales?.length && <TableRow><TableCell colSpan={user?.role === 'admin' ? 5 : 4} className="text-center py-8">Nuk ka shitje në këtë periudhë.</TableCell></TableRow>}
+                    </TableBody>
+                  </Table>
+                  <div className="flex flex-wrap items-center justify-between gap-3 mt-4">
+                    <span className="text-sm text-gray-600">{salesReport.sales_count || 0} shitje · Faqja {salePage + 1}</span>
+                    <div className="flex gap-2">
+                      <Button variant="outline" disabled={salePage === 0 || loading} onClick={() => setSalePage(p => p - 1)}>Mbrapa</Button>
+                      <Button variant="outline" disabled={(salePage + 1) * 50 >= (salesReport.sales_count || 0) || loading} onClick={() => setSalePage(p => p + 1)}>Tjetra</Button>
+                    </div>
+                  </div>
                 </CardContent>
               </Card>
             </>

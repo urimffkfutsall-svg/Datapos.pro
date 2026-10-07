@@ -5,6 +5,7 @@ from datetime import datetime, timezone
 import uuid
 
 from database import db
+from report_dates import period_bounds
 from models import UserRole, ResetDataRequest
 from auth import (
     hash_password, verify_password, get_current_user, require_role,
@@ -70,95 +71,48 @@ async def reset_data(request: ResetDataRequest, current_user: dict = Depends(req
     if not admin or not verify_password(request.admin_password, admin.get("password_hash", "")):
         raise HTTPException(status_code=401, detail="Fjalëkalimi i gabuar")
     
+    if not tenant_filter.get("tenant_id"):
+        raise HTTPException(status_code=403, detail="Resetimi kërkon një firmë të caktuar")
+    if request.reset_type not in {"daily", "monthly", "user_specific", "all"}:
+        raise HTTPException(status_code=422, detail="Lloji i resetimit është i pavlefshëm")
+    scope = dict(tenant_filter)
+    drawer_scope = dict(tenant_filter)
+    if request.reset_type in {"daily", "monthly"}:
+        bounds = period_bounds(request.reset_type)
+        scope["created_at"] = bounds
+        drawer_scope["$or"] = [{"opened_at": bounds}, {"status": "open"}]
+    elif request.reset_type == "user_specific":
+        if not request.user_ids:
+            raise HTTPException(status_code=422, detail="Zgjidhni të paktën një përdorues")
+        scope["user_id"] = {"$in": request.user_ids}
+        drawer_scope["user_id"] = {"$in": request.user_ids}
+    sales = await db.sales.find(scope, {"_id": 0}).to_list(None)
+    drawers = await db.cash_drawers.find(drawer_scope, {"_id": 0}).to_list(None)
+    movements = (await db.stock_movements.find(tenant_filter, {"_id": 0}).to_list(None)
+                 if request.reset_type == "all" else [])
     backup_id = str(uuid.uuid4())
-    backup_data = {
-        "id": backup_id,
-        "reset_type": request.reset_type,
-        "user_ids": request.user_ids,
-        "created_by": current_user["id"],
-        "created_at": datetime.now(timezone.utc).isoformat(),
-        "sales": [],
-        "cash_drawers": [],
-        "stock_movements": []
-    }
-    backup_data = add_tenant_id(backup_data, current_user)
-    
-    deleted_sales = 0
-    deleted_drawers = 0
-    deleted_movements = 0
-    
-    if request.reset_type == "daily":
-        today = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0).isoformat()
-        
-        sales_to_backup = await db.sales.find({"created_at": {"$gte": today}, **tenant_filter}, {"_id": 0}).to_list(10000)
-        backup_data["sales"] = sales_to_backup
-        
-        drawers_to_backup = await db.cash_drawers.find({"opened_at": {"$gte": today}, **tenant_filter}, {"_id": 0}).to_list(1000)
-        backup_data["cash_drawers"] = drawers_to_backup
-        
-        result = await db.sales.delete_many({"created_at": {"$gte": today}, **tenant_filter})
-        deleted_sales = result.deleted_count
-        
-        result = await db.cash_drawers.delete_many({"opened_at": {"$gte": today}, **tenant_filter})
-        deleted_drawers = result.deleted_count
-        
-    elif request.reset_type == "user_specific" and request.user_ids:
-        for user_id in request.user_ids:
-            user_sales = await db.sales.find({"user_id": user_id, **tenant_filter}, {"_id": 0}).to_list(10000)
-            backup_data["sales"].extend(user_sales)
-            
-            user_drawers = await db.cash_drawers.find({"user_id": user_id, **tenant_filter}, {"_id": 0}).to_list(1000)
-            backup_data["cash_drawers"].extend(user_drawers)
-            
-            result = await db.sales.delete_many({"user_id": user_id, **tenant_filter})
-            deleted_sales += result.deleted_count
-            
-            result = await db.cash_drawers.delete_many({"user_id": user_id, **tenant_filter})
-            deleted_drawers += result.deleted_count
-            
-    elif request.reset_type == "all":
-        all_sales = await db.sales.find(tenant_filter, {"_id": 0}).to_list(100000)
-        backup_data["sales"] = all_sales
-        
-        all_drawers = await db.cash_drawers.find(tenant_filter, {"_id": 0}).to_list(10000)
-        backup_data["cash_drawers"] = all_drawers
-        
-        all_movements = await db.stock_movements.find(tenant_filter, {"_id": 0}).to_list(100000)
-        backup_data["stock_movements"] = all_movements
-        
-        result = await db.sales.delete_many(tenant_filter)
-        deleted_sales = result.deleted_count
-        
-        result = await db.cash_drawers.delete_many(tenant_filter)
-        deleted_drawers = result.deleted_count
-        
-        result = await db.stock_movements.delete_many(tenant_filter)
-        deleted_movements = result.deleted_count
-    
-    backup_data["deleted_counts"] = {
-        "sales": deleted_sales,
-        "cash_drawers": deleted_drawers,
-        "stock_movements": deleted_movements
-    }
-    await db.reset_backups.insert_one(backup_data)
-    
-    await log_audit(current_user["id"], "reset_data", "system", request.reset_type, {
-        "backup_id": backup_id,
-        "deleted_sales": deleted_sales,
-        "deleted_drawers": deleted_drawers,
-        "deleted_movements": deleted_movements
-    })
-    
-    return {
-        "success": True,
-        "message": "Të dhënat u resetuan me sukses",
-        "backup_id": backup_id,
-        "deleted": {
-            "sales": deleted_sales,
-            "cash_drawers": deleted_drawers,
-            "stock_movements": deleted_movements
-        }
-    }
+    backup = add_tenant_id({
+        "id": backup_id, "reset_type": request.reset_type, "user_ids": request.user_ids,
+        "created_by": current_user["id"], "created_at": datetime.now(timezone.utc).isoformat(),
+        "sales": sales, "cash_drawers": drawers, "stock_movements": movements,
+        "status": "prepared"
+    }, current_user)
+    # Persist backup BEFORE deleting anything. Delete only captured IDs so new sales survive.
+    await db.reset_backups.insert_one(backup)
+    result = await db.sales.delete_many({**tenant_filter, "id": {"$in": [x["id"] for x in sales]}})
+    drawer_result = await db.cash_drawers.delete_many({**tenant_filter, "id": {"$in": [x["id"] for x in drawers]}})
+    movement_count = 0
+    if movements:
+        movement_result = await db.stock_movements.delete_many({**tenant_filter, "id": {"$in": [x["id"] for x in movements]}})
+        movement_count = movement_result.deleted_count
+    deleted = {"sales": result.deleted_count, "cash_drawers": drawer_result.deleted_count,
+               "stock_movements": movement_count}
+    await db.reset_backups.update_one({"id": backup_id, **tenant_filter},
+                                      {"$set": {"deleted_counts": deleted, "status": "completed"}})
+    await log_audit(current_user["id"], "reset_data", "system", request.reset_type,
+                    {"backup_id": backup_id, **deleted})
+    return {"success": True, "message": "Të dhënat u resetuan me sukses",
+            "backup_id": backup_id, "deleted": deleted}
 
 
 # ============ BACKUPS ============

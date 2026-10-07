@@ -1,3 +1,4 @@
+import { getQueue } from '../lib/offline';
 import React, { useState, useEffect } from 'react';
 import { api, useAuth } from '../App';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
@@ -208,6 +209,10 @@ const Dashboard = () => {
   };
 
   const executeReset = async () => {
+    if (getQueue().length > 0) {
+      toast.error('Sinkronizoni shitjet offline para resetimit, që të mos rikthehen pas refresh-it.');
+      return;
+    }
     if (resetType === 'user_specific' && selectedUsers.length === 0) {
       toast.error('Zgjidhni të paktën një përdorues');
       return;
@@ -225,7 +230,7 @@ const Dashboard = () => {
         `Të dhënat u resetuan: ${response.data.deleted.sales} shitje, ${response.data.deleted.cash_drawers} arka. Backup ID: ${response.data.backup_id?.slice(0,8)}...`
       );
       setShowResetDialog(false);
-      loadData(); // Refresh dashboard
+      await loadData(); // Read persisted server state, never local-only zeroing
     } catch (error) {
       toast.error(error.response?.data?.detail || 'Gabim gjatë resetimit');
     } finally {
@@ -236,7 +241,8 @@ const Dashboard = () => {
   const getResetTypeLabel = () => {
     switch (resetType) {
       case 'all': return 'Të gjitha të dhënat';
-      case 'daily': return 'Përmbledhja e ditës';
+      case 'daily': return 'Shitjet dhe arkat e ditës';
+      case 'monthly': return 'Shitjet dhe arkat e muajit aktual';
       case 'user_specific': return 'Përdorues të zgjedhur';
       default: return '';
     }
@@ -283,7 +289,7 @@ const Dashboard = () => {
       );
       setShowRestoreDialog(false);
       setShowBackupsDialog(false);
-      loadData(); // Refresh dashboard
+      await loadData(); // Read persisted server state, never local-only zeroing
     } catch (error) {
       toast.error(error.response?.data?.detail || 'Gabim gjatë rikthimit');
     } finally {
@@ -309,6 +315,7 @@ const Dashboard = () => {
     switch (type) {
       case 'all': return 'Të gjitha';
       case 'daily': return 'Ditor';
+      case 'monthly': return 'Mujor';
       case 'user_specific': return 'Përdorues';
       default: return type;
     }
@@ -591,6 +598,11 @@ C                  </AreaChart>
                   <Calendar className="h-5 w-5" />
                   Reseto Ditën (0)
                 </Button>
+                <Button variant="outline" className="w-full justify-start gap-3 h-12 border-orange-300 text-orange-600 hover:bg-orange-50"
+                  onClick={() => openResetDialog('monthly')} data-testid="quick-action-reset-monthly">
+                  <Calendar className="h-5 w-5" />
+                  Reseto Muajin (0)
+                </Button>
                 <Button
                   variant="outline"
                   className="w-full justify-start gap-3 h-12 border-red-300 text-red-600 hover:bg-red-50"
@@ -845,9 +857,9 @@ C                  </AreaChart>
                     Përdorues të zgjedhur: {selectedUsers.length}
                   </p>
                 )}
-                {resetType === 'daily' && (
+                {(resetType === 'daily' || resetType === 'monthly') && (
                   <p className="text-xs text-red-700">
-                    Shitjet dhe arkat e sotme do të fshihen
+                    Shitjet dhe arkat e periudhës do të fshihen. Pas resetimit arka duhet të hapet përsëri. Stoku nuk rikthehet.
                   </p>
                 )}
                 {resetType === 'all' && (

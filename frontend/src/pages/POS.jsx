@@ -73,6 +73,9 @@ const POS = () => {
   const [cashDrawer, setCashDrawer] = useState(null);
   const [showOpenDrawer, setShowOpenDrawer] = useState(false);
   const [showPayment, setShowPayment] = useState(false);
+  const [confirmSale, setConfirmSale] = useState(false);
+  const [paymentSubmitting, setPaymentSubmitting] = useState(false);
+  const paymentInFlight = useRef(false);
   const [showProductSearch, setShowProductSearch] = useState(false);
   const [showCustomer, setShowCustomer] = useState(false);
   const [showParams, setShowParams] = useState(false);
@@ -1055,7 +1058,19 @@ const addToCart = useCallback((product, mode = null) => {
     executeThermalPrint(false);
   };
 
+  const requestPayment = () => {
+    if (paymentInFlight.current) return;
+    const total = Math.max(0, cartTotals.total - (couponData?.discount_amount || 0));
+    if (isDebt && !debtorName.trim()) { toast.error('Shkruani emrin e debitorit'); return; }
+    if (!isDebt && paymentMethod === 'cash' && (parseFloat(cashAmount) || 0) < total) {
+      toast.error('Shuma e paguar është më e vogël se totali'); return;
+    }
+    if (!printReceipt) setConfirmSale(true);
+    else handlePayment();
+  };
+
   const handlePayment = async () => {
+    if (paymentInFlight.current) return;
     if (cart.length === 0) {
       toast.error('Shporta është bosh');
       return;
@@ -1072,7 +1087,11 @@ const addToCart = useCallback((product, mode = null) => {
     const couponDiscount = couponData?.discount_amount || 0;
     const finalTotal = Math.max(0, cartTotals.total - couponDiscount);
     const remainingDebt = isDebt ? Math.max(0, finalTotal - paidAmount) : 0;
-
+    if (!isDebt && paymentMethod === 'cash' && paidAmount < finalTotal) {
+      toast.error('Shuma e paguar është më e vogël se totali'); return;
+    }
+    paymentInFlight.current = true;
+    setPaymentSubmitting(true);
     try {
       const saleData = {
         items: cart.map(item => ({
@@ -1131,6 +1150,9 @@ const addToCart = useCallback((product, mode = null) => {
       }
       
       setCart([]);
+      setConfirmSale(false);
+      setCouponData(null);
+      setCouponCode('');
       setShowPayment(false);
       setCashAmount('');
       setCustomerName('');
@@ -1142,6 +1164,9 @@ const addToCart = useCallback((product, mode = null) => {
       loadData();
     } catch (error) {
       toast.error(error.response?.data?.detail || 'Gabim gjatë regjistrimit të shitjes');
+    } finally {
+      paymentInFlight.current = false;
+      setPaymentSubmitting(false);
     }
   };
 
@@ -1339,6 +1364,15 @@ const addToCart = useCallback((product, mode = null) => {
     }
   }, [showPayment, paymentMethod]);
 
+  useEffect(() => {
+    const refreshAfterReset = () => { setCashDrawer(null); loadData(); };
+    window.addEventListener('datapos-sales-changed', refreshAfterReset);
+    const storageListener = (event) => { if (event.key?.startsWith('datapos_cache:') && event.newValue === null) refreshAfterReset(); };
+    window.addEventListener('storage', storageListener);
+    return () => { window.removeEventListener('datapos-sales-changed', refreshAfterReset); window.removeEventListener('storage', storageListener); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   // Keyboard shortcuts for POS operations
   useEffect(() => {
     const handleKeyDown = (e) => {
@@ -1419,10 +1453,7 @@ const addToCart = useCallback((product, mode = null) => {
         setPaymentMethod('bank');
         setCashAmount('');
         setShowPayment(true);
-        // Auto-submit after a short delay
-        setTimeout(() => {
-          handlePayment();
-        }, 100);
+        // Confirm after React has committed the selected payment method.
         return;
       }
       
@@ -1434,13 +1465,7 @@ const addToCart = useCallback((product, mode = null) => {
       }
       
       // Enter in payment dialog - complete sale
-      if (e.key === 'Enter' && showPayment) {
-        e.preventDefault();
-        if (paymentMethod === 'bank' || (paymentMethod === 'cash' && parseFloat(cashAmount) >= (cartTotals.total - (couponData?.discount_amount || 0)))) {
-          handlePayment();
-        }
-        return;
-      }
+      if (e.key === 'Enter' && showPayment) return; // handled once by dialog capture
       
       // Enter for barcode/search (when not in payment dialog)
       if (e.key === 'Enter' && search && !showPayment && !showProductSearch) {
@@ -2245,8 +2270,13 @@ const addToCart = useCallback((product, mode = null) => {
       </div>
 
       {/* Payment Dialog */}
-      <Dialog open={showPayment} onOpenChange={setShowPayment}>
-        <DialogContent className="sm:max-w-md p-0 overflow-hidden border-0 bg-transparent shadow-none">
+      <Dialog open={showPayment} onOpenChange={(open) => { if (!paymentInFlight.current) { setShowPayment(open); if (!open) setConfirmSale(false); } }}>
+        <DialogContent onKeyDownCapture={(e) => {
+          if (e.key === 'Enter') {
+            e.preventDefault(); e.stopPropagation();
+            if (!e.repeat) { if (confirmSale) handlePayment(); else requestPayment(); }
+          }
+        }} className="sm:max-w-md p-0 overflow-hidden border-0 bg-transparent shadow-none">
           <div className="relative rounded-3xl overflow-hidden bg-[#faf9f4] border border-[#0E4B49]/15 shadow-xl shadow-[#0E4B49]/10">
             <div className="relative p-6 space-y-5">
               <DialogHeader className="flex flex-row items-center justify-between space-y-0">
@@ -2278,7 +2308,7 @@ const addToCart = useCallback((product, mode = null) => {
                 <div className="space-y-4">
                   <div className="relative">
                     <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[#0E4B49] font-bold text-lg pointer-events-none">{'\u20AC'}</span>
-                    <input ref={cashInputRef} type="text" value={cashAmount} onChange={(e) => setCashAmount(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter' && parseFloat(cashAmount) >= (cartTotals.total - (couponData?.discount_amount || 0))) { e.preventDefault(); handlePayment(); } }} placeholder={'Shkruaj shum\u00EBn e paguar...'} autoFocus data-testid="cash-amount-input" className="w-full h-14 pl-10 pr-4 rounded-2xl bg-white border border-gray-200 text-xl font-bold text-gray-900 tabular-nums placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#0E4B49]/40 focus:border-[#0E4B49]/40 transition" />
+                    <input ref={cashInputRef} type="text" value={cashAmount} onChange={(e) => setCashAmount(e.target.value)} placeholder={'Shkruaj shum\u00EBn e paguar...'} autoFocus data-testid="cash-amount-input" className="w-full h-14 pl-10 pr-4 rounded-2xl bg-white border border-gray-200 text-xl font-bold text-gray-900 tabular-nums placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#0E4B49]/40 focus:border-[#0E4B49]/40 transition" />
                   </div>
                   <div className="grid grid-cols-3 gap-2">
                     <div className="rounded-xl bg-gray-50 border border-gray-200 p-3">
@@ -2361,11 +2391,21 @@ const addToCart = useCallback((product, mode = null) => {
                   </button>
                 )}
               </div>
-              <button type="button" onClick={handlePayment} disabled={isDebt && !debtorName.trim()} data-testid="confirm-payment-btn" className={`group relative w-full h-14 rounded-2xl font-bold text-base text-white shadow-2xl transition-all overflow-hidden disabled:opacity-50 disabled:cursor-not-allowed hover:scale-[1.01] active:scale-[0.99] ${isDebt ? 'bg-amber-500 shadow-amber-500/40 hover:shadow-amber-500/60' : 'bg-[#0E4B49] shadow-[#0E4B49]/40 hover:shadow-[#0E4B49]/60'}`}>
+              {confirmSale && (
+                <div role="alertdialog" aria-labelledby="confirm-sale-title" className="p-4 border border-[#0E4B49]/30 rounded-xl bg-emerald-50 space-y-3">
+                  <p id="confirm-sale-title" className="font-semibold">Dëshironi të përfundoni shitjen?</p>
+                  <p className="text-sm">Shtypni Enter për ta përfunduar pa shtypur kupon.</p>
+                  <div className="flex gap-2">
+                    <Button disabled={paymentSubmitting} onClick={handlePayment} data-testid="finish-sale-confirm">{paymentSubmitting ? 'Duke përfunduar...' : 'Po, përfundo (Enter)'}</Button>
+                    <Button variant="outline" disabled={paymentSubmitting} onClick={() => setConfirmSale(false)}>Anulo</Button>
+                  </div>
+                </div>
+              )}
+              <button type="button" onClick={requestPayment} disabled={paymentSubmitting || (isDebt && !debtorName.trim())} data-testid="confirm-payment-btn" className={`group relative w-full h-14 rounded-2xl font-bold text-base text-white shadow-2xl transition-all overflow-hidden disabled:opacity-50 disabled:cursor-not-allowed hover:scale-[1.01] active:scale-[0.99] ${isDebt ? 'bg-amber-500 shadow-amber-500/40 hover:shadow-amber-500/60' : 'bg-[#0E4B49] shadow-[#0E4B49]/40 hover:shadow-[#0E4B49]/60'}`}>
                 
                 <span className="relative flex items-center justify-center gap-2">
                   
-                  {isDebt ? 'Regjistro Borgj' : (printReceipt ? 'Shtyp & P\u00EBrfundo' : 'P\u00EBrfundo pa Shtypur')}
+                  {paymentSubmitting ? 'Duke përfunduar...' : isDebt ? 'Regjistro Borgj' : (printReceipt ? 'Shtyp & Përfundo' : 'Përfundo pa Shtypur')}
                   <ArrowRight className="h-4 w-4" />
                 </span>
               </button>

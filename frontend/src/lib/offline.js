@@ -276,6 +276,11 @@ export const attachInterceptors = (api) => {
     (response) => {
       const method = (response.config?.method || 'get').toLowerCase();
       const url = response.config?.url || '';
+      if ((method === 'post' && url === '/admin/reset-data') ||
+          (method === 'delete' && normalize(url).startsWith('/sales/'))) {
+        clearCache();
+        window.dispatchEvent(new Event('datapos-sales-changed'));
+      }
       if (method === 'get' && isCacheable(url)) {
         writeCache(url, response.data);
       }
@@ -309,7 +314,7 @@ export const attachInterceptors = (api) => {
       }
 
       // Shkrimet e lejuara -> ruaji ne radhe
-      if (isQueueable(url) && config.headers?.['X-Offline-Sync'] !== '1') {
+      if (method !== 'delete' && isQueueable(url) && config.headers?.['X-Offline-Sync'] !== '1') {
         let data = config.data;
         if (typeof data === 'string') {
           try {

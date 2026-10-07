@@ -11,6 +11,7 @@ from reportlab.lib.styles import getSampleStyleSheet
 import xlsxwriter
 
 from database import db
+from report_dates import date_filter, period_bounds, BUSINESS_TZ
 from models import UserRole
 from auth import get_current_user, require_role, get_tenant_filter
 
@@ -23,10 +24,10 @@ async def get_dashboard(
     current_user: dict = Depends(get_current_user)
 ):
     """Get dashboard statistics"""
-    today = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0).isoformat()
+    today = period_bounds("daily")
     
     tenant_filter = get_tenant_filter(current_user)
-    query = {"created_at": {"$gte": today}, **tenant_filter}
+    query = {"created_at": today, **tenant_filter}
     if branch_id:
         query["branch_id"] = branch_id
     
@@ -86,19 +87,21 @@ async def get_dashboard(
 async def get_sales_report(
     start_date: str = Query(...),
     end_date: str = Query(...),
+    sale_offset: int = Query(0, ge=0),
+    sale_limit: int = Query(50, ge=1, le=100),
     branch_id: Optional[str] = None,
     user_id: Optional[str] = None,
     current_user: dict = Depends(require_role([UserRole.ADMIN, UserRole.MANAGER]))
 ):
     """Get sales report"""
     tenant_filter = get_tenant_filter(current_user)
-    query = {"created_at": {"$gte": start_date, "$lte": end_date}, **tenant_filter}
+    query = {"created_at": date_filter(start_date, end_date), **tenant_filter}
     if branch_id:
         query["branch_id"] = branch_id
     if user_id:
         query["user_id"] = user_id
     
-    sales = await db.sales.find(query, {"_id": 0}).to_list(100000)
+    sales = await db.sales.find(query, {"_id": 0}).sort("created_at", -1).to_list(None)
     
     total_revenue = sum(s.get("grand_total", 0) for s in sales)
     total_vat = sum(s.get("total_vat", 0) for s in sales)
@@ -106,7 +109,7 @@ async def get_sales_report(
     
     daily_sales = {}
     for sale in sales:
-        date = sale["created_at"][:10]
+        date = datetime.fromisoformat(sale["created_at"].replace("Z", "+00:00")).astimezone(BUSINESS_TZ).date().isoformat()
         if date not in daily_sales:
             daily_sales[date] = {"total": 0, "count": 0}
         daily_sales[date]["total"] += sale.get("grand_total", 0)
@@ -122,7 +125,8 @@ async def get_sales_report(
             "average_transaction": round(total_revenue / len(sales), 2) if sales else 0
         },
         "daily_breakdown": [{"date": k, **v} for k, v in sorted(daily_sales.items())],
-        "sales": sales[:100]
+        "sales": sales[sale_offset:sale_offset + sale_limit],
+        "sales_count": len(sales)
     }
 
 
@@ -135,7 +139,7 @@ async def get_profit_loss_report(
 ):
     """Get profit/loss report"""
     tenant_filter = get_tenant_filter(current_user)
-    query = {"created_at": {"$gte": start_date, "$lte": end_date}, **tenant_filter}
+    query = {"created_at": date_filter(start_date, end_date), **tenant_filter}
     if branch_id:
         query["branch_id"] = branch_id
     
@@ -151,7 +155,7 @@ async def get_profit_loss_report(
     
     daily_data = {}
     for sale in sales:
-        date = sale["created_at"][:10]
+        date = datetime.fromisoformat(sale["created_at"].replace("Z", "+00:00")).astimezone(BUSINESS_TZ).date().isoformat()
         if date not in daily_data:
             daily_data[date] = {"revenue": 0, "cost": 0, "vat": 0}
         
@@ -234,7 +238,7 @@ async def get_cashier_performance(
 ):
     """Get cashier performance report"""
     tenant_filter = get_tenant_filter(current_user)
-    query = {"created_at": {"$gte": start_date, "$lte": end_date}, **tenant_filter}
+    query = {"created_at": date_filter(start_date, end_date), **tenant_filter}
     if branch_id:
         query["branch_id"] = branch_id
     
@@ -297,7 +301,7 @@ async def export_pdf_report(
     elements.append(Spacer(1, 20))
     
     if report_type == "sales" and start_date and end_date:
-        query = {"created_at": {"$gte": start_date, "$lte": end_date + "T23:59:59"}, **tenant_filter}
+        query = {"created_at": date_filter(start_date, end_date), **tenant_filter}
         if branch_id:
             query["branch_id"] = branch_id
         sales = await db.sales.find(query, {"_id": 0}).sort("created_at", -1).to_list(10000)
@@ -444,7 +448,7 @@ async def export_excel_report(
         worksheet.write(1, 0, f"Raport Shitjesh: {start_date} - {end_date}")
         worksheet.write(2, 0, f"Gjeneruar: {datetime.now().strftime('%d/%m/%Y %H:%M')}")
         
-        query = {"created_at": {"$gte": start_date, "$lte": end_date + "T23:59:59"}, **tenant_filter}
+        query = {"created_at": date_filter(start_date, end_date), **tenant_filter}
         if branch_id:
             query["branch_id"] = branch_id
         sales = await db.sales.find(query, {"_id": 0}).sort("created_at", -1).to_list(10000)
