@@ -33,7 +33,7 @@ async def verify_admin_password(
         raise HTTPException(status_code=404, detail="Përdoruesi nuk u gjet")
     
     if not verify_password(password, admin.get("password_hash", "")):
-        raise HTTPException(status_code=401, detail="Fjalëkalimi i gabuar")
+        raise HTTPException(status_code=422, detail="Fjalëkalimi i gabuar")
     
     return {"verified": True, "message": "Fjalëkalimi u verifikua"}
 
@@ -69,7 +69,7 @@ async def reset_data(request: ResetDataRequest, current_user: dict = Depends(req
     
     admin = await db.users.find_one({"id": current_user["id"], **tenant_filter})
     if not admin or not verify_password(request.admin_password, admin.get("password_hash", "")):
-        raise HTTPException(status_code=401, detail="Fjalëkalimi i gabuar")
+        raise HTTPException(status_code=422, detail="Fjalëkalimi i gabuar")
     
     if not tenant_filter.get("tenant_id"):
         raise HTTPException(status_code=403, detail="Resetimi kërkon një firmë të caktuar")
@@ -151,7 +151,7 @@ async def restore_backup(backup_id: str, request: dict, current_user: dict = Dep
     password = request.get("admin_password", "")
     admin = await db.users.find_one({"id": current_user["id"], **tenant_filter})
     if not admin or not verify_password(password, admin.get("password_hash", "")):
-        raise HTTPException(status_code=401, detail="Fjalëkalimi i gabuar")
+        raise HTTPException(status_code=422, detail="Fjalëkalimi i gabuar")
     
     backup = await db.reset_backups.find_one({"id": backup_id, **tenant_filter}, {"_id": 0})
     if not backup:

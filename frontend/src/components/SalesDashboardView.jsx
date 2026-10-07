@@ -4,7 +4,7 @@ import { saleProductLines } from '../lib/saleProducts';
 export const money = value => `€${Number(value || 0).toFixed(2)}`;
 export const periodLabels = { daily: 'Ditore', monthly: 'Mujore', yearly: 'Vjetore' };
 
-export default function SalesDashboardView({ summaries, report, period, anchor, page, loading, error, canManage, onPeriod, onDate, onPage, onRefresh, onReset, onDelete, modal }) {
+export default function SalesDashboardView({ summaries, report, period, anchor, page, loading, error, notice, canManage, onPeriod, onDate, onPage, onRefresh, onReset, onDelete, modal }) {
   return (
     <main className="dp-sales" data-testid="sales-dashboard">
       <header className="dp-page-heading">
@@ -12,12 +12,13 @@ export default function SalesDashboardView({ summaries, report, period, anchor, 
         <button className="dp-button dp-secondary" onClick={onRefresh} disabled={loading}>Rifresko</button>
       </header>
       {error && <div role="alert" className="dp-error">{error}</div>}
+      {notice && <div role="status" className="dp-notice">{notice}</div>}
       <section className="dp-summary-grid" aria-label="Përmbledhja e shitjeve">
         {Object.entries(periodLabels).map(([key, label]) => (
           <button key={key} className={`dp-summary ${period === key ? 'dp-selected' : ''}`} onClick={() => onPeriod(key)} aria-pressed={period === key}>
             <span className="dp-muted">Shitjet {label.toLowerCase()}</span>
             <strong>{summaries ? money(summaries[key]?.total) : '—'}</strong>
-            <span className="dp-summary-date">{summaries?.[key] ? `${summaries[key].start_date} — ${summaries[key].end_date}` : 'Duke ngarkuar...'}</span>
+            <span className="dp-summary-date">{summaries?.[key] ? `${summaries[key].start_date} — ${summaries[key].end_date}` : error ? 'Të dhënat nuk u ngarkuan' : 'Duke ngarkuar...'}</span>
           </button>
         ))}
       </section>

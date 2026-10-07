@@ -5,6 +5,7 @@ import { Toaster, toast } from 'sonner';
 
 // Offline + kycja e firmes ne PC
 import offline from './lib/offline';
+import { restoreSession, clearSession, shouldExpireSession, AUTH_EXPIRED_EVENT } from './lib/authSession';
 import deviceLock from './lib/deviceLock';
 import OfflineIndicator from './components/OfflineIndicator';
 
@@ -116,19 +117,18 @@ api.interceptors.request.use((config) => {
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
+  const subdomain = getSubdomain();
+  if (subdomain) config.headers['X-Tenant-Subdomain'] = subdomain;
   return config;
 });
 
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
-      const token = localStorage.getItem('t3next_token');
-      if (token) {
-        localStorage.removeItem('t3next_token');
-        localStorage.removeItem('t3next_user');
-        window.location.href = '/#/login';
-      }
+    if (shouldExpireSession(error)) {
+      clearSession(localStorage);
+      window.dispatchEvent(new Event(AUTH_EXPIRED_EVENT));
+      window.location.hash = '#/login';
     }
     return Promise.reject(error);
   }
@@ -173,36 +173,20 @@ const AuthProvider = ({ children }) => {
   const tenantCtx = useContext(TenantContext);
 
   useEffect(() => {
-    const isNewSession = sessionStorage.getItem('ipos_session_active') !== 'true';
-    if (isNewSession) {
-      localStorage.removeItem('t3next_token');
-      localStorage.removeItem('t3next_user');
-      sessionStorage.setItem('ipos_session_active', 'true');
-      setLoading(false);
-      return;
-    }
-    const savedUser = localStorage.getItem('t3next_user');
-    const savedToken = localStorage.getItem('t3next_token');
-    if (savedUser && savedToken) {
-      setUser(JSON.parse(savedUser));
-    }
+    setUser(restoreSession(localStorage));
     setLoading(false);
   }, []);
 
   useEffect(() => {
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === 'hidden') {
-        sessionStorage.removeItem('ipos_session_active');
-      }
+    const expired = () => { setUser(null); };
+    const storageChanged = event => {
+      if (event.key === 't3next_token' && !event.newValue) setUser(null);
     };
-    const handleBeforeUnload = () => {
-      sessionStorage.removeItem('ipos_session_active');
-    };
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-    window.addEventListener('beforeunload', handleBeforeUnload);
+    window.addEventListener(AUTH_EXPIRED_EVENT, expired);
+    window.addEventListener('storage', storageChanged);
     return () => {
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-      window.removeEventListener('beforeunload', handleBeforeUnload);
+      window.removeEventListener(AUTH_EXPIRED_EVENT, expired);
+      window.removeEventListener('storage', storageChanged);
     };
   }, []);
 
@@ -418,7 +402,7 @@ function App() {
     <HashRouter>
       <TenantProvider>
         <AuthProvider>
-          {/* toast njoftimet u caktivizuan */}
+          <Toaster position="top-center" richColors closeButton duration={6000} />
           <OfflineIndicator api={api} />
           <AppRoutes />
         </AuthProvider>

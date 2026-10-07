@@ -154,7 +154,7 @@ class RegressionTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(len(self.db.cash_drawers.docs),2)
     async def test_wrong_password_never_deletes(self):
         with self.assertRaises(HTTPException) as error: await self.reset(self.request(password='bad'),self.admin)
-        self.assertEqual(error.exception.status_code,401); self.assertEqual(len(self.db.sales.docs),2)
+        self.assertEqual(error.exception.status_code,422); self.assertEqual(len(self.db.sales.docs),2)
     async def test_invalid_reset_rejected(self):
         with self.assertRaises(HTTPException) as error: await self.reset(self.request('invalid'),self.admin)
         self.assertEqual(error.exception.status_code,422)

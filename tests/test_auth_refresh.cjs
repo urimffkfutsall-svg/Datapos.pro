@@ -1,0 +1,43 @@
+const fs = require('fs');
+const path = require('path');
+const vm = require('vm');
+const assert = require('assert/strict');
+const root = path.resolve(__dirname, '..');
+const source = fs.readFileSync(path.join(root, 'frontend/src/lib/authSession.js'), 'utf8')
+  .replace(/export (const|function) /g, '$1 ');
+const ctx = { atob, Date, JSON };
+vm.createContext(ctx);
+vm.runInContext(source + ';this.api={restoreSession,clearSession,shouldExpireSession};', ctx);
+const auth = ctx.api;
+function store(exp = Date.now() / 1000 + 3600) {
+  const token = 'header.' + Buffer.from(JSON.stringify({sub:'admin',exp})).toString('base64url') + '.signature';
+  const data = {'t3next_token':token,'t3next_user':JSON.stringify({id:'admin',role:'admin',tenant_id:'firm'})};
+  return {data,getItem:k=>data[k]||null,removeItem:k=>delete data[k]};
+}
+let storage = store();
+assert.equal(auth.restoreSession(storage).id,'admin');
+assert.equal(auth.restoreSession(storage).id,'admin');
+assert(storage.getItem('t3next_token'));
+console.log('PASS refresh retains a non-expired session');
+storage=store(Date.now()/1000-10);assert.equal(auth.restoreSession(storage),null);assert(!storage.getItem('t3next_token'));
+console.log('PASS expired token is cleared');
+storage=store();storage.data.t3next_user='broken';assert.equal(auth.restoreSession(storage),null);
+console.log('PASS malformed saved session is rejected');
+const error=(status,detail,url)=>({response:{status,data:{detail}},config:{url}});
+assert(!auth.shouldExpireSession(error(401,'Fjalëkalimi i gabuar','/admin/reset-data')));
+assert(!auth.shouldExpireSession(error(422,'Fjalëkalimi i gabuar','/admin/reset-data')));
+assert(!auth.shouldExpireSession(error(401,'Fjalëkalimi i gabuar','/admin/verify-password')));
+console.log('PASS wrong reset password never clears login');
+assert(auth.shouldExpireSession(error(401,'Token-i ka skaduar','/admin/reset-data')));
+console.log('PASS genuinely expired reset session redirects to login');
+assert(auth.shouldExpireSession(error(403,'Not authenticated','/reports/sales-panel')));
+assert(!auth.shouldExpireSession(error(403,'Nuk keni leje për këtë veprim','/admin/reset-data')));
+console.log('PASS missing authentication is distinguished from missing permission');
+assert(!auth.shouldExpireSession(error(401,'Kredencialet e gabuara','/auth/login')));
+console.log('PASS failed login does not trigger expiry interception');
+const app=fs.readFileSync(path.join(root,'frontend/src/App.js'),'utf8');
+assert(!app.includes("window.addEventListener('beforeunload', handleBeforeUnload)"));
+assert(!app.includes("document.addEventListener('visibilitychange', handleVisibilityChange)"));
+assert(app.includes('<Toaster position="top-center"'));
+assert(app.includes("config.headers['X-Tenant-Subdomain'] = subdomain"));
+console.log('PASS refresh/tab-switch logout removed; notifications and tenant routing enabled');

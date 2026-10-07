@@ -23,6 +23,8 @@ export default function Dashboard() {
   const [action, setAction] = useState(null);
   const [password, setPassword] = useState('');
   const [busy, setBusy] = useState(false);
+  const [actionError, setActionError] = useState('');
+  const [notice, setNotice] = useState('');
   const requestId = useRef(0);
   const actionInFlight = useRef(false);
   const canManage = user?.role === 'admin';
@@ -54,19 +56,21 @@ export default function Dashboard() {
     return () => { window.removeEventListener('datapos-sales-changed', refresh); window.removeEventListener('storage', storage); };
   }, [load]);
 
-  const openReset = kind => { setPassword(''); setAction({ kind }); };
+  const openReset = kind => { setPassword(''); setActionError(''); setNotice(''); setAction({ kind }); };
   const submitAction = async event => {
     event.preventDefault();
     if (!action || actionInFlight.current) return;
-    if (getQueue().length > 0) { toast.error('Sinkronizoni veprimet offline para resetimit ose fshirjes.'); return; }
-    actionInFlight.current = true; setBusy(true);
+    if (getQueue().length > 0) { setActionError('Sinkronizoni veprimet offline para resetimit ose fshirjes.'); return; }
+    actionInFlight.current = true; setBusy(true); setActionError(''); setNotice('');
     let mutationSucceeded = false;
+    let deletedSales = null;
     try {
       if (action.sale) {
         await api.delete(`/sales/${action.sale.id}`);
       } else {
         const response = await api.post('/admin/reset-data', { admin_password: password, reset_type: action.kind });
         if (!response.data?.reset_verified || response.data?.reporting_revision !== REVISION) throw new Error(backendError);
+        deletedSales = response.data.deleted?.sales || 0;
       }
       mutationSucceeded = true;
       setAction(null); setPassword('');
@@ -74,9 +78,11 @@ export default function Dashboard() {
       const date = action.sale ? anchor : today();
       setAnchor(date);
       await load(date, 0);
-      toast.success(action.sale ? 'Shitja u fshi dhe totalet u përditësuan.' : 'Resetimi u verifikua në databazë. Shitjet e reja pas resetimit llogariten normalisht.');
+      const message = action.sale ? 'Shitja u fshi dhe totalet u përditësuan.' : `Resetimi u verifikua në server: ${deletedSales} shitje u hoqën. Shitjet e reja pas resetimit llogariten normalisht.`;
+      setNotice(message); toast.success(message);
     } catch (err) {
-      toast.error(mutationSucceeded ? 'Veprimi u krye, por totalet nuk u ngarkuan. Rifreskoni; mos e përsërisni veprimin.' : err.message === backendError ? backendError : err.response?.data?.detail || 'Veprimi nuk u konfirmua nga serveri.');
+      const message = mutationSucceeded ? 'Veprimi u krye, por totalet nuk u ngarkuan. Rifreskoni; mos e përsërisni veprimin.' : err.message === backendError ? backendError : err.response?.data?.detail || 'Veprimi nuk u konfirmua nga serveri.';
+      setActionError(message); setNotice(message); toast.error(message);
     } finally { actionInFlight.current = false; setBusy(false); }
   };
 
@@ -84,11 +90,12 @@ export default function Dashboard() {
     <DialogContent className="dp-dialog">
       <DialogHeader><DialogTitle>{action?.sale ? 'Fshij këtë shitje?' : action?.kind === 'monthly' ? 'Reseto shitjet e muajit?' : 'Reseto shitjet e ditës?'}</DialogTitle><DialogDescription>{action?.sale ? `Shitja për ${saleProductsTitle(action.sale)} hiqet nga shitjet ditore, mujore, vjetore dhe raportet e printuara.` : 'Shitjet e periudhës aktuale do të hiqen nga llogaritjet në server, jo vetëm në ekran. Ruhet një backup para fshirjes.'}</DialogDescription></DialogHeader>
       <form onSubmit={submitAction} className="dp-form">
+        {actionError && <div role="alert" className="dp-error">{actionError}</div>}
         <p className="dp-muted">Stoku nuk rikthehet. Pas resetimit hapeni përsëri arkën. Sinkronizoni të gjitha pajisjet para resetimit.</p>
         {!action?.sale && <label htmlFor="reset-password">Fjalëkalimi i administratorit<input id="reset-password" type="password" autoComplete="current-password" autoFocus required value={password} onChange={e => setPassword(e.target.value)} disabled={busy} /></label>}
         <div className="dp-dialog-actions"><button type="button" className="dp-button dp-secondary" disabled={busy} onClick={() => setAction(null)}>Anulo</button><button type="submit" className="dp-button dp-danger" disabled={busy || (!action?.sale && !password)}>{busy ? 'Duke verifikuar...' : action?.sale ? 'Po, fshije' : 'Konfirmo resetimin'}</button></div>
       </form>
     </DialogContent>
   </Dialog>;
-  return <SalesDashboardView summaries={summaries} report={report} period={period} anchor={anchor} page={page} loading={loading} error={error} canManage={canManage} onPeriod={key => { setPeriod(key); setPage(0); }} onDate={date => { setAnchor(date); setPage(0); }} onPage={setPage} onRefresh={() => load().catch(() => {})} onReset={openReset} onDelete={sale => setAction({ sale })} modal={modal} />;
+  return <SalesDashboardView summaries={summaries} report={report} period={period} anchor={anchor} page={page} loading={loading} error={error} notice={notice} canManage={canManage} onPeriod={key => { setPeriod(key); setPage(0); }} onDate={date => { setAnchor(date); setPage(0); }} onPage={setPage} onRefresh={() => load().catch(() => {})} onReset={openReset} onDelete={sale => { setActionError(''); setNotice(''); setAction({ sale }); }} modal={modal} />;
 }
