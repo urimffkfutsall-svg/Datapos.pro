@@ -10,7 +10,7 @@ Ky është udhëzimi kryesor i kësaj pakete të plotë. Përfshihen të gjitha 
 5. Shënoni **Shfaq në faqen publike të hyrjes** dhe klikoni **Ruaj regjistrimin**. Deri në ruajtje, ngarkimi është vetëm një preview i formularit.
 6. Mund të ndryshoni, fshehni ose fshini regjistrime. Fshirja kërkon konfirmim. Fshehja i heq nga lista publike dhe nga adresa publike e logos.
 
-Në fund të hyrjes shfaqen vetëm regjistrimet aktive. Logot ecin nga e djathta në të majtë, ndalojnë nën maus dhe kanë buton Ndalo/Vazhdo. Klikimi hap adresën, telefonin dhe lidhjet sociale në një dritare. Telefoni është i klikueshëm. Lidhjet sociale hapen në tab tjetër. Preferenca reduced-motion çaktivizon animacionin dhe shfaq listë statike. Kur nuk ka regjistrime aktive, shiriti nuk shfaqet.
+Në fund të hyrjes shfaqen vetëm regjistrimet aktive. Logot ecin nga e djathta në të majtë, ndalojnë nën maus dhe nuk kanë më buton Ndalo/Vazhdo. Logot shfaqen gri/të zbehta dhe kthehen në ngjyrat origjinale nën maus ose gjatë fokusimit me tastierë. Klikimi hap adresën, telefonin dhe lidhjet sociale në një dritare. Telefoni është i klikueshëm. Lidhjet sociale hapen në tab tjetër. Preferenca reduced-motion çaktivizon animacionin dhe shfaq listë statike. Kur nuk ka regjistrime aktive, shiriti nuk shfaqet.
 
 Renditja është sipas numrit që vendosni, pastaj sipas emrit. Fushat e kontaktit janë opsionale; për rrjetet sociale vendosni URL të plotë HTTPS, jo vetëm @emrin. Emri dhe logoja kërkohen gjatë shtimit.
 

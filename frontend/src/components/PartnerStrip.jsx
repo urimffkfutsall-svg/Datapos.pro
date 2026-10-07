@@ -35,9 +35,8 @@ export function PartnerDetails({ partner, onClose }) {
 
 export function PartnerStripView({ partners, paused, setPaused, selected, setSelected }) {
   if (!partners.length) return null;
-  return <section className={`sp-strip ${paused ? 'sp-strip-static' : ''}`} aria-label="Sponsorat dhe firmat">
+  return <section className={`sp-strip ${paused ? 'sp-strip-static' : ''}`} aria-label="Sponsorat dhe firmat" onBlur={event => { if (!event.currentTarget.contains(event.relatedTarget) && !selected) setPaused(false); }}>
     <div className="sp-strip-heading"><div><h2>Sponsorat dhe firmat</h2><p>Klikoni një logo për të parë të dhënat e firmës.</p></div>
-      <button type="button" className="sp-secondary" onClick={() => setPaused(!paused)} aria-pressed={paused}>{paused ? 'Vazhdo lëvizjen' : 'Ndalo lëvizjen'}</button>
     </div>
     <div className="sp-marquee-window">
       <div className="sp-marquee-track" style={{'--sp-duration': `${Math.max(28, partners.length * 5)}s`}}>
@@ -49,7 +48,7 @@ export function PartnerStripView({ partners, paused, setPaused, selected, setSel
         </div>)}
       </div>
     </div>
-    <PartnerDetails partner={selected} onClose={() => setSelected(null)} />
+    <PartnerDetails partner={selected} onClose={() => { setSelected(null); setPaused(false); }} />
   </section>;
 }
 
