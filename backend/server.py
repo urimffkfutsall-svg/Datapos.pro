@@ -9,7 +9,7 @@ import logging
 
 # Import routers
 from routers import auth, tenants, users, branches, products, stock, cashier, sales, reports, upload, registration, coupons
-from routers import ai_assistant
+from routers import ai_assistant, partners
 from routers.settings import router as settings_router, warehouses_router, vat_router, templates_router
 from routers.admin import router as admin_router, audit_router, categories_router, init_router
 from routers.warranties import router as warranties_router
@@ -122,6 +122,7 @@ app.include_router(audit_router, prefix="/api")
 app.include_router(categories_router, prefix="/api")
 app.include_router(init_router, prefix="/api")
 app.include_router(upload.router, prefix="/api")
+app.include_router(partners.router, prefix="/api")
 app.include_router(registration.router, prefix="/api")
 app.include_router(coupons.router, prefix="/api")
 app.include_router(ai_assistant.router, prefix="/api")

@@ -24,6 +24,7 @@ import Reports from './pages/Reports';
 import Settings from './pages/Settings';
 import AuditLogs from './pages/AuditLogs';
 import SuperAdmin from './pages/SuperAdmin';
+import Partners from './pages/Partners';
 import Debts from './pages/Debts';
 
 // Layout
@@ -374,6 +375,7 @@ const AppRoutes = () => {
             <AuditLogs />
           </ProtectedRoute>
         } />
+        <Route path="partners" element={<ProtectedRoute allowedRoles={['super_admin']}><Partners /></ProtectedRoute>} />
         <Route path="super-admin" element={
           <ProtectedRoute allowedRoles={['super_admin']}>
             <SuperAdmin />

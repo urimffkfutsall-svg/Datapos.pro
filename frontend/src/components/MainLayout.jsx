@@ -36,6 +36,7 @@ const MainLayout = () => {
     { path: '/app/reports',      icon: BarChart3,       label: 'Raportet',        roles: ['admin','manager'] },
     { path: '/app/audit-logs',   icon: ClipboardList,   label: 'Audit Log',       roles: ['admin'] },
     { path: '/app/settings',     icon: Settings,        label: 'Cilesimet',       roles: ['admin'] },
+    { path: '/app/partners', icon: Building2, label: 'Sponsorat dhe firmat', roles: ['super_admin'] },
     { path: '/app/super-admin',  icon: Sparkles,        label: 'Menaxho Firmat',  roles: ['super_admin'] },
   ];
 

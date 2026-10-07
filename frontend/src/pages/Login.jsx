@@ -13,6 +13,7 @@ import {
   Keyboard,
 } from 'lucide-react';
 import '../login-design.css';
+import PartnerStrip from '../components/PartnerStrip';
 
 const SERVICES = [
   { icon: ShoppingCart, label: 'Arka POS' },
@@ -303,6 +304,7 @@ const Login = () => {
           <span>© {new Date().getFullYear()} DataPOS</span>
           <div><a href="https://www.datapos.pro" target="_blank" rel="noopener noreferrer">www.datapos.pro</a><span aria-hidden="true">·</span><a href="tel:+38345278279">+383 45 278 279</a></div>
         </footer>
+        <PartnerStrip />
       </div>
 
       {/* Virtual Keyboard Modal */}
