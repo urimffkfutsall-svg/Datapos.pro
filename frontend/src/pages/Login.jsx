@@ -9,19 +9,11 @@ import {
 import {
   Delete, CornerDownLeft, User, Lock, Eye, EyeOff,
   AlertTriangle, CreditCard, Phone,
-  ShoppingCart, Package, BarChart3, Users, Boxes, Store,
+  ShoppingCart, Store,
   Keyboard,
 } from 'lucide-react';
 import '../login-design.css';
 import PartnerStrip from '../components/PartnerStrip';
-
-const SERVICES = [
-  { icon: ShoppingCart, label: 'Arka POS' },
-  { icon: Package,      label: 'Produkte' },
-  { icon: BarChart3,    label: 'Raporte' },
-  { icon: Users,        label: 'Klientët' },
-  { icon: Boxes,        label: 'Stoku' },
-];
 
 const QWERTY_ROWS = [
   ['1','2','3','4','5','6','7','8','9','0'],
@@ -202,20 +194,8 @@ const Login = () => {
                 </div>
                 <div className="dp-brand-name">
                   <h1>{brandName}</h1>
-                  <p>Hapësira juaj e punës</p>
                 </div>
               </div>
-              <div className="dp-brand-intro">
-                <span className="dp-brand-eyebrow">ME DATAPOS</span>
-                <h2>Punë më e thjeshtë.<br />Kontroll më i plotë.</h2>
-                <p>Shitjet, produktet dhe raportet — në një hapësirë të vetme për biznesin tuaj.</p>
-                <div className="dp-brand-services" aria-label="Modulet e sistemit">
-                  {SERVICES.map(({icon: Icon, label}) => (
-                    <div key={label}><Icon aria-hidden="true" /><span>{label}</span></div>
-                  ))}
-                </div>
-              </div>
-              <div className="dp-brand-signature"><span>Powered by</span> <strong>DataPOS</strong></div>
             </section>
 
             <section className="dp-login-form" aria-labelledby="dp-login-heading">
