@@ -60,6 +60,22 @@ class TenantTests(unittest.IsolatedAsyncioTestCase):
     async def test_vercel_tenant_header(self):
         req=request(**{'host':'backend.vercel.app','x-tenant-subdomain':'marketnlagje'})
         self.assertEqual(await self.resolve(req),'A')
+    async def test_duplicate_identical_header_from_live_screenshot(self):
+        req=request(**{'host':'datapos-pro-axbv.vercel.app','origin':'https://marketnlagje.datapos.pro','x-tenant-subdomain':'marketnlagje, marketnlagje'})
+        self.assertEqual(await self.resolve(req),'A')
+        self.assertEqual(await self.login_resolve(req),('A',True))
+        user=await self.current(req,types.SimpleNamespace(credentials='mocked-jwt'))
+        self.assertEqual(user['tenant_id'],'A')
+    async def test_duplicate_identical_header_case_and_spacing(self):
+        req=request(**{'host':'backend.vercel.app','x-tenant-subdomain':' Marketnlagje , marketnlagje '})
+        self.assertEqual(await self.resolve(req),'A')
+    def test_duplicate_different_firms_rejected(self):
+        with self.assertRaises(HTTPException) as err:
+            context.request_tenant_subdomain(request(**{'host':'backend.vercel.app','x-tenant-subdomain':'marketnlagje, other'}))
+        self.assertEqual(err.exception.status_code,403)
+    def test_duplicate_empty_value_rejected(self):
+        with self.assertRaises(HTTPException):
+            context.request_tenant_subdomain(request(**{'host':'backend.vercel.app','x-tenant-subdomain':'marketnlagje,'}))
     async def test_cached_headers_no_host_rewriting_needed(self):
         req=request(**{'host':'backend.vercel.app','x-forwarded-host':'backend.vercel.app','origin':'https://marketnlagje.datapos.pro','x-tenant-subdomain':'marketnlagje'})
         self.assertEqual(await self.resolve(req),'A')

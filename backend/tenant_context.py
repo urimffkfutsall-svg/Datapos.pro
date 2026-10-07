@@ -22,9 +22,16 @@ def request_tenant_subdomain(request):
     headers = request.headers
     forwarded = subdomain_from_host(headers.get('x-forwarded-host'))
     host = subdomain_from_host(headers.get('host'))
-    hint = (headers.get('x-tenant-subdomain') or '').strip().lower()
-    if hint and (not SUB_RE.fullmatch(hint) or hint in RESERVED):
+    # Proxies/clients can merge repeated headers into a comma-separated value.
+    # Accept only identical valid slugs; never silently choose between tenants.
+    raw_hint = headers.get('x-tenant-subdomain') or ''
+    hint_values = [value.strip().lower() for value in raw_hint.split(',')] if raw_hint.strip() else []
+    if any(not SUB_RE.fullmatch(value) or value in RESERVED for value in hint_values):
         raise HTTPException(status_code=400, detail='Subdomain-i i firmës është i pavlefshëm')
+    unique_hints = set(hint_values)
+    if len(unique_hints) > 1:
+        raise HTTPException(status_code=403, detail='Kërkesa përmban firma të ndryshme')
+    hint = next(iter(unique_hints), None)
     origin_sub = None
     origin = headers.get('origin')
     if origin and origin != 'null':
