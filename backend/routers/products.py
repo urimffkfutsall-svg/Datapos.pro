@@ -14,6 +14,8 @@ from auth import (
     get_tenant_filter, add_tenant_id, log_audit
 )
 
+from pos_registration import ApprovedProductRequest, register_approved_product
+
 router = APIRouter(prefix="/products", tags=["Products"])
 
 
@@ -47,6 +49,14 @@ async def create_product(
     
     await log_audit(current_user["id"], "create_product", "product", product.id)
     return ProductResponse(**doc)
+
+
+@router.post("/register-with-admin", response_model=ProductResponse)
+async def register_product_from_pos(
+    request: ApprovedProductRequest,
+    current_user: dict = Depends(get_current_user)
+):
+    return await register_approved_product(request, current_user)
 
 
 @router.get("", response_model=List[ProductResponse])

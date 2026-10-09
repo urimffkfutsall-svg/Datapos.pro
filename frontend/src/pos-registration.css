@@ -1,0 +1,21 @@
+.dp-register-dialog { width: calc(var(--payment-viewport-width, 100vw) - 32px) !important; left: var(--payment-left, 50%) !important; top: var(--payment-top, 50%) !important; max-width: 520px !important; max-height: calc(var(--payment-viewport-height, 100dvh) - 32px); overflow-y: auto; padding: 24px; border-radius: 12px; background: #fff; color: #243b35; font-family: system-ui, sans-serif; }
+.dp-register-dialog h2 { font-size: 22px; font-weight: 700; padding-right: 44px; }
+.dp-register-dialog [id] + p, .dp-register-note { color: #52645c; font-size: 14px; line-height: 1.5; }
+.dp-register-barcode { display: flex; justify-content: space-between; gap: 16px; background: #f1f6f3; padding: 12px; border: 1px solid #dce5df; border-radius: 8px; font-size: 14px; }
+.dp-register-barcode strong { overflow-wrap: anywhere; min-width: 0; text-align: right; }
+.dp-register-form { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.dp-register-wide { grid-column: 1 / -1; }
+.dp-register-form label { display: grid; gap: 8px; min-width: 0; font-size: 14px; font-weight: 600; }
+.dp-register-form input { display: block; width: 100%; min-width: 0; min-height: 44px; padding: 10px 12px; border: 1px solid #81958a; border-radius: 8px; font-size: 16px; color: #243b35; background: #fff; }
+.dp-register-form input:focus-visible { outline: 2px solid #155d4d; outline-offset: 2px; }
+.dp-register-form p { margin: 0; }
+.dp-register-product { display: flex; justify-content: space-between; gap: 16px; padding: 12px; background: #f8faf8; border-radius: 8px; overflow-wrap: anywhere; }
+.dp-register-actions { display: flex; gap: 12px; }
+.dp-register-actions button { min-height: 44px; padding: 12px; border-radius: 8px; border: 1px solid #81958a; background: white; color: #243b35; font-size: 14px; font-weight: 600; cursor: pointer; }
+.dp-register-actions .dp-register-primary { flex: 1; background: #155d4d; border-color: #155d4d; color: white; }
+.dp-register-actions button:disabled { opacity: .65; cursor: wait; }
+.dp-register-error { padding: 12px; border-radius: 8px; background: #fff1f1; border: 1px solid #e2b4b4; color: #a02525; font-size: 14px; }
+@media (max-width: 480px) { .dp-register-dialog { padding: 20px 16px; } .dp-register-form { gap: 12px; } .dp-register-actions { gap: 8px; } }
+
+.dp-register-header { text-align: left; }
+.dp-register-dialog > button { min-width: 44px; min-height: 44px; }

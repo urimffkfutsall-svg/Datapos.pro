@@ -54,7 +54,7 @@ async def get_users(
         query["branch_id"] = branch_id
     
     users = await db.users.find(query, {"_id": 0, "password_hash": 0}).to_list(1000)
-    return [UserResponse(**u) for u in users]
+    return [UserResponse(**{**u, "pin": None}) for u in users]
 
 
 @router.get("/{user_id}", response_model=UserResponse)
@@ -64,7 +64,7 @@ async def get_user(user_id: str, current_user: dict = Depends(get_current_user))
     user = await db.users.find_one(query, {"_id": 0, "password_hash": 0})
     if not user:
         raise HTTPException(status_code=404, detail="Përdoruesi nuk u gjet")
-    return UserResponse(**user)
+    return UserResponse(**{**user, "pin": None})
 
 
 @router.put("/{user_id}", response_model=UserResponse)

@@ -27,7 +27,6 @@ export const OFFLINE_CACHEABLE = [
   '/settings/company',
   '/cashier/current',
   '/sales',
-  '/users',
   '/branches',
   '/comment-templates',
 ];
@@ -92,6 +91,7 @@ export const isCacheable = (url = '') =>
   OFFLINE_CACHEABLE.some((p) => normalize(url).startsWith(p));
 
 export const isQueueable = (url = '') =>
+  normalize(url) !== '/products/register-with-admin' &&
   OFFLINE_QUEUEABLE.some((p) => normalize(url).startsWith(p));
 
 export const writeCache = (url, data) => {
@@ -272,6 +272,11 @@ const isNetworkError = (error) =>
  * - Gabimet e rrjetit kthehen nga cache-i, ose ruhen ne radhe.
  */
 export const attachInterceptors = (api) => {
+  // Remove legacy cached user profiles containing other people's PINs.
+  for (let i = localStorage.length - 1; i >= 0; i -= 1) {
+    const key = localStorage.key(i);
+    if (key?.startsWith(CACHE_PREFIX + '/users')) localStorage.removeItem(key);
+  }
   api.interceptors.response.use(
     (response) => {
       const method = (response.config?.method || 'get').toLowerCase();

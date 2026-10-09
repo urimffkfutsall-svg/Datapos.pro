@@ -62,6 +62,8 @@ import {
 import InvoiceA4 from '../components/InvoiceA4';
 import ThermalReceipt from '../components/ThermalReceipt';
 import '../payment-layout.css';
+import POSProductRegistration from '../components/POSProductRegistration';
+import { usePOSSearchFocus } from '../lib/usePOSSearchFocus';
 import { calculateSaleLine, sumSaleLines, toCents } from '../lib/saleMoney';
 import { prepareSaleAttempt, completeSaleAttempt, releaseRejectedSaleAttempt, pendingSaleAttempt } from '../lib/saleAttempt';
 import { armCatalogAutoClose } from '../lib/catalogTimer';
@@ -74,6 +76,10 @@ const POS = () => {
   const [products, setProducts] = useState([]);
   const [cart, setCart] = useState([]);
   const [search, setSearch] = useState('');
+  const [registrationBarcode, setRegistrationBarcode] = useState('');
+  const [barcodeLookupBusy, setBarcodeLookupBusy] = useState(false);
+  const barcodeLookupLock = useRef(false);
+  const scanTyping = useRef({ start: 0, chars: 0 });
   const [dialogSearch, setDialogSearch] = useState('');
   const [loading, setLoading] = useState(true);
   const [cashDrawer, setCashDrawer] = useState(null);
@@ -277,9 +283,9 @@ const POS = () => {
     }
   };
 
-  const loadData = async () => {
+  const loadData = async (background = false) => {
     try {
-      setLoading(true);
+      if (!background) setLoading(true);
       const [productsRes, drawerRes, salesRes] = await Promise.all([
         api.get('/products'),
         api.get('/cashier/current').catch(() => ({ data: null })),
@@ -291,7 +297,7 @@ const POS = () => {
     } catch (error) {
       console.error('Error loading POS data:', error);
     } finally {
-      setLoading(false);
+      if (!background) setLoading(false);
     }
   };
 
@@ -1145,7 +1151,9 @@ const addToCart = useCallback((product, mode = null) => {
           toast.warning('Shitja u ruajt, por printimi dështoi. Printojeni nga Dokumentet; mos e regjistroni përsëri.');
         }
       }
-      loadData();
+      setSearch('');
+      setShowSearchResults(false);
+      loadData(true); // Keep the scanner input mounted while refreshing after a sale.
     } catch (error) {
       releaseRejectedSaleAttempt(error, user);
       toast.error(error.response?.data?.detail || error.message || 'Gabim gjatë regjistrimit të shitjes');
@@ -1360,9 +1368,24 @@ const addToCart = useCallback((product, mode = null) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const resolveUnknownBarcode = async barcode => {
+    if (barcodeLookupLock.current) return;
+    barcodeLookupLock.current = true; setBarcodeLookupBusy(true); setShowSearchResults(false);
+    try {
+      const response = await api.get(`/products/barcode/${encodeURIComponent(barcode)}`);
+      if (response.fromCache) throw new Error('Kërkohet internet për verifikimin e barkodit.');
+      setProducts(v => v.some(p => p.id === response.data.id) ? v : [...v, response.data]);
+      addToCart(response.data); setSearch('');
+    } catch (error) {
+      if (error.response?.status === 404 && error.response?.data?.detail === 'Produkti nuk u gjet' && navigator.onLine) { setRegistrationBarcode(barcode); setSearch(''); }
+      else toast.error(error.response?.data?.detail || 'Barkodi nuk u verifikua. Kontrolloni internetin dhe provoni përsëri.');
+    } finally { barcodeLookupLock.current = false; setBarcodeLookupBusy(false); }
+  };
+
   // Keyboard shortcuts for POS operations
   useEffect(() => {
     const handleKeyDown = (e) => {
+      if (e.defaultPrevented || e.isComposing || registrationBarcode || barcodeLookupBusy || (document.activeElement?.closest?.('[role="dialog"], [role="alertdialog"]') && !showPayment && !showProductSearch)) return;
       // Don't trigger shortcuts when typing in input fields (except specific shortcuts)
       const isInputActive = document.activeElement?.tagName === 'INPUT' || document.activeElement?.tagName === 'TEXTAREA';
       
@@ -1455,19 +1478,22 @@ const addToCart = useCallback((product, mode = null) => {
       if (e.key === 'Enter' && showPayment) return; // handled once by dialog capture
       
       // Enter for barcode/search (when not in payment dialog)
-      if (e.key === 'Enter' && search && !showPayment && !showProductSearch) {
+      if (e.key === 'Enter' && !e.repeat && search && document.activeElement === searchRef.current && !showPayment && !showProductSearch) {
         e.preventDefault();
         const productByBarcode = products.find(p => p.barcode === search.trim());
         if (productByBarcode) {
+          scanTyping.current = { start: 0, chars: 0 };
           addToCart(productByBarcode);
           setSearch('');
           setShowSearchResults(false);
           return;
         }
-        if (mainSearchResults.length > 0) {
-          addToCart(mainSearchResults[0]);
-          setSearch('');
-          setShowSearchResults(false);
+        const scanned = /^\d{4,128}$/.test(search.trim()) || (scanTyping.current.chars >= 6 && Date.now() - scanTyping.current.start < scanTyping.current.chars * 35);
+        scanTyping.current = { start: 0, chars: 0 };
+        if (!scanned && mainSearchResults.length > 0) {
+          addToCart(mainSearchResults[0]); setSearch(''); setShowSearchResults(false);
+        } else {
+          resolveUnknownBarcode(search.trim());
         }
         return;
       }
@@ -1540,7 +1566,16 @@ const addToCart = useCallback((product, mode = null) => {
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [search, products, addToCart, showPayment, showProductSearch, mainSearchResults, cart, cashDrawer, paymentMethod, cashAmount, cartTotals.total, selectedItemIndex, deleteSelectedItem, updateQuantity]);
+  }, [registrationBarcode, barcodeLookupBusy, search, products, addToCart, showPayment, showProductSearch, mainSearchResults, cart, cashDrawer, paymentMethod, cashAmount, cartTotals.total, selectedItemIndex, deleteSelectedItem, updateQuantity]);
+
+  const scanReady = !loading && !barcodeLookupBusy && !registrationBarcode && !showOpenDrawer && !showPayment && !showProductSearch && !showCustomer && !showParams && !showDocuments && !showReceiptPreview && !showInvoiceA4 && !showBuyerForm && !showWarranty && !showWarrantyList && !packageDialog.open;
+  const appendScanKey = useCallback(key => {
+    setSearch(v => v + key); setShowSearchResults(true);
+    const now = Date.now();
+    if (now - scanTyping.current.start > 1000) scanTyping.current = { start: now, chars: 0 };
+    scanTyping.current.chars += 1;
+  }, []);
+  usePOSSearchFocus(searchRef, scanReady, cashDrawer?.id, appendScanKey);
 
   // Check if cashier should see full POS mode (no sidebar)
   const isCashierFullscreen = user?.role === 'cashier';
@@ -1743,12 +1778,19 @@ const addToCart = useCallback((product, mode = null) => {
               placeholder={'K\u00EBrko produkt ose skano barkod...'}
               value={search}
               onChange={(e) => {
-                setSearch(e.target.value);
+                const value = e.target.value; const now = Date.now();
+                if (!value || value.length <= 1 || now - scanTyping.current.start > 1000) scanTyping.current = { start: now, chars: 0 };
+                scanTyping.current.chars += 1;
+                setSearch(value);
                 setShowSearchResults(e.target.value.trim().length > 0);
               }}
               onFocus={() => search.trim() && setShowSearchResults(true)}
               onBlur={() => setTimeout(() => setShowSearchResults(false), 200)}
               className="pl-12 h-12 text-base rounded-2xl border-gray-200/80 bg-white/80 backdrop-blur-md shadow-sm focus-visible:ring-2 focus-visible:ring-[#0E4B49]/40 focus-visible:border-[#0E4B49]"
+              aria-label="Kërko produktet ose skano barkod"
+              autoComplete="off"
+              aria-busy={barcodeLookupBusy}
+              disabled={barcodeLookupBusy}
               data-testid="pos-search-input"
             />
 
@@ -2392,6 +2434,14 @@ const addToCart = useCallback((product, mode = null) => {
           </div>
         </DialogContent>
       </Dialog>
+
+      {registrationBarcode && <POSProductRegistration key={registrationBarcode} barcode={registrationBarcode} branchId={user?.branch_id}
+        onClose={() => { setRegistrationBarcode(''); setSearch(''); }}
+        onRegistered={product => {
+          setProducts(v => [...v.filter(p => p.id !== product.id && p.barcode !== product.barcode), product]);
+          setRegistrationBarcode(''); setSearch('');
+          toast.success('Produkti u regjistrua me miratimin e administratorit. Skanoni përsëri për ta shtuar në shitje.');
+        }} />}
 
       {/* Product Search Dialog */}
       <Dialog open={showProductSearch} onOpenChange={(open) => {
