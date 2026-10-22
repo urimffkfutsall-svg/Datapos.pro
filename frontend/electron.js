@@ -140,6 +140,7 @@ async function createMainWindow(firm) {
     width: 1400,
     height: 900,
     show: false,
+    fullscreen: true,
     title: 'DataPOS - ' + firm.subdomain,
     autoHideMenuBar: true,
     icon: path.join(__dirname, 'public', 'icon.ico'),
@@ -150,7 +151,7 @@ async function createMainWindow(firm) {
     },
   })
 
-  mainWindow.maximize()
+  mainWindow.setFullScreen(true) // hapet ne ekran te plote (si F11); F11 e kthen mbrapa
   mainWindow.show()
 
   const online = await checkReachable(url)
