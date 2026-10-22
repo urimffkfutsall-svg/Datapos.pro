@@ -1,110 +1,159 @@
-/* Milky-white POS login. Fixed light theme; no changes to other pages or uploaded logo assets. */
-.dp-login-v3.dp-login-page {
-  --auth-ink: #293c34; --auth-muted: #626d66; --auth-accent: #155d4d;
-  min-height: 100vh; min-height: 100dvh; padding: 32px 24px;
+/* ==========================================================================
+   DataPOS – Login v4 (ngjyrat e arkës: teal). Vetëm pamja, logjika e pandryshuar.
+   ========================================================================== */
+.dp-login-v4.dp-login-page {
+  --t: #1f9d93; --t-dark: #0f766e; --t-deep: #0b5a54; --t-night: #073f3b;
+  --t-soft: #e8f4f2; --t-line: #cfe3df; --ink: #1d3a37; --muted: #5d7773;
+  min-height: 100vh; min-height: 100dvh; padding: clamp(16px, 3vw, 40px);
   display: flex; align-items: center; justify-content: center;
-  background: #f7f6f2; color: var(--auth-ink);
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+  color: var(--ink); font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
   font-size: 16px; line-height: 1.5;
+  background:
+    radial-gradient(1000px 500px at 0% 0%, rgba(31,157,147,.22), transparent 60%),
+    radial-gradient(800px 500px at 100% 100%, rgba(15,118,110,.16), transparent 60%),
+    linear-gradient(135deg, #d4ebe8 0%, #e6f3f1 45%, #f3faf9 100%);
 }
-.dp-login-v3 *, .dp-login-v3 *::before, .dp-login-v3 *::after { box-sizing: border-box; }
-.dp-login-v3 h1, .dp-login-v3 h2, .dp-login-v3 p { margin: 0; }
-.dp-login-v3 button { font-family: inherit; cursor: pointer; }
-.dp-login-v3 button:disabled { cursor: not-allowed; }
-.dp-login-v3 button, .dp-login-v3 a, .dp-login-v3 input { -webkit-tap-highlight-color: transparent; }
-.dp-login-v3 svg { width: 20px; height: 20px; flex-shrink: 0; }
-.dp-login-v3 .dp-login-container { width: 100%; max-width: 1040px; margin-inline: auto; min-width: 0; }
-.dp-login-v3 .dp-login-card { background: #fff; border: 1px solid #dedfd8; border-radius: 16px; overflow: hidden; box-shadow: 0 2px 4px #26392c04, 0 16px 40px #26392c09; }
-.dp-login-v3 .dp-login-grid { display: grid; grid-template-columns: minmax(0, .92fr) minmax(0, 1fr); min-height: 0; }
-.dp-login-v3 .dp-login-brand { display: flex; align-items: center; justify-content: center; padding: 48px; background: #fff; color: var(--auth-ink); min-width: 0; text-align: center; }
-.dp-login-v3 .dp-brand-identity { width: 100%; display: flex; flex-direction: column; align-items: center; gap: 28px; }
-.dp-login-v3 .dp-login-logo { display: flex; align-items: center; justify-content: center; width: fit-content; max-width: 100%; min-height: 0; padding: 0; border: 0 !important; border-radius: 0; background: transparent !important; box-shadow: none !important; }
-.dp-login-v3 .dp-login-logo img { display: block; width: auto; height: auto; max-width: min(260px, 100%); max-height: 220px; object-fit: contain; background: transparent !important; border: 0; border-radius: 0; box-shadow: none; filter: none; }
-.dp-login-v3 .dp-login-logo svg { width: 80px; height: 80px; color: var(--auth-accent); }
-.dp-login-v3 .dp-brand-name { width: 100%; min-width: 0; }
-.dp-login-v3 .dp-brand-name h1 { font-size: clamp(26px, 2.4vw, 32px); line-height: 1.25; font-weight: 650; letter-spacing: -.7px; color: var(--auth-ink); overflow-wrap: anywhere; }
-.dp-login-v3 .dp-login-form { padding: 36px 40px; background: #fff; color: var(--auth-ink); min-width: 0; border-left: 1px solid #e8eae4; display: flex; flex-direction: column; }
-.dp-login-v3 .dp-auth-heading h2 { font-size: 28px; line-height: 1.25; font-weight: 650; letter-spacing: -.7px; }
-.dp-login-v3 .dp-auth-heading p { margin-top: 8px; font-size: 14px; color: var(--auth-muted); }
-.dp-login-v3 .dp-auth-switch { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px; padding: 4px; margin-block: 24px; border: 1px solid #e1e5de; border-radius: 8px; background: #f3f5f1; }
-.dp-login-v3 .dp-auth-switch button { display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; padding: 8px 6px; border: 1px solid transparent; border-radius: 5px; background: transparent; color: #56665d; font-size: 14px; font-weight: 600; }
-.dp-login-v3 .dp-auth-switch button[aria-pressed='true'] { background: #fff; border-color: #c2d4c8; color: var(--auth-accent); box-shadow: 0 1px 3px #26392c0a; }
-.dp-login-v3 .dp-auth-switch svg { width: 17px; height: 17px; }
-.dp-login-v3 .dp-auth-label { display: block; font-size: 14px; font-weight: 600; color: #3e5045; margin-bottom: 8px; }
-.dp-login-v3 .dp-pin-field, .dp-login-v3 .dp-auth-input-wrap { position: relative; display: flex; align-items: center; min-height: 56px; border: 1px solid #88968d; border-radius: 8px; background: #fff; }
-.dp-login-v3 .dp-pin-field:focus-within, .dp-login-v3 .dp-auth-input-wrap:focus-within { border-color: var(--auth-accent); box-shadow: 0 0 0 3px #155d4d12; }
-.dp-login-v3 .dp-pin-value, .dp-login-v3 .dp-pin-placeholder { width: 100%; padding: 12px 60px 12px 16px; }
-.dp-login-v3 .dp-pin-value { font-size: 24px; line-height: 30px; letter-spacing: 7px; color: var(--auth-accent); }
-.dp-login-v3 .dp-pin-placeholder { font-size: 16px; color: #646f68; }
-.dp-login-v3 .dp-auth-icon-button { position: absolute; right: 5px; top: 5px; width: 44px; height: 44px; border: 0; border-radius: 5px; background: transparent; color: #53685b; display: flex; align-items: center; justify-content: center; padding: 0; }
-.dp-login-v3 .dp-auth-icon-button:hover { background: #edf3ee; color: var(--auth-accent); }
-.dp-login-v3 .dp-pin-keypad { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin-top: 16px; }
-.dp-login-v3 .dp-pin-keypad button { height: 56px; border: 1px solid #8b9990; border-radius: 8px; background: #fcfdfb; color: #304c3e; font-size: 24px; font-weight: 500; display: flex; align-items: center; justify-content: center; padding: 0; transition: background .12s, border-color .12s; }
-.dp-login-v3 .dp-pin-keypad button:hover:not(:disabled) { background: #edf5ef; border-color: #477b62; }
-.dp-login-v3 .dp-pin-keypad button:active:not(:disabled) { background: #e0ede4; }
-.dp-login-v3 .dp-pin-keypad .dp-pin-secondary { background: #edf1ed; color: #53685b; font-size: 17px; }
-.dp-login-v3 .dp-auth-primary { display: flex; align-items: center; justify-content: center; gap: 12px; width: 100%; min-height: 52px; height: auto; padding: 13px 12px; margin-top: 20px; border: 1px solid var(--auth-accent); border-radius: 8px; background: var(--auth-accent); color: #fff; font-size: 16px; font-weight: 600; line-height: 1.5; white-space: normal; box-shadow: none; }
-.dp-login-v3 .dp-auth-primary:hover:not(:disabled) { background: #104b3d; }
-.dp-login-v3 .dp-auth-primary:disabled { background: #e1ebe5; border-color: #afc6b8; color: #476455; box-shadow: none; }
-.dp-login-v3 .dp-auth-keyboard-hint, .dp-login-v3 .dp-auth-admin-help { margin-top: 16px; color: var(--auth-muted); font-size: 14px; line-height: 1.55; text-align: center; }
-.dp-login-v3 kbd { display: inline-block; font: inherit; font-weight: 600; color: #47594d; background: #f1f4ef; border: 1px solid #dbe2d8; border-radius: 4px; padding: 1px 5px; }
-.dp-login-v3 .dp-auth-input-wrap input { flex: 1; min-width: 0; width: 100%; height: 54px; border: 0; background: transparent; color: var(--auth-ink); border-radius: 8px; padding: 12px 56px 12px 42px; font-size: 16px; outline-offset: 2px; }
-.dp-login-v3 .dp-auth-password-wrap input { padding-right: 100px; }
-.dp-login-v3 .dp-auth-field-icon { position: absolute; left: 14px; width: 18px; height: 18px; color: #566c5e; pointer-events: none; }
-.dp-login-v3 .dp-password-toggle { right: 49px; }
-.dp-login-v3 .dp-auth-field + .dp-auth-field { margin-top: 20px; }
-.dp-login-v3 .dp-auth-error { color: #922d3c; background: #fff1f3; border: 1px solid #e6b8c0; border-radius: 8px; padding: 12px; font-size: 14px; margin-top: 16px; overflow-wrap: anywhere; }
-.dp-login-v3 .dp-auth-notice { color: #335848; background: #edf4ee; border: 1px solid #c4d8c8; border-radius: 8px; padding: 12px; font-size: 14px; margin-bottom: 20px; }
-.dp-login-v3 .dp-auth-loading { min-height: 240px; display: flex; align-items: center; justify-content: center; gap: 12px; color: var(--auth-muted); }
-.dp-login-v3 .dp-auth-spinner { display: inline-block; width: 20px; height: 20px; border: 2px solid currentColor; border-right-color: transparent; border-radius: 50%; animation: dp-auth-spin .8s linear infinite; }
-.dp-login-v3 .dp-login-footer { margin-top: 20px; display: flex; align-items: center; justify-content: space-between; gap: 8px 24px; color: var(--auth-muted); font-size: 14px; flex-wrap: wrap; }
-.dp-login-v3 .dp-login-footer > div { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
-.dp-login-v3 .dp-login-footer a { color: var(--auth-muted); text-decoration: none; padding-block: 8px; display: inline-flex; align-items: center; min-height: 44px; }
-.dp-login-v3 .dp-login-footer a:hover { color: var(--auth-accent); text-decoration: underline; }
-.dp-login-v3 .sp-strip { background: #fff; border: 1px solid #dedfd8; border-radius: 8px; }
-.dp-login-v3 button:focus-visible, .dp-login-v3 input:focus-visible, .dp-login-v3 a:focus-visible { outline: 3px solid #2877b5; outline-offset: 3px; }
-@keyframes dp-auth-spin { to { transform: rotate(360deg); } }
-@media (max-width: 1023px) and (min-width: 860px) {
-  .dp-login-v3 .dp-login-brand { padding: 32px; }
-  .dp-login-v3 .dp-login-form { padding: 32px 28px; }
+.dp-login-v4 *, .dp-login-v4 *::before, .dp-login-v4 *::after { box-sizing: border-box; }
+.dp-login-v4 h1, .dp-login-v4 h2, .dp-login-v4 p { margin: 0; }
+.dp-login-v4 button { font-family: inherit; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.dp-login-v4 button:disabled { cursor: not-allowed; }
+.dp-login-v4 svg { width: 20px; height: 20px; flex-shrink: 0; }
+.dp-login-v4 .dp-login-container { width: 100%; max-width: 1180px; margin-inline: auto; min-width: 0; }
+
+/* Karta */
+.dp-login-v4 .dp-login-card {
+  display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr);
+  background: #fff; border-radius: 28px; overflow: hidden; min-height: 600px;
+  border: 1px solid rgba(255,255,255,.7);
+  box-shadow: 0 1px 2px rgba(7,63,59,.06), 0 24px 60px -12px rgba(7,63,59,.28);
 }
-@media (max-width: 859px) {
-  .dp-login-v3.dp-login-page { padding: 24px 16px; align-items: flex-start; }
-  .dp-login-v3 .dp-login-container { max-width: 520px; }
-  .dp-login-v3 .dp-login-grid { grid-template-columns: minmax(0, 1fr); }
-  .dp-login-v3 .dp-login-brand { padding: 24px; text-align: left; }
-  .dp-login-v3 .dp-brand-identity { flex-direction: row; align-items: center; gap: 16px; }
-  .dp-login-v3 .dp-login-logo { flex: 0 0 auto; max-width: 80px; }
-  .dp-login-v3 .dp-login-logo img { max-width: 80px; max-height: 72px; }
-  .dp-login-v3 .dp-login-logo svg { width: 48px; height: 48px; }
-  .dp-login-v3 .dp-brand-name { flex: 1; width: auto; }
-  .dp-login-v3 .dp-brand-name h1 { font-size: 22px; letter-spacing: -.4px; }
-  .dp-login-v3 .dp-login-form { padding: 28px 24px; border-left: 0; border-top: 1px solid #e8eae4; }
-  .dp-login-v3 .dp-auth-heading h2 { font-size: 26px; }
-  .dp-login-v3 .dp-login-footer { justify-content: center; text-align: center; gap: 4px 16px; margin-top: 12px; }
-  .dp-login-v3 .dp-login-footer > div { justify-content: center; gap: 8px; }
+
+/* Paneli i firmës */
+.dp-login-v4 .dp-login-brand {
+  position: relative; isolation: isolate; overflow: hidden;
+  display: flex; flex-direction: column; justify-content: space-between; gap: 32px;
+  padding: 36px 40px; color: #fff; text-align: left;
+  background: linear-gradient(160deg, var(--t-night) 0%, var(--t-deep) 45%, var(--t-dark) 80%, var(--t) 130%);
 }
-@media (min-width: 860px) and (max-height: 850px) {
-  .dp-login-v3.dp-login-page { padding: 20px 24px; }
-  .dp-login-v3 .dp-login-form { padding: 24px 32px; }
-  .dp-login-v3 .dp-auth-heading h2 { font-size: 26px; }
-  .dp-login-v3 .dp-auth-heading p { margin-top: 6px; }
-  .dp-login-v3 .dp-auth-switch { margin-block: 16px; padding: 3px; }
-  .dp-login-v3 .dp-auth-label { margin-bottom: 6px; }
-  .dp-login-v3 .dp-pin-field { min-height: 48px; }
-  .dp-login-v3 .dp-pin-value, .dp-login-v3 .dp-pin-placeholder { padding-block: 8px; }
-  .dp-login-v3 .dp-pin-field .dp-auth-icon-button { top: 1px; }
-  .dp-login-v3 .dp-pin-keypad { gap: 6px; margin-top: 12px; }
-  .dp-login-v3 .dp-pin-keypad button { height: 44px; font-size: 22px; }
-  .dp-login-v3 .dp-auth-primary { min-height: 48px; margin-top: 16px; padding-block: 10px; }
-  .dp-login-v3 .dp-auth-keyboard-hint { margin-top: 12px; }
-  .dp-login-v3 .dp-login-footer { margin-top: 12px; }
-  .dp-login-v3 .sp-strip { margin-top: 12px; padding-block: 8px; }
+.dp-login-v4 .dp-login-brand::before {
+  content: ''; position: absolute; inset: 0; z-index: -1; opacity: .5;
+  background-image: linear-gradient(rgba(255,255,255,.06) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.06) 1px, transparent 1px);
+  background-size: 44px 44px;
+  mask-image: radial-gradient(ellipse at 30% 40%, #000 20%, transparent 75%);
+  -webkit-mask-image: radial-gradient(ellipse at 30% 40%, #000 20%, transparent 75%);
 }
-@media (max-width: 359px) {
-  .dp-login-v3 .dp-login-brand { padding: 20px 16px; }
-  .dp-login-v3 .dp-login-form { padding: 24px 16px; }
-  .dp-login-v3 .dp-login-logo, .dp-login-v3 .dp-login-logo img { max-width: 64px; }
-  .dp-login-v3 .dp-auth-switch button { gap: 5px; }
+.dp-login-v4 .dp-login-brand::after {
+  content: ''; position: absolute; z-index: -1; width: 520px; height: 520px; right: -220px; bottom: -240px; border-radius: 50%;
+  border: 70px solid rgba(255,255,255,.05); box-shadow: 0 0 0 70px rgba(255,255,255,.025);
 }
-@media (prefers-reduced-motion: reduce) { .dp-login-v3 *, .dp-login-v3 *::before, .dp-login-v3 *::after { animation: none !important; transition: none !important; } }
+.dp-login-v4 .dp-brand-top { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+.dp-login-v4 .dp-brand-chip { display: inline-flex; align-items: center; gap: 8px; font-weight: 700; font-size: 15px; letter-spacing: .2px; }
+.dp-login-v4 .dp-brand-chip-mark { display: grid; place-items: center; width: 30px; height: 30px; border-radius: 9px; background: #fff; color: var(--t-deep); font-weight: 800; }
+.dp-login-v4 .dp-brand-status { display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px; border-radius: 999px; background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.16); font-size: 13px; font-weight: 600; }
+.dp-login-v4 .dp-brand-status span { width: 8px; height: 8px; border-radius: 50%; background: #5eead4; box-shadow: 0 0 0 4px rgba(94,234,212,.2); animation: dp-pulse 2s ease-in-out infinite; }
+@keyframes dp-pulse { 50% { box-shadow: 0 0 0 7px rgba(94,234,212,0); } }
+.dp-login-v4 .dp-brand-identity { display: flex; flex-direction: column; align-items: flex-start; gap: 18px; }
+.dp-login-v4 .dp-login-logo {
+  display: grid; place-items: center; width: 132px; height: 132px; padding: 14px; border-radius: 32px;
+  background: #fff; box-shadow: 0 18px 40px -10px rgba(0,0,0,.35); color: var(--t-dark);
+}
+.dp-login-v4 .dp-login-logo img { width: 100%; height: 100%; object-fit: contain; display: block; }
+.dp-login-v4 .dp-login-logo svg { width: 56px; height: 56px; }
+.dp-login-v4 .dp-brand-identity h1 { font-size: clamp(30px, 3.4vw, 44px); font-weight: 800; line-height: 1.05; letter-spacing: -1px; overflow-wrap: anywhere; }
+.dp-login-v4 .dp-brand-identity p { max-width: 340px; font-size: 15px; color: rgba(255,255,255,.72); }
+.dp-login-v4 .dp-brand-clock { display: flex; flex-direction: column; gap: 2px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,.14); }
+.dp-login-v4 .dp-brand-clock strong { font-size: 44px; font-weight: 300; line-height: 1; letter-spacing: -1px; font-variant-numeric: tabular-nums; }
+.dp-login-v4 .dp-brand-clock span { font-size: 14px; color: rgba(255,255,255,.68); }
+
+/* Forma */
+.dp-login-v4 .dp-login-form { display: flex; flex-direction: column; gap: 20px; padding: 36px 44px 24px; background: #fff; color: var(--ink); min-width: 0; }
+.dp-login-v4 .dp-auth-eyebrow { display: inline-block; margin-bottom: 6px; font-size: 12px; font-weight: 700; letter-spacing: 1.6px; text-transform: uppercase; color: var(--t); }
+.dp-login-v4 .dp-auth-heading h2 { font-size: 30px; font-weight: 800; letter-spacing: -.6px; line-height: 1.15; }
+.dp-login-v4 .dp-auth-heading p { margin-top: 4px; font-size: 15px; color: var(--muted); }
+.dp-login-v4 .dp-auth-switch { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; padding: 4px; border-radius: 14px; background: var(--t-soft); border: 1px solid var(--t-line); }
+.dp-login-v4 .dp-auth-switch button {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; padding: 8px 12px;
+  border: 0; border-radius: 10px; background: transparent; color: var(--muted); font-size: 14px; font-weight: 600; transition: all .15s;
+}
+.dp-login-v4 .dp-auth-switch button svg { width: 17px; height: 17px; }
+.dp-login-v4 .dp-auth-switch button[aria-pressed='true'] { background: #fff; color: var(--t-deep); box-shadow: 0 1px 2px rgba(7,63,59,.08), 0 4px 12px rgba(7,63,59,.08); }
+.dp-login-v4 .dp-auth-content { display: flex; flex-direction: column; gap: 14px; }
+.dp-login-v4 .dp-auth-label { font-size: 13px; font-weight: 700; color: var(--ink); }
+.dp-login-v4 .dp-pin-head { display: flex; justify-content: space-between; align-items: center; }
+
+/* PIN dots */
+.dp-login-v4 .dp-pin-dots { display: flex; justify-content: center; gap: 14px; padding: 16px; border-radius: 16px; background: #f6fbfa; border: 1.5px dashed var(--t-line); }
+.dp-login-v4 .dp-pin-dots span { width: 16px; height: 16px; border-radius: 50%; border: 2px solid #b9d6d1; background: #fff; transition: transform .15s, background .15s, border-color .15s; }
+.dp-login-v4 .dp-pin-dots span.is-filled { background: var(--t); border-color: var(--t); transform: scale(1.12); box-shadow: 0 0 0 4px rgba(31,157,147,.15); }
+.dp-login-v4 .dp-pin-dots.has-error { border-color: #f0b8b8; background: #fff6f6; animation: dp-shake .35s; }
+@keyframes dp-shake { 25% { transform: translateX(-6px); } 75% { transform: translateX(6px); } }
+
+/* Tastiera */
+.dp-login-v4 .dp-pin-keypad { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.dp-login-v4 .dp-pin-keypad button {
+  display: grid; place-items: center; min-height: 60px; border-radius: 14px;
+  border: 1px solid #dcebe8; background: #fff; color: var(--ink);
+  font-size: 24px; font-weight: 700; font-variant-numeric: tabular-nums;
+  box-shadow: 0 2px 0 #dcebe8; transition: background .12s, transform .06s, box-shadow .06s, border-color .12s;
+}
+.dp-login-v4 .dp-pin-keypad button:hover:not(:disabled) { background: var(--t-soft); border-color: var(--t-line); }
+.dp-login-v4 .dp-pin-keypad button:active:not(:disabled) { transform: translateY(2px); box-shadow: 0 0 0 #dcebe8; background: #d4ebe8; }
+.dp-login-v4 .dp-pin-keypad button.dp-pin-secondary { background: #f3f8f7; color: var(--muted); font-size: 18px; }
+
+/* Butoni kryesor */
+.dp-login-v4 .dp-auth-primary {
+  display: inline-flex; align-items: center; justify-content: center; gap: 10px; width: 100%; min-height: 56px;
+  border: 0; border-radius: 14px; color: #fff; font-size: 17px; font-weight: 700; letter-spacing: .2px;
+  background: linear-gradient(135deg, var(--t) 0%, var(--t-dark) 100%);
+  box-shadow: 0 10px 24px -8px rgba(15,118,110,.55); transition: filter .15s, transform .06s, opacity .15s;
+}
+.dp-login-v4 .dp-auth-primary:hover:not(:disabled) { filter: brightness(1.06); }
+.dp-login-v4 .dp-auth-primary:active:not(:disabled) { transform: translateY(1px); }
+.dp-login-v4 .dp-auth-primary:disabled { opacity: .45; box-shadow: none; }
+.dp-login-v4 .dp-auth-keyboard-hint, .dp-login-v4 .dp-auth-admin-help { text-align: center; font-size: 13px; color: var(--muted); }
+.dp-login-v4 kbd { display: inline-block; padding: 1px 7px; margin: 0 2px; border: 1px solid var(--t-line); border-bottom-width: 2px; border-radius: 6px; background: #f6fbfa; font: 600 12px/1.6 ui-monospace, Consolas, monospace; color: var(--ink); }
+
+/* Fushat e administratorit */
+.dp-login-v4 .dp-admin-form { gap: 16px; }
+.dp-login-v4 .dp-auth-field { display: flex; flex-direction: column; gap: 6px; }
+.dp-login-v4 .dp-auth-input-wrap { display: flex; align-items: center; gap: 4px; min-height: 56px; padding: 0 6px 0 14px; border-radius: 14px; border: 1.5px solid var(--t-line); background: #fff; transition: border-color .15s, box-shadow .15s; }
+.dp-login-v4 .dp-auth-input-wrap:focus-within { border-color: var(--t); box-shadow: 0 0 0 4px rgba(31,157,147,.15); }
+.dp-login-v4 .dp-auth-field-icon { color: var(--t); width: 19px; height: 19px; margin-right: 6px; }
+.dp-login-v4 .dp-auth-input-wrap input { flex: 1; min-width: 0; min-height: 52px; border: 0; outline: 0; background: transparent; font: inherit; font-size: 16px; color: var(--ink); }
+.dp-login-v4 .dp-auth-icon-button { display: grid; place-items: center; width: 40px; height: 40px; min-height: 40px; border: 0; border-radius: 10px; background: transparent; color: var(--muted); }
+.dp-login-v4 .dp-auth-icon-button:hover { background: var(--t-soft); color: var(--t-dark); }
+.dp-login-v4 .dp-auth-icon-button svg { width: 19px; height: 19px; }
+
+/* Statuset */
+.dp-login-v4 .dp-auth-error { padding: 10px 14px; border-radius: 12px; border: 1px solid #f3c4c4; background: #fff4f4; color: #b42318; font-size: 14px; font-weight: 600; text-align: center; }
+.dp-login-v4 .dp-auth-notice { padding: 10px 14px; border-radius: 12px; background: var(--t-soft); border: 1px solid var(--t-line); font-size: 14px; color: var(--t-deep); }
+.dp-login-v4 .dp-auth-loading { display: flex; align-items: center; justify-content: center; gap: 10px; min-height: 240px; color: var(--muted); }
+.dp-login-v4 .dp-auth-spinner { width: 18px; height: 18px; border-radius: 50%; border: 2.5px solid currentColor; border-right-color: transparent; animation: dp-spin .7s linear infinite; display: inline-block; }
+@keyframes dp-spin { to { transform: rotate(360deg); } }
+
+/* Footer */
+.dp-login-v4 .dp-login-footer { margin-top: auto; padding-top: 14px; border-top: 1px solid #edf3f2; display: flex; justify-content: space-between; gap: 8px 16px; flex-wrap: wrap; font-size: 13px; color: var(--muted); }
+.dp-login-v4 .dp-login-footer div { display: flex; gap: 8px; flex-wrap: wrap; }
+.dp-login-v4 .dp-login-footer a { color: var(--t-dark); text-decoration: none; font-weight: 600; }
+.dp-login-v4 .dp-login-footer a:hover { text-decoration: underline; }
+
+.dp-login-v4 button:focus-visible, .dp-login-v4 a:focus-visible { outline: 3px solid rgba(31,157,147,.55); outline-offset: 2px; }
+
+/* Responsive */
+@media (max-width: 900px) {
+  .dp-login-v4 .dp-login-card { grid-template-columns: minmax(0, 1fr); min-height: 0; border-radius: 22px; }
+  .dp-login-v4 .dp-login-brand { padding: 22px; gap: 18px; }
+  .dp-login-v4 .dp-brand-identity { flex-direction: row; align-items: center; gap: 16px; }
+  .dp-login-v4 .dp-login-logo { width: 76px; height: 76px; border-radius: 20px; padding: 8px; flex: 0 0 auto; }
+  .dp-login-v4 .dp-brand-identity p, .dp-login-v4 .dp-brand-clock { display: none; }
+  .dp-login-v4 .dp-brand-identity h1 { font-size: 26px; }
+  .dp-login-v4 .dp-login-form { padding: 24px 20px 18px; }
+}
+@media (max-height: 760px) and (min-width: 901px) {
+  .dp-login-v4 .dp-login-card { min-height: 0; }
+  .dp-login-v4 .dp-login-form { gap: 14px; padding-top: 26px; }
+  .dp-login-v4 .dp-pin-keypad button { min-height: 52px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .dp-login-v4 *, .dp-login-v4 *::before { animation: none !important; transition: none !important; }
+}

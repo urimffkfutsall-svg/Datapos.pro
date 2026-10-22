@@ -82,3 +82,64 @@
   .sp-marquee-group { width: 100%; min-width: 0; flex-wrap: wrap; justify-content: flex-start; }
   .sp-marquee-group[aria-hidden='true'] { display: none; }
 }
+
+/* ==========================================================================
+   Shiriti i firmave v2 (stil "T3Next": bllok me numër + karta lëvizëse + ticker)
+   ========================================================================== */
+.sp-strip.sp-strip-v2 { padding: 0; margin-top: 20px; border: 0; border-radius: 22px; overflow: hidden; background: #fff; box-shadow: 0 18px 40px -18px rgba(7,63,59,.3); position: relative; }
+.sp-strip-v2 .sp-band { display: grid; grid-template-columns: 240px minmax(0, 1fr); min-height: 120px; }
+.sp-strip-v2 .sp-band-intro {
+  position: relative; overflow: hidden; display: flex; flex-direction: column; justify-content: center; gap: 2px; padding: 16px 24px; color: #fff;
+  background: linear-gradient(135deg, #0b5a54 0%, #0f766e 55%, #1f9d93 100%);
+}
+.sp-strip-v2 .sp-band-intro::after { content: ''; position: absolute; right: -70px; bottom: -90px; width: 200px; height: 200px; border-radius: 50%; border: 34px solid rgba(255,255,255,.08); }
+.sp-strip-v2 .sp-band-kicker { display: flex; align-items: center; gap: 8px; font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: rgba(255,255,255,.75); }
+.sp-strip-v2 .sp-band-kicker::before { content: ''; width: 18px; height: 2px; background: #5eead4; }
+.sp-strip-v2 .sp-band-count { position: relative; font-size: 56px; font-weight: 800; line-height: 1; letter-spacing: -2px; text-shadow: 6px 0 0 rgba(255,255,255,.12), 12px 0 0 rgba(255,255,255,.06); }
+.sp-strip-v2 .sp-band-caption { font-size: 12px; line-height: 1.35; color: rgba(255,255,255,.8); }
+.sp-strip-v2 .sp-band-stage {
+  position: relative; display: flex; align-items: center; min-width: 0;
+  background-color: #f7fbfa;
+  background-image: linear-gradient(rgba(15,118,110,.06) 1px, transparent 1px), linear-gradient(90deg, rgba(15,118,110,.06) 1px, transparent 1px);
+  background-size: 28px 28px;
+}
+.sp-strip-v2 .sp-band-stage::before, .sp-strip-v2 .sp-band-stage::after { content: ''; position: absolute; top: 0; bottom: 0; width: 48px; z-index: 2; pointer-events: none; }
+.sp-strip-v2 .sp-band-stage::before { left: 0; background: linear-gradient(90deg, #f7fbfa, transparent); }
+.sp-strip-v2 .sp-band-stage::after { right: 0; background: linear-gradient(-90deg, #f7fbfa, transparent); }
+.sp-strip-v2 .sp-pause { position: absolute; top: 8px; right: 10px; z-index: 3; min-height: 28px; padding: 3px 12px; border-radius: 999px; border: 1px solid #cfe3df; background: #fff; color: #1d3a37; font-size: 12px; font-weight: 600; cursor: pointer; }
+.sp-strip-v2 .sp-pause:hover { border-color: #1f9d93; color: #0f766e; }
+.sp-strip-v2 .sp-marquee-group { justify-content: flex-start; gap: 0; padding-inline: 0; }
+.sp-strip-v2 .sp-logo-button {
+  width: auto; flex: 0 0 auto; min-height: 120px; padding: 18px 28px; flex-direction: row; gap: 14px; border-radius: 0;
+  border-right: 1px solid rgba(15,118,110,.12); text-align: left; transition: background .2s;
+}
+.sp-strip-v2 .sp-logo-button:hover { background: rgba(255,255,255,.75); }
+.sp-strip-v2 .sp-logo-mark { display: grid; place-items: center; width: 84px; height: 60px; flex: 0 0 84px; padding: 6px 8px; border-radius: 16px; background: #fff; box-shadow: 0 6px 16px -6px rgba(7,63,59,.3); overflow: hidden; }
+.sp-strip-v2 .sp-logo-button .sp-logo-mark img { max-width: 100%; max-height: 100%; }
+.sp-strip-v2 .sp-logo-mark .sp-logo-fallback { min-height: 0; font-size: 20px; font-weight: 800; color: var(--sp-accent); }
+.sp-strip-v2 .sp-logo-text { display: flex; flex-direction: column; line-height: 1.15; min-width: 0; }
+.sp-strip-v2 .sp-logo-text small { font-size: 11px; font-weight: 700; letter-spacing: 1.4px; text-transform: uppercase; color: var(--sp-accent); }
+.sp-strip-v2 .sp-logo-text strong { margin-top: 3px; font-size: 21px; font-weight: 800; letter-spacing: -.5px; color: #0f1f1d; white-space: nowrap; }
+.sp-strip-v2 .sp-logo-arrow { display: grid; place-items: center; width: 30px; height: 30px; margin-left: 6px; border-radius: 50%; border: 1px solid #cfe3df; font-size: 13px; color: #1d3a37; transition: all .2s; }
+.sp-strip-v2 .sp-logo-button:hover .sp-logo-arrow, .sp-strip-v2 .sp-logo-button:focus-visible .sp-logo-arrow { background: var(--sp-accent); border-color: var(--sp-accent); color: #fff; }
+.sp-strip-v2 .sp-ticker { overflow: hidden; background: #0c1716; color: #d8e6e3; font-size: 13px; white-space: nowrap; }
+.sp-strip-v2 .sp-ticker-track { display: flex; width: max-content; animation: sp-marquee calc(var(--sp-duration, 32s) * 1.2) linear infinite; }
+.sp-strip-v2 .sp-ticker-group { display: flex; flex-shrink: 0; }
+.sp-strip-v2 .sp-ticker-item { display: inline-flex; align-items: center; gap: 12px; padding: 10px 28px; }
+.sp-strip-v2 .sp-ticker-item b { font-weight: 700; }
+.sp-strip-v2 .sp-ticker-item i { width: 18px; height: 1px; background: rgba(255,255,255,.35); }
+.sp-strip-v2:hover .sp-ticker-track, .sp-strip-v2.sp-strip-static .sp-ticker-track { animation-play-state: paused; }
+.sp-strip-v2.sp-strip-static .sp-marquee-track { animation: sp-marquee var(--sp-duration, 32s) linear infinite; animation-play-state: paused; width: max-content; min-width: 200%; }
+.sp-strip-v2.sp-strip-static .sp-marquee-group { width: auto; min-width: 50%; flex-wrap: nowrap; }
+.sp-strip-v2.sp-strip-static .sp-marquee-group[aria-hidden='true'] { display: flex; }
+@media (max-width: 767px) {
+  .sp-strip.sp-strip-v2 { padding: 0; }
+  .sp-strip-v2 .sp-band { grid-template-columns: minmax(0, 1fr); }
+  .sp-strip-v2 .sp-band-intro { flex-direction: row; align-items: center; gap: 14px; padding: 14px 18px; }
+  .sp-strip-v2 .sp-band-count { font-size: 40px; }
+  .sp-strip-v2 .sp-logo-button { min-height: 96px; padding: 14px 20px; }
+  .sp-strip-v2 .sp-logo-text strong { font-size: 17px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sp-strip-v2 .sp-ticker-track { animation: none !important; }
+}

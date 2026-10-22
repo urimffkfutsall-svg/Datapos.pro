@@ -2,7 +2,6 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth, useTenant } from '../App';
 import { useState as useLockState, useEffect as useLockEffect } from 'react';
-import { Button } from '../components/ui/button';
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle,
 } from '../components/ui/dialog';
@@ -12,6 +11,7 @@ import {
   ShoppingCart, Store,
   Keyboard,
 } from 'lucide-react';
+import { Button } from '../components/ui/button';
 import '../login-design.css';
 import PartnerStrip from '../components/PartnerStrip';
 
@@ -169,6 +169,13 @@ const Login = () => {
     // eslint-disable-next-line
   }, [showAdminLogin, vkOpen, pin, addDigit, removeDigit]);
 
+  // Ora live per panelin e firmes
+  const [now, setNow] = useState(() => new Date());
+  useEffect(() => { const t = setInterval(() => setNow(new Date()), 10000); return () => clearInterval(t); }, []);
+  const DAYS = ['E diel','E hënë','E martë','E mërkurë','E enjte','E premte','E shtunë'];
+  const MONTHS = ['janar','shkurt','mars','prill','maj','qershor','korrik','gusht','shtator','tetor','nëntor','dhjetor'];
+  const dateLabel = `${DAYS[now.getDay()]}, ${now.getDate()} ${MONTHS[now.getMonth()]} ${now.getFullYear()}`;
+
   const numpadButtons = ['1','2','3','4','5','6','7','8','9','clear','0','delete'];
 
   const vkFieldValue =
@@ -181,109 +188,115 @@ const Login = () => {
      : password.length) === 0;
 
   return (
-    <div className="dp-login-page dp-login-v3">
+    <div className="dp-login-page dp-login-v4">
       <div className="dp-login-container">
         <main className="dp-login-card" aria-label="Hyrja në DataPOS">
-          <div className="dp-login-grid">
-            <section className="dp-login-brand" aria-label="Firma">
-              <div className="dp-brand-identity">
-                <div className="dp-login-logo">
-                  {tenant?.logo_url && !logoFailed ? (
-                    <img src={tenant.logo_url} alt={`Logo e ${brandName}`} onError={() => setLogoFailed(true)} />
-                  ) : <Store aria-hidden="true" strokeWidth={1.5} />}
-                </div>
-                <div className="dp-brand-name">
-                  <h1>{brandName}</h1>
-                </div>
+          <section className="dp-login-brand" aria-label="Firma">
+            <div className="dp-brand-top">
+              <span className="dp-brand-chip"><span className="dp-brand-chip-mark">D</span>DataPOS</span>
+              <span className="dp-brand-status"><span aria-hidden="true" />Arka gati</span>
+            </div>
+            <div className="dp-brand-identity">
+              <div className="dp-login-logo">
+                {tenant?.logo_url && !logoFailed ? (
+                  <img src={tenant.logo_url} alt={`Logo e ${brandName}`} onError={() => setLogoFailed(true)} />
+                ) : <Store aria-hidden="true" strokeWidth={1.5} />}
               </div>
-            </section>
+              <h1>{brandName}</h1>
+              <p>Sistemi i arkës · shitje, stok dhe raporte në një vend.</p>
+            </div>
+            <div className="dp-brand-clock" aria-label="Ora dhe data">
+              <strong>{now.toLocaleTimeString('sq-AL', { hour: '2-digit', minute: '2-digit', hour12: false })}</strong>
+              <span>{dateLabel}</span>
+            </div>
+          </section>
 
-            <section className="dp-login-form" aria-labelledby="dp-login-heading">
-              <div className="dp-auth-heading">
-                <h2 id="dp-login-heading">Hyni në sistem</h2>
-                <p>Zgjidhni mënyrën e hyrjes për të vazhduar.</p>
-              </div>
-              <div className="dp-auth-switch" role="group" aria-label="Mënyra e hyrjes">
-                <button type="button" aria-pressed={!showAdminLogin} disabled={loading}
-                  onClick={() => { setShowAdminLogin(false); setUsername(''); setPassword(''); setError(''); }}>
-                  <ShoppingCart aria-hidden="true" />Hyrje me PIN
-                </button>
-                <button type="button" aria-pressed={showAdminLogin} disabled={loading}
-                  onClick={() => { setShowAdminLogin(true); setError(''); }}>
-                  <User aria-hidden="true" />Administrator
-                </button>
-              </div>
+          <section className="dp-login-form" aria-labelledby="dp-login-heading">
+            <div className="dp-auth-heading">
+              <span className="dp-auth-eyebrow">Hyrja në arkë</span>
+              <h2 id="dp-login-heading">Mirë se vini</h2>
+              <p>Zgjidhni mënyrën e hyrjes për të vazhduar.</p>
+            </div>
+            <div className="dp-auth-switch" role="group" aria-label="Mënyra e hyrjes">
+              <button type="button" aria-pressed={!showAdminLogin} disabled={loading}
+                onClick={() => { setShowAdminLogin(false); setUsername(''); setPassword(''); setError(''); }}>
+                <ShoppingCart aria-hidden="true" />Arkëtar · PIN
+              </button>
+              <button type="button" aria-pressed={showAdminLogin} disabled={loading}
+                onClick={() => { setShowAdminLogin(true); setError(''); }}>
+                <User aria-hidden="true" />Administrator
+              </button>
+            </div>
 
-              {tenantLoading ? (
-                <div className="dp-auth-loading" role="status"><span className="dp-auth-spinner" />Duke ngarkuar firmën…</div>
-              ) : !showAdminLogin ? (
-                <div className="dp-auth-content">
-                  <label className="dp-auth-label" id="dp-pin-label">Kodi PIN</label>
-                  <div className="dp-pin-field" aria-labelledby="dp-pin-label">
-                    <div className={pin ? 'dp-pin-value' : 'dp-pin-placeholder'} role="status"
-                      aria-label={pin ? `Kodi PIN: ${pin.length} shifra të vendosura` : 'Vendosni kodin PIN'}>
-                      {pin ? '\u2022'.repeat(pin.length) : 'Vendosni PIN-in'}
-                    </div>
-                    <button type="button" className="dp-auth-icon-button" onClick={() => openVK('pin')}
-                      title="Hap tastierën virtuale" aria-label="Hap tastierën virtuale për PIN-in"><Keyboard aria-hidden="true" /></button>
-                  </div>
-                  <div className="dp-pin-keypad" aria-label="Tastiera numerike">
-                    {numpadButtons.map(btn => (
-                      <button type="button" key={btn} disabled={loading}
-                        className={btn === 'clear' || btn === 'delete' ? 'dp-pin-secondary' : ''}
-                        aria-label={btn === 'clear' ? 'Pastro PIN-in' : btn === 'delete' ? 'Fshi shifrën e fundit' : `Shifra ${btn}`}
-                        onClick={() => btn === 'clear' ? clearPin() : btn === 'delete' ? removeDigit() : addDigit(btn)}>
-                        {btn === 'clear' ? 'C' : btn === 'delete' ? <Delete aria-hidden="true" /> : btn}
-                      </button>
-                    ))}
-                  </div>
-                  {error && <div className="dp-auth-error" role="alert">{error}</div>}
-                  <Button className="dp-auth-primary" onClick={handlePinLogin} disabled={pin.length < 1 || loading}>
-                    {loading ? <><span className="dp-auth-spinner" />Duke u kyçur…</> : <>Hyr në POS<CornerDownLeft aria-hidden="true" /></>}
-                  </Button>
-                  <p className="dp-auth-keyboard-hint">Mund të përdorni edhe tastierën: <kbd>0–9</kbd> dhe <kbd>Enter</kbd></p>
+            {tenantLoading ? (
+              <div className="dp-auth-loading" role="status"><span className="dp-auth-spinner" />Duke ngarkuar firmën…</div>
+            ) : !showAdminLogin ? (
+              <div className="dp-auth-content">
+                <div className="dp-pin-head">
+                  <span className="dp-auth-label" id="dp-pin-label">Kodi PIN</span>
+                  <button type="button" className="dp-auth-icon-button" onClick={() => openVK('pin')}
+                    title="Hap tastierën virtuale" aria-label="Hap tastierën virtuale për PIN-in"><Keyboard aria-hidden="true" /></button>
                 </div>
-              ) : (
-                <form onSubmit={handleAdminLogin} className="dp-auth-content dp-admin-form">
-                  {lockedCompany && <div className="dp-auth-notice">Ky kompjuter është i rezervuar për <strong>{lockedCompany}</strong>.</div>}
-                  <div className="dp-auth-field">
-                    <label className="dp-auth-label" htmlFor="dp-username">Emri i përdoruesit</label>
-                    <div className="dp-auth-input-wrap">
-                      <User className="dp-auth-field-icon" aria-hidden="true" />
-                      <input id="dp-username" name="username" autoComplete="username" type="text" placeholder="Emri i përdoruesit"
-                        value={username} onChange={e => setUsername(e.target.value)} required autoFocus />
-                      <button type="button" className="dp-auth-icon-button" onClick={() => openVK('username')}
-                        title="Hap tastierën virtuale" aria-label="Hap tastierën virtuale për emrin e përdoruesit"><Keyboard aria-hidden="true" /></button>
-                    </div>
+                <div className={`dp-pin-dots${error ? ' has-error' : ''}`} role="status" aria-labelledby="dp-pin-label"
+                  aria-label={pin ? `Kodi PIN: ${pin.length} shifra të vendosura` : 'Vendosni kodin PIN'}>
+                  {Array.from({ length: 6 }).map((_, i) => <span key={i} className={i < pin.length ? 'is-filled' : ''} />)}
+                </div>
+                <div className="dp-pin-keypad" aria-label="Tastiera numerike">
+                  {numpadButtons.map(btn => (
+                    <button type="button" key={btn} disabled={loading}
+                      className={btn === 'clear' || btn === 'delete' ? 'dp-pin-secondary' : ''}
+                      aria-label={btn === 'clear' ? 'Pastro PIN-in' : btn === 'delete' ? 'Fshi shifrën e fundit' : `Shifra ${btn}`}
+                      onClick={() => btn === 'clear' ? clearPin() : btn === 'delete' ? removeDigit() : addDigit(btn)}>
+                      {btn === 'clear' ? 'C' : btn === 'delete' ? <Delete aria-hidden="true" /> : btn}
+                    </button>
+                  ))}
+                </div>
+                {error && <div className="dp-auth-error" role="alert">{error}</div>}
+                <button type="button" className="dp-auth-primary" onClick={handlePinLogin} disabled={pin.length < 1 || loading}>
+                  {loading ? <><span className="dp-auth-spinner" />Duke u kyçur…</> : <>Hyr në POS<CornerDownLeft aria-hidden="true" /></>}
+                </button>
+                <p className="dp-auth-keyboard-hint">Tastiera: <kbd>0–9</kbd> <kbd>Enter</kbd> <kbd>Esc</kbd></p>
+              </div>
+            ) : (
+              <form onSubmit={handleAdminLogin} className="dp-auth-content dp-admin-form">
+                {lockedCompany && <div className="dp-auth-notice">Ky kompjuter është i rezervuar për <strong>{lockedCompany}</strong>.</div>}
+                <div className="dp-auth-field">
+                  <label className="dp-auth-label" htmlFor="dp-username">Emri i përdoruesit</label>
+                  <div className="dp-auth-input-wrap">
+                    <User className="dp-auth-field-icon" aria-hidden="true" />
+                    <input id="dp-username" name="username" autoComplete="username" type="text" placeholder="Emri i përdoruesit"
+                      value={username} onChange={e => setUsername(e.target.value)} required autoFocus />
+                    <button type="button" className="dp-auth-icon-button" onClick={() => openVK('username')}
+                      title="Hap tastierën virtuale" aria-label="Hap tastierën virtuale për emrin e përdoruesit"><Keyboard aria-hidden="true" /></button>
                   </div>
-                  <div className="dp-auth-field">
-                    <label className="dp-auth-label" htmlFor="dp-password">Fjalëkalimi</label>
-                    <div className="dp-auth-input-wrap dp-auth-password-wrap">
-                      <Lock className="dp-auth-field-icon" aria-hidden="true" />
-                      <input id="dp-password" name="password" autoComplete="current-password" type={showPassword ? 'text' : 'password'}
-                        placeholder="Fjalëkalimi juaj" value={password} onChange={e => setPassword(e.target.value)} required />
-                      <button type="button" className="dp-auth-icon-button dp-password-toggle" onClick={() => setShowPassword(!showPassword)}
-                        aria-label={showPassword ? 'Fshih fjalëkalimin' : 'Shfaq fjalëkalimin'} aria-pressed={showPassword}>
-                        {showPassword ? <EyeOff aria-hidden="true" /> : <Eye aria-hidden="true" />}
-                      </button>
-                      <button type="button" className="dp-auth-icon-button" onClick={() => openVK('password')}
-                        title="Hap tastierën virtuale" aria-label="Hap tastierën virtuale për fjalëkalimin"><Keyboard aria-hidden="true" /></button>
-                    </div>
+                </div>
+                <div className="dp-auth-field">
+                  <label className="dp-auth-label" htmlFor="dp-password">Fjalëkalimi</label>
+                  <div className="dp-auth-input-wrap">
+                    <Lock className="dp-auth-field-icon" aria-hidden="true" />
+                    <input id="dp-password" name="password" autoComplete="current-password" type={showPassword ? 'text' : 'password'}
+                      placeholder="Fjalëkalimi juaj" value={password} onChange={e => setPassword(e.target.value)} required />
+                    <button type="button" className="dp-auth-icon-button" onClick={() => setShowPassword(!showPassword)}
+                      aria-label={showPassword ? 'Fshih fjalëkalimin' : 'Shfaq fjalëkalimin'} aria-pressed={showPassword}>
+                      {showPassword ? <EyeOff aria-hidden="true" /> : <Eye aria-hidden="true" />}
+                    </button>
+                    <button type="button" className="dp-auth-icon-button" onClick={() => openVK('password')}
+                      title="Hap tastierën virtuale" aria-label="Hap tastierën virtuale për fjalëkalimin"><Keyboard aria-hidden="true" /></button>
                   </div>
-                  {error && <div className="dp-auth-error" role="alert">{error}</div>}
-                  <Button type="submit" className="dp-auth-primary" disabled={loading}>
-                    {loading ? <><span className="dp-auth-spinner" />Duke u kyçur…</> : <>Hyr si administrator<CornerDownLeft aria-hidden="true" /></>}
-                  </Button>
-                  <p className="dp-auth-admin-help">Përdorni llogarinë e administratorit të firmës suaj.</p>
-                </form>
-              )}
-            </section>
-          </div>
+                </div>
+                {error && <div className="dp-auth-error" role="alert">{error}</div>}
+                <button type="submit" className="dp-auth-primary" disabled={loading}>
+                  {loading ? <><span className="dp-auth-spinner" />Duke u kyçur…</> : <>Hyr si administrator<CornerDownLeft aria-hidden="true" /></>}
+                </button>
+                <p className="dp-auth-admin-help">Përdorni llogarinë e administratorit të firmës suaj.</p>
+              </form>
+            )}
+            <footer className="dp-login-footer">
+              <span>© {new Date().getFullYear()} DataPOS</span>
+              <div><a href="https://www.datapos.pro" target="_blank" rel="noopener noreferrer">www.datapos.pro</a><span aria-hidden="true">·</span><a href="tel:+38345278279">+383 45 278 279</a></div>
+            </footer>
+          </section>
         </main>
-        <footer className="dp-login-footer">
-          <span>© {new Date().getFullYear()} DataPOS</span>
-          <div><a href="https://www.datapos.pro" target="_blank" rel="noopener noreferrer">www.datapos.pro</a><span aria-hidden="true">·</span><a href="tel:+38345278279">+383 45 278 279</a></div>
-        </footer>
         <PartnerStrip />
       </div>
 

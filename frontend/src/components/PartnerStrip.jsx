@@ -4,11 +4,11 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { partnerLogoUrl, phoneHref, safeSocialUrl } from '../lib/partners';
 import '../partners.css';
 
-export function PartnerLogo({ partner, preview = '' }) {
+export function PartnerLogo({ partner, preview = '', compact = false }) {
   const url = preview || partnerLogoUrl(partner);
   const [failed, setFailed] = useState(false);
   useEffect(() => { setFailed(false); }, [url]);
-  return url && !failed ? <img src={url} alt={`Logo e ${partner.name}`} loading="lazy" onError={() => setFailed(true)} /> : <span className="sp-logo-fallback">{partner.name}</span>;
+  return url && !failed ? <img src={url} alt={`Logo e ${partner.name}`} loading="lazy" onError={() => setFailed(true)} /> : <span className="sp-logo-fallback">{compact ? (partner.name || '?').split(/\s+/).filter(Boolean).slice(0, 2).map(w => w[0]).join('').toUpperCase() : partner.name}</span>;
 }
 
 export function PartnerDetails({ partner, onClose }) {
@@ -33,16 +33,51 @@ export function PartnerDetails({ partner, onClose }) {
   </Dialog>;
 }
 
+const KIND_LABEL = { sponsor: 'Sponsor', company: 'Firmë' };
+const ACCENTS = ['#1f9d93', '#ef6a4c', '#3b6fe0', '#e8a13a', '#0f766e', '#7a5af5'];
+
 export function PartnerStripView({ partners, paused, setPaused, selected, setSelected }) {
   if (!partners.length) return null;
-  return <section className={`sp-strip ${paused ? 'sp-strip-static' : ''}`} aria-label="Sponsorat dhe firmat" onBlur={event => { if (!event.currentTarget.contains(event.relatedTarget) && !selected) setPaused(false); }}>
-    <div className="sp-marquee-window">
-      <div className="sp-marquee-track" style={{'--sp-duration': `${Math.max(28, partners.length * 5)}s`}}>
-        {[0, 1].map(copy => <div className="sp-marquee-group" key={copy} aria-hidden={copy === 1 ? 'true' : undefined}>
-          {partners.map(partner => <button type="button" key={partner.id} className="sp-logo-button" tabIndex={copy === 1 ? -1 : 0}
-            aria-label={`Shfaq të dhënat e ${partner.name}`} onFocus={event => { if (!copy && event.currentTarget.matches(':focus-visible')) setPaused(true); }} onClick={() => { setSelected(partner); setPaused(true); }}>
-            <PartnerLogo partner={partner} />
-          </button>)}
+  const duration = `${Math.max(28, partners.length * 6)}s`;
+  const count = String(partners.length).padStart(2, '0');
+  return <section className={`sp-strip sp-strip-v2 ${paused ? 'sp-strip-static' : ''}`} aria-label="Sponsorat dhe firmat"
+    onBlur={event => { if (!event.currentTarget.contains(event.relatedTarget) && !selected) setPaused(false); }}>
+    <div className="sp-band">
+      <div className="sp-band-intro">
+        <span className="sp-band-kicker">DataPOS</span>
+        <strong className="sp-band-count" data-ghost={count}>{count}</strong>
+        <span className="sp-band-caption">firma &amp; sponsorë<br />punojnë me DataPOS</span>
+      </div>
+      <div className="sp-band-stage">
+        <button type="button" className="sp-pause" onClick={() => setPaused(!paused)} aria-pressed={paused}>
+          {paused ? 'Vazhdo lëvizjen' : 'Ndalo lëvizjen'}
+        </button>
+        <div className="sp-marquee-window">
+          <div className="sp-marquee-track" style={{'--sp-duration': duration}}>
+            {[0, 1].map(copy => <div className="sp-marquee-group" key={copy} aria-hidden={copy === 1 ? 'true' : undefined}>
+              {partners.map((partner, index) => <button type="button" key={partner.id} className="sp-logo-button" tabIndex={copy === 1 ? -1 : 0}
+                style={{'--sp-accent': ACCENTS[index % ACCENTS.length]}}
+                aria-label={`Shfaq të dhënat e ${partner.name}`} onFocus={event => { if (!copy && event.currentTarget.matches(':focus-visible')) setPaused(true); }} onClick={() => { setSelected(partner); setPaused(true); }}>
+                <span className="sp-logo-mark"><PartnerLogo partner={partner} compact /></span>
+                <span className="sp-logo-text">
+                  <small>{String(index + 1).padStart(2, '0')} / {KIND_LABEL[partner.kind] || 'Firmë'}</small>
+                  <strong>{partner.name}</strong>
+                </span>
+                <span className="sp-logo-arrow" aria-hidden="true">↗</span>
+              </button>)}
+            </div>)}
+          </div>
+        </div>
+      </div>
+    </div>
+    <div className="sp-ticker" aria-hidden="true">
+      <div className="sp-ticker-track" style={{'--sp-duration': duration}}>
+        {[0, 1].map(copy => <div className="sp-ticker-group" key={copy}>
+          {partners.map((partner, index) => <span className="sp-ticker-item" key={partner.id}>
+            <b style={{color: ACCENTS[index % ACCENTS.length]}}>{partner.name}</b>
+            <i />
+            {partner.address || (partner.kind === 'sponsor' ? 'Sponsor i DataPOS' : 'Punon me DataPOS')}
+          </span>)}
         </div>)}
       </div>
     </div>
