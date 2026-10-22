@@ -1954,8 +1954,9 @@ const addToCart = useCallback((product, mode = null) => {
           )}
         </div>
 
-        <div className="dp-pos-middle">
+        <div className={`dp-pos-middle ${showCatalog ? 'has-quick' : ''}`}>
         {/* Lista e shpejtë e artikujve */}
+        {showCatalog && (
         <aside className="dp-quick-list" aria-label="Artikujt">
           <div className="dp-quick-search">
             <Search className="h-4 w-4" />
@@ -1971,6 +1972,7 @@ const addToCart = useCallback((product, mode = null) => {
             {quickProducts.length === 0 && <p className="dp-quick-empty">Nuk ka artikuj</p>}
           </div>
         </aside>
+        )}
         {/* Cart Table */}
         <Card className="dp-cart-card flex-1 border border-gray-200/60 rounded-3xl shadow-sm overflow-hidden bg-white/80 backdrop-blur-md flex flex-col">
           <div className="dp-cart-scroll overflow-auto flex-1">
@@ -2115,18 +2117,6 @@ const addToCart = useCallback((product, mode = null) => {
 
       {/* Right Side - Action Buttons */}
       <aside className="dp-pos-side">
-        <div className="dp-side-head">
-          <div className="dp-side-user">
-            <span className="dp-side-avatar">{user?.full_name?.charAt(0) || 'U'}</span>
-            <span className="dp-side-name">{user?.full_name}</span>
-          </div>
-          <div className="dp-side-brand">
-            {companySettings?.logo_url ? (
-              <img src={companySettings.logo_url} alt="Logo" onError={(e) => { e.target.style.display = 'none'; }} />
-            ) : null}
-            <span>{companySettings?.company_name || 'DataPOS'}</span>
-          </div>
-        </div>
       <div className="dp-pos-actions w-full flex gap-2">
         <Button
           className="flex-1 lg:h-16 flex items-center justify-center gap-2 bg-gradient-to-br from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold shadow-lg shadow-emerald-500/25 rounded-2xl text-base"
@@ -2371,6 +2361,12 @@ const addToCart = useCallback((product, mode = null) => {
                 </button>
               </DialogHeader>
               <div className="dp-payment-scroll" tabIndex={0} aria-label="Të dhënat e pagesës">
+              {paymentMethod === 'cash' && (
+                <div className="dp-pay-change" data-positive={payChange > 0} aria-live="polite" data-testid="pay-change-banner">
+                  <span>Kusuri</span>
+                  <strong>{`\u20AC${payChange.toFixed(2)}`}</strong>
+                </div>
+              )}
               <div className="dp-pay-methods">
                 <button type="button" onClick={() => setPaymentMethod('cash')} data-testid="payment-cash-btn" className={`dp-pay-method ${paymentMethod === 'cash' ? 'is-active' : ''}`}>
                   <Banknote className="h-4 w-4" /> Cash
@@ -2381,8 +2377,8 @@ const addToCart = useCallback((product, mode = null) => {
               </div>
               {paymentMethod === 'cash' && (
                 <div className="dp-pay-input">
-                  <span className="dp-pay-input-tag">Cash</span>
-                  <input ref={cashInputRef} type="text" value={cashAmount} onChange={(e) => setCashAmount(e.target.value)} placeholder={'Sa dha klienti? (opsionale)'} inputMode="decimal" aria-label="Shuma e paguar" data-testid="cash-amount-input" />
+                  <span className="dp-pay-input-tag">PAGOJ</span>
+                  <input ref={cashInputRef} type="text" value={cashAmount} onChange={(e) => setCashAmount(e.target.value)} placeholder={'Shkruaj shum\u00EBn e paguar (opsionale)'} inputMode="decimal" aria-label="Shuma e paguar" data-testid="cash-amount-input" />
                 </div>
               )}
               <div className="dp-pay-grid">
@@ -2398,10 +2394,6 @@ const addToCart = useCallback((product, mode = null) => {
                   <div className="dp-pay-stat">
                     <dt>Bank</dt>
                     <dd>{`\u20AC${(paymentMethod === 'bank' ? (isDebt ? (parseFloat(cashAmount) || 0) : payTotal) : 0).toFixed(2)}`}</dd>
-                  </div>
-                  <div className="dp-pay-stat dp-pay-stat-change" data-positive={paymentMethod === 'cash' && payChange > 0}>
-                    <dt>Kusuri</dt>
-                    <dd>{`\u20AC${(paymentMethod === 'cash' ? payChange : 0).toFixed(2)}`}</dd>
                   </div>
                 </dl>
                 {paymentMethod === 'cash' ? (
