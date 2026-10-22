@@ -1,0 +1,128 @@
+/* ==========================================================================
+   DataPOS - dizajni i ri i arkës (ekrani kryesor + dritarja e pagesës)
+   Vetëm pamja; opsionet dhe funksionet mbeten të pandryshuara.
+   ========================================================================== */
+.dp-pos-v2 {
+  --t: #1f9d93; --t-dark: #0f766e; --t-deep: #0b5a54; --t-soft: #e8f4f2; --t-line: #cfe3df; --ink: #1d3a37; --muted: #5d7773;
+  background: linear-gradient(135deg, #d4ebe8 0%, #e6f3f1 45%, #f3faf9 100%);
+  border-radius: 20px; padding: 12px; color: var(--ink);
+}
+@media (min-width: 1024px) {
+  .dp-pos-grid.dp-pos-v2 { grid-template-columns: minmax(0, 1fr) 300px; align-items: stretch; min-height: calc(100dvh - 32px); }
+}
+.dp-pos-v2 .dp-pos-work { gap: 10px; min-height: 0; }
+
+/* Kërkimi sipër */
+.dp-pos-v2 .dp-pos-search { margin-bottom: 0 !important; flex-wrap: nowrap; }
+.dp-pos-v2 .dp-pos-search input { height: 48px; border-radius: 12px; border: 2px solid var(--t-line); background: #fff; }
+.dp-pos-v2 .dp-pos-search input:focus-visible { border-color: var(--t); box-shadow: 0 0 0 3px rgba(31,157,147,.18); }
+
+/* Rreshti i mesit: lista e artikujve + shporta */
+.dp-pos-middle { display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; flex: 1; min-height: 0; }
+@media (min-width: 900px) { .dp-pos-middle { grid-template-columns: 230px minmax(0, 1fr); } }
+
+.dp-quick-list { display: flex; flex-direction: column; gap: 8px; background: rgba(255,255,255,.6); border: 1px solid var(--t-line); border-radius: 16px; padding: 10px; min-height: 0; }
+.dp-quick-search { display: flex; align-items: center; gap: 8px; height: 40px; padding: 0 10px; background: #fff; border: 1px solid var(--t-line); border-radius: 10px; color: var(--t); }
+.dp-quick-search input { flex: 1; min-width: 0; border: 0; outline: 0; background: transparent; font-size: 14px; color: var(--ink); }
+.dp-quick-items { display: flex; flex-direction: column; gap: 6px; overflow-y: auto; max-height: clamp(240px, calc(100dvh - 330px), 720px); padding-right: 2px; }
+.dp-quick-item { display: flex; align-items: center; justify-content: space-between; gap: 8px; width: 100%; text-align: left; padding: 10px 12px; background: #fff; border: 1px solid #e2ecea; border-radius: 10px; font-size: 14px; font-weight: 600; transition: border-color .12s, box-shadow .12s; }
+.dp-quick-item:hover { border-color: var(--t); box-shadow: 0 2px 8px rgba(31,157,147,.15); }
+.dp-quick-item.is-out { opacity: .55; }
+.dp-quick-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.dp-quick-price { flex: 0 0 auto; font-size: 12px; font-weight: 700; color: var(--t-dark); font-variant-numeric: tabular-nums; }
+.dp-quick-empty { padding: 12px; text-align: center; font-size: 13px; color: var(--muted); }
+
+/* Tabela e shportës */
+.dp-pos-v2 .dp-cart-card { border: 1px solid var(--t-line) !important; border-radius: 16px !important; background: #fff !important; box-shadow: none !important; }
+.dp-pos-v2 .dp-cart-scroll { max-height: clamp(240px, calc(100dvh - 330px), 720px); }
+.dp-pos-v2 .dp-cart-scroll .dp-data-table { min-width: 960px; }
+.dp-pos-v2 .dp-cart-scroll thead th { background: var(--t-soft); color: var(--ink); font-weight: 600; }
+.dp-pos-v2 .dp-cart-scroll tbody tr:nth-child(even) { background: #f6fbfa; }
+.dp-cart-sums { display: flex; flex-wrap: wrap; gap: 6px 20px; padding: 8px 14px; border-top: 1px solid var(--t-line); background: #fff; font-size: 13px; color: var(--muted); }
+.dp-cart-sums b { color: var(--ink); font-weight: 700; }
+
+/* Rreshti i poshtëm: blerësi, komenti, totali */
+.dp-pos-bottom { display: grid; grid-template-columns: 200px minmax(0, 1fr); gap: 12px; align-items: stretch; }
+@media (min-width: 900px) { .dp-pos-bottom { grid-template-columns: 200px minmax(0, 1fr) minmax(240px, auto); } }
+.dp-buyer-card { display: flex; align-items: center; gap: 10px; text-align: left; padding: 10px 14px; background: #fff; border: 1px solid var(--t-line); border-radius: 14px; min-height: 64px; }
+.dp-buyer-icon { display: grid; place-items: center; width: 36px; height: 36px; border-radius: 50%; background: var(--t-soft); color: var(--t-dark); flex: 0 0 auto; }
+.dp-buyer-text { display: flex; flex-direction: column; min-width: 0; line-height: 1.2; }
+.dp-buyer-text small { font-size: 11px; color: var(--muted); }
+.dp-buyer-text strong { font-size: 18px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.dp-comment { min-width: 0; padding: 10px 14px; background: #fff; border: 1px solid var(--t-line); border-radius: 14px; font-size: 15px; outline: 0; }
+.dp-comment:focus { border-color: var(--t); box-shadow: 0 0 0 3px rgba(31,157,147,.16); }
+.dp-big-total { display: flex; align-items: baseline; justify-content: flex-end; gap: 8px; padding: 6px 18px; border-radius: 14px; background: rgba(255,255,255,.55); border: 1px solid var(--t-line); color: var(--t-dark); }
+.dp-big-total span { font-size: clamp(40px, 5vw, 64px); font-weight: 800; line-height: 1; font-variant-numeric: tabular-nums; letter-spacing: -1px; }
+.dp-big-total em { font-style: normal; font-size: clamp(22px, 2.4vw, 32px); font-weight: 600; color: var(--t); opacity: .7; }
+
+/* Paneli i djathtë */
+.dp-pos-side { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.dp-side-head { display: flex; flex-direction: column; gap: 10px; }
+.dp-side-user { display: flex; align-items: center; gap: 10px; padding: 8px 12px; background: #fff; border: 1px solid var(--t-line); border-radius: 14px; }
+.dp-side-avatar { display: grid; place-items: center; width: 32px; height: 32px; border-radius: 10px; background: linear-gradient(135deg, var(--t), var(--t-dark)); color: #fff; font-weight: 700; flex: 0 0 auto; }
+.dp-side-name { font-size: 14px; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.dp-side-brand { display: flex; align-items: center; justify-content: center; gap: 10px; min-height: 56px; font-size: 24px; font-weight: 800; letter-spacing: -.5px; color: var(--t-dark); }
+.dp-side-brand img { max-height: 44px; width: auto; object-fit: contain; }
+
+.dp-pos-v2 .dp-pos-actions { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; gap: 10px; }
+.dp-pos-v2 .dp-pos-actions > div { grid-column: 1 / -1; }
+.dp-pos-v2 .dp-pos-actions > button {
+  position: relative; flex-direction: column !important; gap: 6px !important; min-height: 86px; padding: 14px 6px 10px !important;
+  border-radius: 16px !important; font-size: 13px; font-weight: 600; text-align: center; line-height: 1.2;
+}
+.dp-pos-v2 .dp-pos-actions > button:not([data-testid='pos-print-btn']):not([data-testid='pos-no-vat-btn']):not([data-testid='pos-coupon-active-btn']) {
+  background: #fff !important; color: var(--ink); border: 1px solid var(--t-line) !important; box-shadow: 0 1px 2px rgba(15,70,64,.08);
+}
+.dp-pos-v2 .dp-pos-actions > button:not(:disabled):hover { border-color: var(--t) !important; box-shadow: 0 3px 10px rgba(31,157,147,.18); }
+.dp-pos-v2 .dp-pos-actions > button:disabled { opacity: .45; }
+.dp-pos-v2 .dp-pos-actions > button > svg { width: 28px; height: 28px; color: #1c2b29; }
+.dp-pos-v2 .dp-pos-actions > button > span:not(.dp-action-label) {
+  position: absolute; top: 6px; right: 9px; margin: 0 !important; padding: 0 !important; background: transparent !important;
+  font-size: 13px; font-weight: 700; color: rgba(31,157,147,.55);
+}
+.dp-pos-v2 .dp-pos-actions > button[data-testid='pos-print-btn'] { background: linear-gradient(135deg, var(--t), var(--t-dark)) !important; color: #fff; border: 0; box-shadow: 0 6px 16px rgba(15,118,110,.3); }
+.dp-pos-v2 .dp-pos-actions > button[data-testid='pos-print-btn'] > svg { color: #fff; }
+.dp-pos-v2 .dp-pos-actions > button[data-testid='pos-print-btn'] > span:not(.dp-action-label) { color: rgba(255,255,255,.7); }
+.dp-pos-v2 .dp-pos-actions > button[data-testid='pos-no-vat-btn'] { color: #fff; border: 0; }
+.dp-pos-v2 .dp-pos-actions > button[data-testid='pos-no-vat-btn'] > svg { color: #fff; }
+.dp-pos-v2 .dp-pos-actions > button[data-testid='pos-logout-btn'] > svg { color: #ef4444; }
+
+.dp-clock-tile { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 14px 10px; border-radius: 16px; color: #fff; background: linear-gradient(135deg, #1b8a82, #0b5a54); box-shadow: 0 6px 16px rgba(11,90,84,.28); }
+.dp-clock-tile strong { font-size: 40px; line-height: 1; font-weight: 700; letter-spacing: 3px; font-variant-numeric: tabular-nums; }
+.dp-clock-tile span { font-size: 13px; opacity: .85; }
+
+/* ==========================================================================
+   Dritarja e pagesës
+   ========================================================================== */
+.dp-dialog.dp-payment-dialog.dp-payment-dialog { width: min(780px, calc(var(--payment-viewport-width, 100vw) - 24px)) !important; max-width: 780px !important; background: #f4faf9 !important; border-color: var(--t-line, #cfe3df); }
+.dp-payment-dialog { --t: #1f9d93; --t-dark: #0f766e; --t-soft: #e8f4f2; --t-line: #cfe3df; --ink: #1d3a37; }
+.dp-payment-dialog .dp-payment-header, .dp-payment-dialog .dp-payment-footer { background: #f4faf9; }
+.dp-pay-methods { display: grid; grid-template-columns: 1fr 1fr; overflow: hidden; border: 1px solid var(--t-line); border-radius: 12px; background: #fff; }
+.dp-payment-scroll .dp-pay-method { min-height: 50px; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 16px; font-weight: 700; color: #4b6763; background: #fff; transition: background .12s, color .12s; }
+.dp-payment-scroll .dp-pay-method.is-active { background: var(--t); color: #fff; }
+.dp-pay-input { display: flex; overflow: hidden; border: 2px solid var(--t); border-radius: 12px; background: #fff; }
+.dp-pay-input-tag { display: flex; align-items: center; padding: 0 20px; background: var(--t); color: #fff; font-weight: 700; }
+.dp-payment-scroll .dp-pay-input input { flex: 1; min-width: 0; width: auto; height: 54px; padding: 0 16px; border: 0 !important; outline: 0; background: transparent; font-size: 24px !important; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--ink); }
+.dp-pay-input:focus-within { box-shadow: 0 0 0 3px rgba(31,157,147,.2); }
+.dp-pay-grid { display: grid; grid-template-columns: minmax(0, .85fr) minmax(0, 1.15fr); gap: 14px; align-items: stretch; }
+.dp-pay-stats { display: flex; flex-direction: column; gap: 10px; margin: 0; }
+.dp-pay-stat { padding: 10px 16px; background: var(--t-soft); border: 1px solid var(--t-line); border-radius: 12px; }
+.dp-pay-stat dt { margin: 0; font-size: 14px; color: #5d7773; }
+.dp-pay-stat dd { margin: 2px 0 0; font-size: 26px; font-weight: 700; color: var(--ink); font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.dp-pay-stat-change { flex: 1; display: flex; flex-direction: column; justify-content: center; }
+.dp-pay-stat-change dd { font-size: 36px; color: var(--t-dark); }
+.dp-pay-stat-change[data-positive='true'] { background: #dff1ea; }
+.dp-pay-keypad { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.dp-payment-scroll .dp-pay-keypad button { height: 66px; min-height: 66px; border-radius: 12px; background: #fff; border: 1px solid var(--t-line); font-size: 28px; font-weight: 500; color: #2b4a46; font-variant-numeric: tabular-nums; transition: transform .08s, background .12s; }
+.dp-payment-scroll .dp-pay-keypad button:hover { background: var(--t-soft); }
+.dp-payment-scroll .dp-pay-keypad button:active { transform: scale(.96); }
+.dp-payment-scroll .dp-pay-keypad button.is-back { display: flex; align-items: center; justify-content: center; color: #334a47; }
+.dp-pay-bank { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; padding: 20px; background: #fff; border: 1px solid var(--t-line); border-radius: 12px; color: var(--t-dark); text-align: center; }
+.dp-pay-bank p { margin: 0; font-size: 12px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; }
+.dp-pay-bank strong { font-size: 40px; font-weight: 800; color: var(--ink); font-variant-numeric: tabular-nums; }
+.dp-payment-footer [data-testid='confirm-payment-btn']:not(.bg-amber-500) { background: linear-gradient(135deg, var(--t), var(--t-dark)) !important; }
+@media (max-width: 599px) {
+  .dp-pay-grid { grid-template-columns: minmax(0, 1fr); }
+  .dp-payment-scroll .dp-pay-keypad button { height: 56px; min-height: 56px; }
+  .dp-pay-stat dd { font-size: 22px; }
+}

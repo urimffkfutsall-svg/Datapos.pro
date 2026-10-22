@@ -62,6 +62,7 @@ import {
 import InvoiceA4 from '../components/InvoiceA4';
 import ThermalReceipt from '../components/ThermalReceipt';
 import '../payment-layout.css';
+import '../pos-design.css';
 import POSProductRegistration from '../components/POSProductRegistration';
 import { usePOSSearchFocus } from '../lib/usePOSSearchFocus';
 import { calculateSaleLine, sumSaleLines, toCents } from '../lib/saleMoney';
@@ -110,6 +111,7 @@ const POS = () => {
   const [activeCategory, setActiveCategory] = useState('ALL');
   const [activeSubcategory, setActiveSubcategory] = useState('ALL');
   const [showCatalog, setShowCatalog] = useState(false); // Closed on every fresh POS entry
+  const [quickSearch, setQuickSearch] = useState('');
   const paymentViewport = usePaymentViewport(showPayment);
 
   useEffect(() => {
@@ -387,6 +389,12 @@ const POS = () => {
     });
   }, [products, activeCategory, activeSubcategory, search]);
 
+const quickProducts = React.useMemo(() => {
+  const term = quickSearch.toLowerCase().trim();
+  const list = term ? products.filter(p => (p.name || '').toLowerCase().includes(term) || (p.barcode || '').toLowerCase().includes(term)) : products;
+  return list.slice(0, 200);
+}, [products, quickSearch]);
+
 const addToCart = useCallback((product, mode = null) => {
   const isPkg = product.metadata?.is_package;
   const pkgPrice = parseFloat(product.metadata?.package_price);
@@ -484,6 +492,10 @@ const addToCart = useCallback((product, mode = null) => {
   const cartTotals = sumSaleLines(cart);
 
   const changeAmount = Math.max(0, toCents((parseFloat(cashAmount) || 0) - (cartTotals.total - (couponData?.discount_amount || 0))) / 100);
+  // Vlerat e dritares së pagesës (shuma e dhënë bosh = pagesë e saktë)
+  const payTotal = Math.max(0, toCents(cartTotals.total - (couponData?.discount_amount || 0)) / 100);
+  const payPaid = String(cashAmount).trim() === '' ? payTotal : (parseFloat(cashAmount) || 0);
+  const payChange = Math.max(0, toCents(payPaid - payTotal) / 100);
 
   // State for receipt preview
   const [showReceiptPreview, setShowReceiptPreview] = useState(false);
@@ -1062,7 +1074,8 @@ const addToCart = useCallback((product, mode = null) => {
     if (paymentInFlight.current) return;
     const total = Math.max(0, toCents(cartTotals.total - (couponData?.discount_amount || 0)) / 100);
     if (isDebt && !debtorName.trim()) { toast.error('Shkruani emrin e debitorit'); return; }
-    if (!isDebt && paymentMethod === 'cash' && (parseFloat(cashAmount) || 0) < total) {
+    // Shuma e dhënë nga klienti është opsionale: nëse lihet bosh, llogaritet saktësisht totali.
+    if (!isDebt && paymentMethod === 'cash' && String(cashAmount).trim() !== '' && (parseFloat(cashAmount) || 0) < total) {
       toast.error('Shuma e paguar është më e vogël se totali'); return;
     }
     if (!printReceipt) setConfirmSale(true);
@@ -1083,9 +1096,11 @@ const addToCart = useCallback((product, mode = null) => {
     }
 
     // Calculate paid amount and remaining debt
-    const paidAmount = parseFloat(cashAmount) || 0;
     const couponDiscount = couponData?.discount_amount || 0;
     const finalTotal = Math.max(0, toCents(cartTotals.total - couponDiscount) / 100);
+    // Nëse arkëtari nuk e shënon sa dha klienti (cash, jo borxh), konsiderohet pagesë e saktë.
+    const cashLeftBlank = !isDebt && paymentMethod === 'cash' && String(cashAmount).trim() === '';
+    const paidAmount = cashLeftBlank ? finalTotal : (parseFloat(cashAmount) || 0);
     const remainingDebt = isDebt ? Math.max(0, finalTotal - paidAmount) : 0;
     if (!isDebt && paymentMethod === 'cash' && paidAmount < finalTotal) {
       toast.error('Shuma e paguar është më e vogël se totali'); return;
@@ -1400,7 +1415,7 @@ const addToCart = useCallback((product, mode = null) => {
             F4 - Shtyp A4<br/>
             F6 - Lista e shitjeve<br/>
             {companySettings?.show_warranty_in_pos !== false && <>F7 - Garancioni<br/></>}
-            F9 - Dritarja për pagesë<br/>
+            F9 - Çkyçu nga arka<br/>
             F10 - Pagesë direkte<br/>
             F12 - Lista e artikujve<br/>
             Ctrl+1 - Zgjidh artikullin<br/>
@@ -1448,12 +1463,10 @@ const addToCart = useCallback((product, mode = null) => {
         return;
       }
       
-      // F9 - Dritarja për pagesë
-      if (e.key === 'F9' && cart.length > 0 && cashDrawer) {
+      // F9 - Çkyçu nga arka
+      if (e.key === 'F9') {
         e.preventDefault();
-        setCashAmount('');
-        setPaymentMethod('cash');
-        setShowPayment(true);
+        if (!showPayment && !e.repeat) handleLogout();
         return;
       }
       
@@ -1753,7 +1766,7 @@ const addToCart = useCallback((product, mode = null) => {
   // Full screen POS layout for cashier
   const posContent = (
     <div
-      className={`dp-pos-grid gap-3 ${responsiveClasses.container}`}
+      className={`dp-pos-grid dp-pos-v2 gap-3 ${responsiveClasses.container}`}
       data-testid="pos-page"
     >
       {/* Left Side - Product Search & Cart */}
@@ -1941,11 +1954,28 @@ const addToCart = useCallback((product, mode = null) => {
           )}
         </div>
 
+        <div className="dp-pos-middle">
+        {/* Lista e shpejtë e artikujve */}
+        <aside className="dp-quick-list" aria-label="Artikujt">
+          <div className="dp-quick-search">
+            <Search className="h-4 w-4" />
+            <input type="text" value={quickSearch} onChange={(e) => setQuickSearch(e.target.value)} placeholder="Kërko" aria-label="Kërko në listën e artikujve" data-testid="pos-quick-search" />
+          </div>
+          <div className="dp-quick-items">
+            {quickProducts.map((product) => (
+              <button key={product.id} type="button" onClick={() => addToCart(product)} className={`dp-quick-item ${!(product.current_stock > 0) ? 'is-out' : ''}`} data-testid="pos-quick-product">
+                <span className="dp-quick-name">{product.name || 'Pa emër'}</span>
+                <span className="dp-quick-price">{`\u20AC${(product.sale_price || 0).toFixed(2)}`}</span>
+              </button>
+            ))}
+            {quickProducts.length === 0 && <p className="dp-quick-empty">Nuk ka artikuj</p>}
+          </div>
+        </aside>
         {/* Cart Table */}
         <Card className="dp-cart-card flex-1 border border-gray-200/60 rounded-3xl shadow-sm overflow-hidden bg-white/80 backdrop-blur-md flex flex-col">
           <div className="dp-cart-scroll overflow-auto flex-1">
             <Table>
-              <TableHeader><TableRow><TableHead>Nr</TableHead><TableHead>Produkti</TableHead><TableHead>Sasia</TableHead><TableHead>Çmimi</TableHead><TableHead>Zbritja %</TableHead><TableHead>TVSH %</TableHead><TableHead>Çmimi me TVSH</TableHead><TableHead>Total</TableHead><TableHead>Veprime</TableHead></TableRow></TableHeader>
+              <TableHeader><TableRow><TableHead>Nr</TableHead><TableHead>Produkti</TableHead><TableHead>Sasia</TableHead><TableHead>Çmimi</TableHead><TableHead>Zbritja %</TableHead><TableHead>TVSH %</TableHead><TableHead>TVSH</TableHead><TableHead>Çmimi me TVSH</TableHead><TableHead>Total</TableHead><TableHead>Veprime</TableHead></TableRow></TableHeader>
               <TableBody>
                 {cart.length === 0 ? (
                   <TableRow>
@@ -1958,7 +1988,7 @@ const addToCart = useCallback((product, mode = null) => {
                   </TableRow>
                 ) : (
                   cart.map((item, index) => {
-                    const { subtotal, total } = calculateItemTotal(item);
+                    const { subtotal, total, vat: vatAmount } = calculateItemTotal(item);
                     const canEdit = user?.role === 'admin' || user?.role === 'manager' || user?.role === 'super_admin';
                     return (
                       <TableRow
@@ -2041,6 +2071,7 @@ const addToCart = useCallback((product, mode = null) => {
                           </div>
                         </TableCell>
                         <TableCell className="text-center text-gray-600">{item.vat_percent}</TableCell>
+                        <TableCell className="text-right text-gray-600">{`\u20AC${(vatAmount || 0).toFixed(2)}`}</TableCell>
                         <TableCell className="text-right text-gray-600">{`\u20AC${(item.unit_price * (1 - item.discount_percent / 100) * (1 + item.vat_percent / 100)).toFixed(2)}`}</TableCell>
                         <TableCell className="text-right font-bold text-gray-900">{`\u20AC${total.toFixed(2)}`}</TableCell>
                         <TableCell>
@@ -2061,24 +2092,41 @@ const addToCart = useCallback((product, mode = null) => {
             </Table>
           </div>
 
-          {/* Cart Totals */}
-          <div className="mt-auto border-t border-[#0E4B49]/15 bg-gradient-to-r from-[#0E4B49] to-[#0F5A57] p-4">
-            <div className="flex justify-between items-center gap-4 flex-wrap">
-              <div className="flex gap-5 text-sm text-white/85">
-                <span>Subtotal: <span className="font-semibold text-white">{`\u20AC${cartTotals.subtotal.toFixed(2)}`}</span></span>
-                <span>Zbritja: <span className="font-semibold text-amber-200">{`-\u20AC${cartTotals.discount.toFixed(2)}`}</span></span>
-                <span>TVSH: <span className="font-semibold text-white">{`\u20AC${cartTotals.vat.toFixed(2)}`}</span></span>
-              </div>
-              <div className="text-right">
-                <div className="text-[10px] uppercase tracking-widest text-white/70 font-semibold">Totali</div>
-                <div className="text-4xl font-extrabold text-white leading-none">{`\u20AC${Math.max(0, cartTotals.total - (couponData?.discount_amount || 0)).toFixed(2)}`}</div>
-              </div>
-            </div>
+          <div className="dp-cart-sums">
+            <span>Subtotal: <b>{`\u20AC${cartTotals.subtotal.toFixed(2)}`}</b></span>
+            <span>Zbritja: <b>{`-\u20AC${cartTotals.discount.toFixed(2)}`}</b></span>
+            <span>TVSH: <b>{`\u20AC${cartTotals.vat.toFixed(2)}`}</b></span>
           </div>
         </Card>
+        </div>
+
+        {/* Blerësi, komenti dhe totali */}
+        <div className="dp-pos-bottom">
+          <button type="button" className="dp-buyer-card" onClick={() => setShowCustomer(true)} data-testid="pos-buyer-card">
+            <span className="dp-buyer-icon"><User className="h-5 w-5" /></span>
+            <span className="dp-buyer-text"><small>Blerësi</small><strong>{customerName || '—'}</strong></span>
+          </button>
+          <input type="text" className="dp-comment" value={customerNote} onChange={(e) => setCustomerNote(e.target.value)} placeholder="Koment" aria-label="Koment" data-testid="pos-comment-input" />
+          <div className="dp-big-total" data-testid="pos-big-total">
+            <span>{Math.max(0, cartTotals.total - (couponData?.discount_amount || 0)).toFixed(2)}</span><em>€</em>
+          </div>
+        </div>
       </div>
 
       {/* Right Side - Action Buttons */}
+      <aside className="dp-pos-side">
+        <div className="dp-side-head">
+          <div className="dp-side-user">
+            <span className="dp-side-avatar">{user?.full_name?.charAt(0) || 'U'}</span>
+            <span className="dp-side-name">{user?.full_name}</span>
+          </div>
+          <div className="dp-side-brand">
+            {companySettings?.logo_url ? (
+              <img src={companySettings.logo_url} alt="Logo" onError={(e) => { e.target.style.display = 'none'; }} />
+            ) : null}
+            <span>{companySettings?.company_name || 'DataPOS'}</span>
+          </div>
+        </div>
       <div className="dp-pos-actions w-full flex gap-2">
         <Button
           className="flex-1 lg:h-16 flex items-center justify-center gap-2 bg-gradient-to-br from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold shadow-lg shadow-emerald-500/25 rounded-2xl text-base"
@@ -2283,7 +2331,22 @@ const addToCart = useCallback((product, mode = null) => {
             </span>
           </Button>
         )}
+        <Button
+          variant="outline"
+          className="flex-1 lg:h-14 flex items-center justify-center gap-2 rounded-2xl border-red-200 text-red-500 hover:bg-red-50 hover:border-red-300"
+          onClick={handleLogout}
+          data-testid="pos-logout-btn"
+        >
+          <LogOut className="h-5 w-5" strokeWidth={1.75} />
+          <span className="dp-action-label">Çkyçu</span>
+          <span className="text-xs bg-gray-100 px-1.5 py-0.5 rounded-md ml-1">F9</span>
+        </Button>
       </div>
+        <div className="dp-clock-tile" aria-label="Ora">
+          <strong>{currentTime.toLocaleTimeString('sq-AL', { hour: '2-digit', minute: '2-digit', hour12: false })}</strong>
+          <span>{currentTime.toLocaleDateString('sq-AL', { day: '2-digit', month: 'short', year: 'numeric' })}</span>
+        </div>
+      </aside>
 
       {/* Payment Dialog */}
       <Dialog open={showPayment} onOpenChange={(open) => { if (!paymentInFlight.current) { setShowPayment(open); if (!open) setConfirmSale(false); } }}>
@@ -2292,15 +2355,15 @@ const addToCart = useCallback((product, mode = null) => {
             e.preventDefault(); e.stopPropagation();
             if (!e.repeat) { if (confirmSale) handlePayment(); else requestPayment(); }
           }
-        }} className="dp-payment-dialog sm:max-w-md p-0">
+        }} className="dp-payment-dialog sm:max-w-3xl p-0">
           <div className="dp-payment-surface">
             <div className="dp-payment-layout">
               <DialogHeader className="dp-payment-header flex flex-row items-center justify-between space-y-0">
                 <div className="flex items-center gap-3">
                   <div className="h-10 w-1 rounded-full bg-[#0E4B49]"></div>
                   <div className="text-left">
-                    <DialogTitle className="text-lg font-bold text-gray-900 tracking-tight m-0">{'P\u00EBrfundimi i Pages\u00EBs'}</DialogTitle>
-                    <DialogDescription className="dp-payment-description">Zgjidh mënyrën e pagesës.</DialogDescription>
+                    <DialogTitle className="text-lg font-bold text-gray-900 tracking-tight m-0">{'Shtyp fatur\u00EBn'}</DialogTitle>
+                    <DialogDescription className="dp-payment-description">Zgjidh mënyrën e pagesës. Shuma e dhënë nga klienti është opsionale.</DialogDescription>
                   </div>
                 </div>
                 <button type="button" onClick={() => { if (!paymentInFlight.current) { setShowPayment(false); setConfirmSale(false); } }} disabled={paymentSubmitting} aria-label="Mbyll pagesën" className="h-9 w-9 rounded-xl bg-gray-100 hover:bg-gray-200 border border-gray-200 text-gray-600 hover:text-gray-900 flex items-center justify-center transition">
@@ -2308,57 +2371,56 @@ const addToCart = useCallback((product, mode = null) => {
                 </button>
               </DialogHeader>
               <div className="dp-payment-scroll" tabIndex={0} aria-label="Të dhënat e pagesës">
-              <section className="dp-payment-overview" aria-label="Përmbledhja e pagesës">
-                <div className="dp-payment-total">
-                  <div className="dp-payment-total-label">Totali për pagesë</div>
-                  <div className="dp-payment-total-value">{`\u20AC${Math.max(0, cartTotals.total - (couponData?.discount_amount || 0)).toFixed(2)}`}</div>
-                </div>
-                <dl className="dp-payment-summary" aria-label="Totali, paguar dhe kusuri">
-                  <div className="dp-payment-stat">
-                    <dt>Totali</dt>
-                    <dd className="dp-payment-stat-value">{`\u20AC${Math.max(0, cartTotals.total - (couponData?.discount_amount || 0)).toFixed(2)}`}</dd>
-                  </div>
-                  <div className="dp-payment-stat">
-                    <dt>Paguar</dt>
-                    <dd className="dp-payment-stat-value dp-payment-paid-value">{`\u20AC${(paymentMethod === 'bank' && !isDebt ? Math.max(0, cartTotals.total - (couponData?.discount_amount || 0)) : (parseFloat(cashAmount) || 0)).toFixed(2)}`}</dd>
-                  </div>
-                  <div className="dp-payment-stat dp-payment-stat-change" data-positive={paymentMethod === 'cash' && changeAmount > 0}>
-                    <dt>Kusuri</dt>
-                    <dd className="dp-payment-stat-value">{`\u20AC${(paymentMethod === 'cash' ? changeAmount : 0).toFixed(2)}`}</dd>
-                  </div>
-                </dl>
-              </section>
-              <div className="grid grid-cols-2 gap-2 p-1 rounded-2xl bg-gray-50 border border-gray-200">
-                <button type="button" onClick={() => setPaymentMethod('cash')} data-testid="payment-cash-btn" className={`relative h-11 rounded-xl flex items-center justify-center gap-2 font-semibold text-sm transition-all ${paymentMethod === 'cash' ? 'bg-[#0E4B49] text-white shadow-md shadow-[#0E4B49]/30' : 'text-gray-500 hover:text-gray-900'}`}>
+              <div className="dp-pay-methods">
+                <button type="button" onClick={() => setPaymentMethod('cash')} data-testid="payment-cash-btn" className={`dp-pay-method ${paymentMethod === 'cash' ? 'is-active' : ''}`}>
                   <Banknote className="h-4 w-4" /> Cash
                 </button>
-                <button type="button" onClick={() => setPaymentMethod('bank')} data-testid="payment-bank-btn" className={`relative h-11 rounded-xl flex items-center justify-center gap-2 font-semibold text-sm transition-all ${paymentMethod === 'bank' ? 'bg-[#0E4B49] text-white shadow-md shadow-[#0E4B49]/30' : 'text-gray-500 hover:text-gray-900'}`}>
+                <button type="button" onClick={() => setPaymentMethod('bank')} data-testid="payment-bank-btn" className={`dp-pay-method ${paymentMethod === 'bank' ? 'is-active' : ''}`}>
                   <CreditCard className="h-4 w-4" /> Bank
                 </button>
               </div>
               {paymentMethod === 'cash' && (
-                <div className="dp-payment-cash space-y-4">
-                  <div className="dp-payment-amount relative">
-                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[#0E4B49] font-bold text-lg pointer-events-none">{'\u20AC'}</span>
-                    <input ref={cashInputRef} type="text" value={cashAmount} onChange={(e) => setCashAmount(e.target.value)} placeholder={'Shkruaj shum\u00EBn e paguar...'} inputMode="decimal" aria-label="Shuma e paguar" data-testid="cash-amount-input" className="w-full h-14 pl-10 pr-4 rounded-2xl bg-white border border-gray-200 text-xl font-bold text-gray-900 tabular-nums placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#0E4B49]/40 focus:border-[#0E4B49]/40 transition" />
+                <div className="dp-pay-input">
+                  <span className="dp-pay-input-tag">Cash</span>
+                  <input ref={cashInputRef} type="text" value={cashAmount} onChange={(e) => setCashAmount(e.target.value)} placeholder={'Sa dha klienti? (opsionale)'} inputMode="decimal" aria-label="Shuma e paguar" data-testid="cash-amount-input" />
+                </div>
+              )}
+              <div className="dp-pay-grid">
+                <dl className="dp-pay-stats" aria-label="Totali, paguar dhe kusuri">
+                  <div className="dp-pay-stat">
+                    <dt>Total</dt>
+                    <dd>{`\u20AC${payTotal.toFixed(2)}`}</dd>
                   </div>
-                  <div className="dp-payment-keypad grid grid-cols-3 gap-2">
+                  <div className="dp-pay-stat">
+                    <dt>Cash</dt>
+                    <dd>{`\u20AC${(paymentMethod === 'cash' ? payPaid : 0).toFixed(2)}`}</dd>
+                  </div>
+                  <div className="dp-pay-stat">
+                    <dt>Bank</dt>
+                    <dd>{`\u20AC${(paymentMethod === 'bank' ? (isDebt ? (parseFloat(cashAmount) || 0) : payTotal) : 0).toFixed(2)}`}</dd>
+                  </div>
+                  <div className="dp-pay-stat dp-pay-stat-change" data-positive={paymentMethod === 'cash' && payChange > 0}>
+                    <dt>Kusuri</dt>
+                    <dd>{`\u20AC${(paymentMethod === 'cash' ? payChange : 0).toFixed(2)}`}</dd>
+                  </div>
+                </dl>
+                {paymentMethod === 'cash' ? (
+                  <div className="dp-pay-keypad">
                     {['7','8','9','4','5','6','1','2','3','.','0'].map((num) => (
-                      <button key={num} type="button" onClick={() => handleNumpad(num)} className="h-12 rounded-xl bg-white hover:bg-gray-50 border border-gray-200 text-gray-900 text-lg font-bold tabular-nums transition active:scale-95">{num}</button>
+                      <button key={num} type="button" onClick={() => handleNumpad(num)}>{num}</button>
                     ))}
-                    <button type="button" onClick={() => handleNumpad('backspace')} aria-label="Fshij shifrën" className="h-12 rounded-xl bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-600 transition active:scale-95 flex items-center justify-center">
-                      <Delete className="h-5 w-5" />
+                    <button type="button" onClick={() => handleNumpad('backspace')} aria-label="Fshij shifrën" className="is-back">
+                      <Delete className="h-6 w-6" />
                     </button>
                   </div>
-                </div>
-              )}
-              {paymentMethod === 'bank' && (
-                <div className="rounded-2xl bg-[#0E4B49]/8 border border-[#0E4B49]/20 p-6 text-center">
-                  <CreditCard className="h-8 w-8 mx-auto text-[#0E4B49] mb-2" />
-                  <p className="text-xs uppercase tracking-widest text-[#0E4B49] font-semibold mb-1">{'Pagesa me Kart\u00EB / Bank'}</p>
-                  <p className="text-3xl font-extrabold text-gray-900 tabular-nums">{`\u20AC${cartTotals.total.toFixed(2)}`}</p>
-                </div>
-              )}
+                ) : (
+                  <div className="dp-pay-bank">
+                    <CreditCard className="h-10 w-10" />
+                    <p>{'Pagesa me Kart\u00EB / Bank'}</p>
+                    <strong>{`\u20AC${payTotal.toFixed(2)}`}</strong>
+                  </div>
+                )}
+              </div>
               <div className="space-y-2">
                 <button type="button" onClick={() => setPrintReceipt(!printReceipt)} data-testid="print-receipt-checkbox" className={`w-full flex items-center gap-3 p-3 rounded-2xl border transition ${printReceipt ? 'bg-[#0E4B49]/10 border-[#0E4B49]/30' : 'bg-gray-50 border-gray-200 hover:bg-white'}`}>
                   <div className={`relative h-5 w-9 rounded-full transition ${printReceipt ? 'bg-[#0E4B49]' : 'bg-gray-300'}`}>
